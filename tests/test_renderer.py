@@ -3,6 +3,7 @@ import hashlib
 import numpy as np
 import pytest
 import soundfile as sf
+
 from synthwave.audio.export import export_wav
 from synthwave.audio.renderer import RenderConfig, Renderer
 from synthwave.patches.loader import PatchError

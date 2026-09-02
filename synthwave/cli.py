@@ -49,7 +49,7 @@ def play(duration: str | None = typer.Option(None, help="ex: 5m, 90s, 1h. Absent
     except Exception as e:
         typer.echo(f"audio output unavailable: {e}\n"
                    "Try: synthwave play --duration 2m --export out.wav", err=True)
-        raise typer.Exit(1)
+        raise typer.Exit(1) from e
     typer.echo("playing... Ctrl+C to stop")
     last = None
     try:

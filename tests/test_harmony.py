@@ -1,4 +1,5 @@
 import numpy as np
+
 from synthwave.composer.harmony import PROGRESSIONS, Chord, Harmony
 from synthwave.composer.moods import MOODS
 

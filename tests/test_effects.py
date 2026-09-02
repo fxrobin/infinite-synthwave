@@ -1,6 +1,15 @@
 import numpy as np
-from synthwave.engine.effects import (Chorus, Delay, GatedReverb, Limiter, Reverb, Sidechain,
-                                      build_effects, note_to_seconds)
+
+from synthwave.engine.effects import (
+    Chorus,
+    Delay,
+    GatedReverb,
+    Limiter,
+    Reverb,
+    Sidechain,
+    build_effects,
+    note_to_seconds,
+)
 
 SR = 44100
 

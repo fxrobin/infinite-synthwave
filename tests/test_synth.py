@@ -1,4 +1,5 @@
 import numpy as np
+
 from synthwave.engine.events import NoteEvent
 from synthwave.engine.synth import Synth
 from synthwave.engine.voice import Voice

@@ -1,7 +1,16 @@
 import numpy as np
+
 from synthwave.composer.harmony import Chord
-from synthwave.composer.patterns import (STEPS, gen_ambient, gen_arp, gen_bass, gen_drums,
-                                         gen_lead, gen_pad, mutate)
+from synthwave.composer.patterns import (
+    STEPS,
+    gen_ambient,
+    gen_arp,
+    gen_bass,
+    gen_drums,
+    gen_lead,
+    gen_pad,
+    mutate,
+)
 
 AM7 = Chord(9, 0, (0, 3, 7, 10))
 

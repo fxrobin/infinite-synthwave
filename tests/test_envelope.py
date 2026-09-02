@@ -1,4 +1,5 @@
 import numpy as np
+
 from synthwave.engine.envelope import ADSR
 from synthwave.engine.lfo import LFO
 

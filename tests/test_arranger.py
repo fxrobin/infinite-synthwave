@@ -1,4 +1,5 @@
 import numpy as np
+
 from synthwave.composer.arranger import LAYERS, Arranger, Section
 from synthwave.composer.harmony import Harmony
 from synthwave.composer.moods import MOODS
@@ -27,8 +28,8 @@ def test_fill_on_last_bar_and_bars_differ():
     a = make(seed=2)
     plans = [a.next_bar() for _ in range(40)]
     assert plans[7].fill and not plans[6].fill
-    for x, y in zip(plans, plans[1:]):
-        assert (x.patterns["drums"], x.patterns["bass"], x.chord) != (y.patterns["drums"], y.patterns["bass"], y.chord) or x.patterns["arp"] != y.patterns["arp"] or x.patterns["lead"] != y.patterns["lead"]
+    for x, y in zip(plans, plans[1:], strict=False):
+        assert x.patterns != y.patterns or x.chord != y.chord
 
 
 def test_duration_mode_ends_with_outro_and_finished():

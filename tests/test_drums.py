@@ -1,4 +1,5 @@
 import numpy as np
+
 from synthwave.engine.drums import DRUM_NOTES, DrumKit
 from synthwave.engine.events import NoteEvent
 from synthwave.patches.loader import load_patch

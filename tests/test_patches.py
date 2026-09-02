@@ -1,11 +1,19 @@
 import pytest
-from synthwave.patches.loader import PatchError, list_patches, load_patch, patch_from_dict, set_param
+
+from synthwave.patches.loader import (
+    PatchError,
+    list_patches,
+    load_patch,
+    patch_from_dict,
+    set_param,
+)
 from synthwave.patches.model import DrumPatchModel, PatchModel
 
 
 def test_library_lists_and_loads_all():
     names = list_patches()
-    assert {"bass_moog", "pad_juno", "arp_pluck", "lead_saw", "ambient_drone", "drums_808"} <= set(names)
+    expected = {"bass_moog", "pad_juno", "arp_pluck", "lead_saw", "ambient_drone", "drums_808"}
+    assert expected <= set(names)
     for n in names:
         p = load_patch(n)
         assert isinstance(p, (PatchModel, DrumPatchModel))

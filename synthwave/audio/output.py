@@ -43,7 +43,7 @@ class Player:
         except queue.Empty:
             outdata.fill(0)
             if self.stop_event.is_set() or (self.renderer.finished and self.queue.empty()):
-                raise sd.CallbackStop
+                raise sd.CallbackStop from None
             self.underruns += 1
 
     def start(self) -> None:

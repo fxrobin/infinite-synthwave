@@ -2,19 +2,30 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 
 import numpy as np
 
 from .harmony import Chord, Harmony
 from .moods import Mood
-from .patterns import (CRASH, HAT_C, Note, Pattern, gen_ambient, gen_arp, gen_bass, gen_drums,
-                       gen_lead, gen_pad, mutate)
+from .patterns import (
+    CRASH,
+    HAT_C,
+    Note,
+    Pattern,
+    gen_ambient,
+    gen_arp,
+    gen_bass,
+    gen_drums,
+    gen_lead,
+    gen_pad,
+    mutate,
+)
 
 LAYERS = ("drums", "bass", "arp", "pad", "lead", "ambient")
 
 
-class Section(str, Enum):
+class Section(StrEnum):
     INTRO = "intro"
     VERSE = "verse"
     CHORUS = "chorus"

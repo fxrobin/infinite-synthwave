@@ -1,6 +1,7 @@
 import pytest
-from synthwave.cli import app, parse_duration
 from typer.testing import CliRunner
+
+from synthwave.cli import app, parse_duration
 
 
 def test_parse_duration():

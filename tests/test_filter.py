@@ -1,4 +1,5 @@
 import numpy as np
+
 from synthwave.engine.filter import Filter
 
 SR = 44100

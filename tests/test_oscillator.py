@@ -1,4 +1,5 @@
 import numpy as np
+
 from synthwave.engine.oscillator import Oscillator, render_wave
 
 SR = 44100
