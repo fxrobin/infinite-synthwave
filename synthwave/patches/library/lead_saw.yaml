@@ -1,7 +1,7 @@
 name: lead_saw
 polyphony: 1
 glide: 0.05
-volume: 0.9
+volume: 1.8
 oscillators:
   - {wave: saw, unison: 4, detune: 18, level: 0.8, spread: 0.8}
   - {wave: saw, octave: -1, level: 0.35}
