@@ -1,0 +1,56 @@
+import numpy as np
+from synthwave.engine.events import NoteEvent
+from synthwave.engine.synth import Synth
+from synthwave.engine.voice import Voice
+from synthwave.patches.loader import load_patch, patch_from_dict
+
+SR = 44100
+
+
+def simple_patch(**kw):
+    d = {"name": "t", "polyphony": 2, "oscillators": [{"wave": "sine"}],
+         "amp_env": {"attack": 0.001, "decay": 0.01, "sustain": 1.0, "release": 0.01}}
+    d.update(kw)
+    return patch_from_dict(d)
+
+
+def test_voice_pitch():
+    v = Voice(simple_patch(), SR, np.random.default_rng(0))
+    v.note_on(69, 1.0)
+    sig = v.render(SR)[:, 0]
+    spec = np.abs(np.fft.rfft(sig * np.hanning(SR)))
+    assert abs(np.fft.rfftfreq(SR, 1 / SR)[np.argmax(spec)] - 440) < 2
+
+
+def test_voice_release_then_inactive():
+    v = Voice(simple_patch(), SR, np.random.default_rng(0))
+    v.note_on(60, 1.0)
+    v.render(100)
+    v.note_off()
+    v.render(SR // 10)
+    assert not v.active
+
+
+def test_synth_events_timing():
+    s = Synth(simple_patch(), SR, np.random.default_rng(0), 110)
+    out = s.render(2000, [NoteEvent(1000, 60, 1.0, True)])
+    assert np.abs(out[:1000]).max() == 0 and np.abs(out[1000:]).max() > 0.1
+
+
+def test_synth_voice_stealing_keeps_polyphony():
+    s = Synth(simple_patch(polyphony=2), SR, np.random.default_rng(0), 110)
+    evs = [NoteEvent(0, 60, 1.0, True), NoteEvent(0, 64, 1.0, True), NoteEvent(0, 67, 1.0, True)]
+    s.render(512, evs)
+    assert sum(v.active for v in s.voices) == 2
+
+
+def test_synth_with_library_patch_is_finite_and_stereo():
+    s = Synth(load_patch("pad_juno"), SR, np.random.default_rng(1), 110)
+    out = s.render(4096, [NoteEvent(0, 57, 0.8, True), NoteEvent(0, 60, 0.8, True)])
+    assert out.shape == (4096, 2) and np.isfinite(out).all() and np.abs(out).max() > 0.01
+
+
+def test_set_patch_replaces_voices():
+    s = Synth(simple_patch(), SR, np.random.default_rng(0), 110)
+    s.set_patch(load_patch("bass_moog"))
+    assert s.patch.name == "bass_moog" and len(s.voices) == 1
