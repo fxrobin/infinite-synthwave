@@ -57,7 +57,8 @@ def play(duration: str | None = typer.Option(None, help="ex: 5m, 90s, 1h. Absent
          bpm_range: str | None = typer.Option(None, help="Zone de tempo, ex. 85-100 "
                                                           "(défaut : zone du mood)"),
          seed: int | None = typer.Option(None),
-         mood: str = typer.Option("dark", help="|".join(MOODS)),
+         mood: str | None = typer.Option(None, help="|".join(MOODS) + " ; absent = tiré au "
+                                                       "hasard et changé à chaque transition"),
          export: str | None = typer.Option(None, help="Rendu hors-ligne vers un WAV"),
          blocksize: int = typer.Option(1024),
          device: str | None = typer.Option(None, help="Nom ou index du périphérique"),
@@ -71,8 +72,8 @@ def play(duration: str | None = typer.Option(None, help="ex: 5m, 90s, 1h. Absent
                                      bpm_range=rng))
     for layer, spec in (parse_fx(f) for f in fx or []):
         renderer.set_layer_effects(layer, [spec])
-    typer.echo(f"seed={renderer.seed} bpm={renderer.bpm:g} mood={mood} "
-               f"key={renderer.arranger.harmony.key_name}")
+    typer.echo(f"seed={renderer.seed} bpm={renderer.bpm:g} mood={renderer.mood.name}"
+               f"{'' if mood else ' (random)'} key={renderer.arranger.harmony.key_name}")
     if export:
         from .audio.export import export_wav
         n = export_wav(renderer, seconds, export, blocksize)
@@ -92,8 +93,8 @@ def play(duration: str | None = typer.Option(None, help="ex: 5m, 90s, 1h. Absent
     try:
         while player.running:
             st = renderer.status()
-            line = (f"[{st['section']:>6}] bar {st['bar']:>4}  {st['key']:<9} {st['chord']:<6} "
-                    f"underruns={player.underruns}")
+            line = (f"[{st['section']:>10}] bar {st['bar']:>4} {st['mood']:<7} {st['bpm']:>5} "
+                    f"{st['key']:<16} {st['chord']:<6} underruns={player.underruns}")
             if line != last:
                 typer.echo(line)
                 last = line

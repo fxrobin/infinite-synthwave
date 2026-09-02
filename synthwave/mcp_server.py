@@ -44,10 +44,11 @@ def _command(fn) -> dict:
 
 
 @mcp.tool()
-def start(mood: str = "dark", bpm: float | None = None, seed: int | None = None,
+def start(mood: str | None = None, bpm: float | None = None, seed: int | None = None,
           duration_s: float | None = None, bpm_range: list[float] | None = None) -> dict:
     """Start synthwave on the audio output (infinite unless duration_s given).
 
+    mood None: drawn at random and redrawn at every transition; a given mood is kept.
     bpm fixes the tempo; bpm_range=[low, high] bounds the random tempo drawn at start
     and at each transition (default: the mood's own range)."""
     global _player, _renderer
@@ -95,7 +96,8 @@ def set_tempo(bpm: float) -> dict:
 
 @mcp.tool()
 def set_mood(mood: str) -> dict:
-    """Change mood for upcoming sections: dark|dreamy|outrun."""
+    """Change mood at the next transition and keep it: dark|noir|dreamy|outrun.
+    'random' releases the lock so every transition draws a new mood."""
     return _command(lambda r: r.set_mood(mood))
 
 

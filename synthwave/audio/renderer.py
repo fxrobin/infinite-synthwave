@@ -29,7 +29,7 @@ DUCKED = {"pad": 1.0, "bass": 0.6, "ambient": 0.6, "arp": 0.5}
 class RenderConfig:
     sr: int = 44100
     bpm: float | None = None
-    mood: str = "dark"
+    mood: str | None = None        # None: random at start, redrawn at every transition
     seed: int | None = None
     duration_s: float | None = None
     patches: dict[str, str] = field(default_factory=dict)
@@ -38,13 +38,14 @@ class RenderConfig:
 
 class Renderer:
     def __init__(self, cfg: RenderConfig):
-        if cfg.mood not in MOODS:
+        if cfg.mood is not None and cfg.mood not in MOODS:
             raise ValueError(f"unknown mood {cfg.mood!r}, choose from {list(MOODS)}")
         self.cfg, self.sr = cfg, cfg.sr
         self.seed = (int(cfg.seed) if cfg.seed is not None
                      else int(np.random.SeedSequence().entropy % 2**31))
         self.rng = np.random.default_rng(self.seed)
-        self.mood = MOODS[cfg.mood]
+        names = list(MOODS)
+        self.mood = MOODS[cfg.mood or names[int(self.rng.integers(len(names)))]]
         if cfg.bpm_range is not None and cfg.bpm_range[0] > cfg.bpm_range[1]:
             raise ValueError("bpm_range must be (low, high)")
         lo, hi = cfg.bpm_range or self.mood.bpm_range
@@ -54,6 +55,7 @@ class Renderer:
                       if cfg.duration_s else None)
         self.arranger = Arranger(self.rng, Harmony(self.rng, self.mood), self.mood, total_bars,
                                  bpm_range=cfg.bpm_range)
+        self.arranger.mood_locked = cfg.mood is not None
         self.tracker = Tracker(self.transport, self.arranger)
         self.instruments: dict[str, Synth | DrumKit] = {}
         self.patch_names: dict[str, str] = {}
@@ -127,9 +129,12 @@ class Renderer:
         self._rebuild_inserts()
 
     def set_mood(self, name: str) -> None:
-        """Request a mood change; the arranger applies it through an ambient transition."""
+        """Request a mood change through an ambient transition; 'random' unlocks the draw."""
+        if name == "random":
+            self.arranger.set_mood(None)
+            return
         if name not in MOODS:
-            raise ValueError(f"unknown mood {name!r}, choose from {list(MOODS)}")
+            raise ValueError(f"unknown mood {name!r}, choose from {list(MOODS) + ['random']}")
         self.arranger.set_mood(MOODS[name])
 
     def set_layer(self, layer: str, mute: bool | None = None, solo: bool | None = None,
@@ -188,6 +193,7 @@ class Renderer:
         p = self.plan
         return {
             "bpm": self.bpm, "mood": self.arranger.mood.name, "seed": self.seed,
+            "mood_locked": self.arranger.mood_locked,
             "bpm_range": list(self.arranger.bpm_range or self.arranger.mood.bpm_range),
             "pending_mood": (self.arranger.pending_mood.name
                              if self.arranger.pending_mood else None),

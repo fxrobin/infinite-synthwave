@@ -35,6 +35,8 @@ Moods :
 | `dreamy` | 98–114 | mineur naturel / majeur | 7e | 4/4 | jeu par défaut |
 | `outrun` | 110–128 | mineur naturel | 7e | 4/4 dense | jeu par défaut |
 
+Sans `--mood`, le mood est tiré au hasard au démarrage et retiré à chaque transition ;
+`--mood X` le fige (en MCP, `set_mood("random")` rend la main au hasard).
 Le tempo est tiré dans la zone du mood au démarrage et redessiné à chaque transition
 (`--bpm-range 80-95` ou `bpm_range` dans l'outil MCP `start` pour imposer une zone,
 `--bpm` pour un tempo fixe). Le jeu de patches suit le mood (changé lors des transitions)
