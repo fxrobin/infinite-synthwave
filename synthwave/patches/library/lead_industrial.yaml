@@ -1,7 +1,7 @@
 name: lead_industrial
 polyphony: 2
 glide: 0.06
-volume: 1.6
+volume: 1.0
 oscillators:
   - {wave: fm, fm_ratio: 2.0, fm_index: 2.5, level: 0.6}
   - {wave: saw, unison: 2, detune: 12, level: 0.5}

@@ -292,6 +292,7 @@ Annonces arrangeur (`synthwave/composer/arranger.py:219`) : `uplifter` à J-2 du
 
 - **Sidechain** (`engine/effects.py:209`) : ducking `gain = 1 - depth*exp(-t/release)` déclenché sur chaque kick, `depth 0.45 / release 0.22 s`. Atténuation par couche : `pad 100%`, `bass 60%`, `ambient 60%`, `arp 50%`.
 - **Gains de section** : `intro drums 0.6/lead 0.0` → `verse` → `chorus full` → `break drums 0.0/lead 0.0` → `transition drums/bass/arp/lead 0.0` → `outro` avec `fade` linéaire sur 8 bars.
+- **Trim par couche** (`audio/renderer.py:26`) : `LAYER_TRIM = {"lead": 2.5}` — make-up gain statique appliqué avant mix pour compenser le niveau perçu du lead (×2.5, les autres ×1.0).
 - **Master** : `master_volume 0.7` + rampe de gain par couche (`current→target` sur un bloc) + `fade` linéaire + inserts `master` + `Limiter threshold 0.95`.
 
 ---
@@ -335,7 +336,7 @@ Markov : poids par mood, anti-répétition `×0.25` si même progression que pr�
 | `arp` | `gen_arp` | 3 modes : `up`, `updown`, `random` ; 2 octaves ; 16 doubles par bar |
 | `pad` | `gen_pad` | Tenue `STEPS` sur notes de l'accord, voicing grave si root≥6, octave ajoutée si triade |
 | `ambient` | `gen_ambient` | Tenue root + 5th (octave 3) |
-| `lead` | `gen_lead` | Grille 0 2 4 6 8 10 12 14, `2+density*3` notes, marche ≤5 demi-tons, tonique d'accord favorisée sur temps fort, legato `length 2–8` |
+| `lead` | `gen_lead` | Grille 0 2 4 6 8 10 12 14 (8 pos. paires, sans 3/11), `2+density*3` notes, marche ≤5 demi-tons, tonique d'accord favorisée sur temps fort, legato `length 2–8` ; tessiture `scale_notes(lo, lo+19)` avec `lo=55` (dark/noir) sinon `60` |
 | `riser` | `_risers` | Voir ci-dessus |
 | `mutate` | `mutate` | Drop 30%, nudge ±1 step 30%, substitution note 40%, insertion libre 50% ; utilisé basse/drums/ambient |
 
