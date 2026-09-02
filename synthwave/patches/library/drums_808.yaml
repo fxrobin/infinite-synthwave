@@ -1,8 +1,9 @@
 name: drums_808
 kind: drums
 volume: 0.5
-kick: {pitch_start: 170, pitch_end: 48, pitch_decay: 0.045, decay: 0.42, click: 0.35}
-snare: {tone: 185, tone_decay: 0.09, noise_decay: 0.2, gate_hold: 0.28, reverb_size: 0.9, reverb_mix: 0.55}
-hat: {closed_decay: 0.045, open_decay: 0.3, cutoff: 8500}
-clap: {decay: 0.22, gate_hold: 0.22, reverb_mix: 0.5}
-tom: {pitch_low: 105, pitch_mid: 150, decay: 0.32}
+kick: {pitch_start: 170, pitch_end: 48, pitch_decay: 0.045, decay: 0.42, click: 0.35, sub: 0.6, sub_decay: 0.45, drive: 2.0, gain: 1.4}
+snare: {tone: 185, tone_decay: 0.09, noise_decay: 0.2, gate_hold: 0.28, reverb_size: 0.9, reverb_mix: 0.45, gain: 0.6}
+hat: {closed_decay: 0.045, open_decay: 0.3, cutoff: 8500, gain: 0.35}
+clap: {decay: 0.22, gate_hold: 0.22, reverb_mix: 0.5, gain: 0.6}
+tom: {pitch_low: 105, pitch_mid: 150, decay: 0.32, gain: 0.8}
+crash_gain: 0.4

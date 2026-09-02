@@ -19,6 +19,7 @@ pyyaml, pydantic, mcp, typer.
 uv run synthwave play                          # infini, mood dark, Ctrl+C pour arrêter
 uv run synthwave play --duration 5m --mood outrun --bpm 118
 uv run synthwave play --duration 3m --seed 42 --export track.wav   # rendu hors-ligne
+uv run synthwave play --fx pad:gate:rate=1/16,depth=0.8 --fx master:lofi:bits=8
 uv run synthwave patches                       # patches disponibles
 uv run synthwave devices                       # périphériques audio
 uv run synthwave mcp                           # serveur MCP (stdio)
@@ -43,8 +44,13 @@ synthwave/
 ```
 
 Couches : `drums`, `bass`, `arp`, `pad`, `lead`, `ambient`. Sections : intro → verse →
-chorus → break … avec fills en fin de section, modulation de tonalité toutes les 6 sections
-et, en mode durée, un outro avec fondu.
+chorus → break → **transition** … avec fills en fin de section et, en mode durée, un outro
+avec fondu. Les transitions (4 mesures, ambient + pad seuls) portent les changements de
+tonalité, de tempo et de mood ; un `set_mood` MCP est appliqué via une transition.
+
+Effets d'insert choisis par l'arrangeur selon la section (`gate` hachure synchro tempo sur
+pad/arp en chorus, `lofi` master en intro/break, `bitcrush` sur l'arp) ; réglables à la main
+avec `--fx` ou l'outil MCP `set_layer_effects`.
 
 ## Patches YAML
 
@@ -69,10 +75,13 @@ effects:
   - {type: chorus, rate: 0.6, depth: 0.004, mix: 0.45}
   - {type: delay, time: "1/8d", feedback: 0.35, mix: 0.3, pingpong: true}
   - {type: reverb, size: 0.9, damping: 0.45, mix: 0.35, predelay: 0.03}
+  - {type: gate, rate: "1/16", depth: 0.8, duty: 0.5}          # hachure synchro tempo
+  - {type: bitcrush, bits: 8, downsample: 4, mix: 0.5}
+  - {type: lofi, bits: 10, downsample: 3, cutoff: 4000, wobble: 0.003, noise: 0.005}
 ```
 
-Patch batterie (`kind: drums`) : paramètres `kick`, `snare` (gated reverb), `hat`, `clap`,
-`tom`. Voir `drums_808.yaml`.
+Patch batterie (`kind: drums`) : `kick` (pitch, `sub`, `drive` saturation, `gain`), `snare`
+(gated reverb, `gain`), `hat`, `clap`, `tom`, `crash_gain`. Voir `drums_808.yaml`.
 
 ## MCP
 
@@ -88,6 +97,7 @@ Patch batterie (`kind: drums`) : paramètres `kick`, `snare` (gated reverb), `ha
 | `set_layer(layer, mute, solo, volume)` | mixage par couche |
 | `list_patches()` / `load_patch(layer, name)` | patches |
 | `set_patch_param(layer, path, value)` | ex. `filter.cutoff` 800 |
+| `set_layer_effects(layer, effects)` | inserts manuels, `layer` ou `master`, `None` = auto |
 | `next_section()` | passe à la section suivante |
 | `export_wav(path, seconds, mood, bpm, seed)` | rendu hors-ligne |
 

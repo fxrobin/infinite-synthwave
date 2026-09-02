@@ -4,6 +4,7 @@ from __future__ import annotations
 import numpy as np
 from scipy.signal import lfilter
 
+from .filter import Filter
 from .lfo import LFO
 
 
@@ -226,8 +227,73 @@ class Sidechain:
         return g
 
 
+class Gate(Effect):
+    """Tempo-synced trance gate / stutter: rate '1/16', duty cycle, depth, smoothed edges."""
+
+    def __init__(self, sr: int, bpm: float, rate: float | str = "1/16", depth: float = 1.0,
+                 duty: float = 0.5, smooth: float = 0.002):
+        self.period = max(2.0, note_to_seconds(rate, bpm) * sr)
+        self.depth, self.duty = float(np.clip(depth, 0, 1)), float(np.clip(duty, 0.05, 0.95))
+        self.coef = float(np.exp(-1.0 / max(1.0, smooth * sr)))
+        self.pos, self.prev = 0.0, 1.0
+
+    def process(self, x: np.ndarray) -> np.ndarray:
+        n = len(x)
+        t = (self.pos + np.arange(n)) % self.period
+        g = np.where(t < self.duty * self.period, 1.0, 1.0 - self.depth)
+        g, _ = lfilter([1 - self.coef], [1, -self.coef], g, zi=[self.coef * self.prev])
+        self.prev = float(g[-1])
+        self.pos = (self.pos + n) % self.period
+        return (x * g[:, None]).astype(np.float32)
+
+
+class Bitcrush(Effect):
+    """Bit-depth reduction + sample-and-hold downsampling."""
+
+    def __init__(self, sr: int, bpm: float, bits: float = 8, downsample: int = 4,
+                 mix: float = 1.0):
+        self.levels = 2.0 ** (float(np.clip(bits, 2, 16)) - 1)
+        self.k = max(1, int(downsample))
+        self.mix = mix
+        self.phase = 0
+        self.hold = np.zeros(2)
+
+    def process(self, x: np.ndarray) -> np.ndarray:
+        n = len(x)
+        idx = np.arange(n) + self.phase
+        src = (idx // self.k) * self.k - self.phase
+        y = x[np.maximum(src, 0)].astype(np.float64)
+        y[src < 0] = self.hold
+        self.hold = y[-1].copy()
+        self.phase = (self.phase + n) % self.k
+        y = np.round(y * self.levels) / self.levels
+        return (x * (1 - self.mix) + y * self.mix).astype(np.float32)
+
+
+class LoFi(Effect):
+    """Lo-fi chain: bitcrush -> lowpass -> tape wobble -> hiss."""
+
+    def __init__(self, sr: int, bpm: float, bits: float = 10, downsample: int = 3,
+                 cutoff: float = 5000, wobble: float = 0.002, noise: float = 0.004,
+                 mix: float = 1.0):
+        self.crush = Bitcrush(sr, bpm, bits, downsample)
+        self.lp, self.cutoff = Filter("lp", sr), cutoff
+        self.wob = Chorus(sr, bpm, rate=0.4, depth=wobble, mix=1.0)
+        self.noise, self.mix = noise, mix
+        self.rng = np.random.default_rng(1234)
+
+    def process(self, x: np.ndarray) -> np.ndarray:
+        y = self.crush.process(x)
+        y = self.lp.process(y, self.cutoff, 0.1)
+        y = self.wob.process(y)
+        if self.noise:
+            y = y + self.noise * self.rng.normal(size=y.shape).astype(np.float32)
+        return (x * (1 - self.mix) + y * self.mix).astype(np.float32)
+
+
 _REGISTRY = {"chorus": Chorus, "delay": Delay, "reverb": Reverb,
-             "gated_reverb": GatedReverb, "limiter": Limiter}
+             "gated_reverb": GatedReverb, "limiter": Limiter,
+             "gate": Gate, "bitcrush": Bitcrush, "lofi": LoFi}
 
 
 def build_effects(specs: list[dict], sr: int, bpm: float) -> list[Effect]:

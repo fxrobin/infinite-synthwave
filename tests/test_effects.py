@@ -84,3 +84,33 @@ def test_limiter_bounds_output():
 def test_build_effects_registry():
     fx = build_effects([{"type": "chorus"}, {"type": "delay", "time": "1/4"}], SR, 110)
     assert len(fx) == 2 and isinstance(fx[0], Chorus)
+
+
+def test_gate_chops_at_tempo():
+    from synthwave.engine.effects import Gate
+    g = Gate(SR, 120, rate="1/16", depth=1.0, duty=0.5, smooth=0.0001)
+    x = np.ones((SR // 2, 2), np.float32)
+    y = g.process(x)[:, 0]
+    period = int(0.125 * SR)          # 1/16 at 120 BPM
+    assert y[period // 4] > 0.9 and y[3 * period // 4] < 0.1
+    assert y[period + period // 4] > 0.9 and y[period + 3 * period // 4] < 0.1
+
+
+def test_bitcrush_quantises_and_holds():
+    from synthwave.engine.effects import Bitcrush
+    b = Bitcrush(SR, 120, bits=3, downsample=4)
+    x = np.linspace(-1, 1, 64, dtype=np.float32)[:, None].repeat(2, axis=1)
+    y = b.process(x)[:, 0]
+    assert len(np.unique(y)) <= 9 and np.all(y[:4] == y[0]) and np.all(y[4:8] == y[4])
+    b2 = Bitcrush(SR, 120, bits=3, downsample=4)
+    parts = np.concatenate([b2.process(x[:6]), b2.process(x[6:])])[:, 0]
+    assert np.array_equal(parts, y)
+
+
+def test_lofi_is_finite_and_darker():
+    from synthwave.engine.effects import LoFi
+    x = np.random.default_rng(0).normal(size=(SR, 2)).astype(np.float32) * 0.2
+    y = LoFi(SR, 120, cutoff=2000, noise=0.0).process(x)
+    assert np.isfinite(y).all()
+    hf = lambda s: np.abs(np.fft.rfft(s[:, 0]))[int(len(s) * 8000 / SR):].sum()  # noqa: E731
+    assert hf(y) < hf(x) * 0.2

@@ -43,7 +43,8 @@ class LfoSpec(BaseModel):
 
 class EffectSpec(BaseModel):
     model_config = ConfigDict(extra="allow")
-    type: Literal["chorus", "delay", "reverb", "gated_reverb", "limiter"]
+    type: Literal["chorus", "delay", "reverb", "gated_reverb", "limiter", "gate", "bitcrush",
+                  "lofi"]
 
 
 class PatchModel(BaseModel):
@@ -65,6 +66,10 @@ class KickSpec(BaseModel):
     pitch_decay: float = 0.05
     decay: float = 0.4
     click: float = 0.3
+    sub: float = 0.6          # sub-sine layer level at pitch_end
+    sub_decay: float = 0.45
+    drive: float = 2.0        # tanh saturation
+    gain: float = 1.4
 
 
 class SnareSpec(BaseModel):
@@ -73,25 +78,29 @@ class SnareSpec(BaseModel):
     noise_decay: float = 0.18
     gate_hold: float = 0.25
     reverb_size: float = 0.85
-    reverb_mix: float = 0.5
+    reverb_mix: float = 0.45
+    gain: float = 0.6
 
 
 class HatSpec(BaseModel):
     closed_decay: float = 0.05
     open_decay: float = 0.35
     cutoff: float = 8000.0
+    gain: float = 0.35
 
 
 class ClapSpec(BaseModel):
     decay: float = 0.25
     gate_hold: float = 0.2
     reverb_mix: float = 0.5
+    gain: float = 0.6
 
 
 class TomSpec(BaseModel):
     pitch_low: float = 110.0
     pitch_mid: float = 160.0
     decay: float = 0.3
+    gain: float = 0.8
 
 
 class DrumPatchModel(BaseModel):
@@ -103,6 +112,7 @@ class DrumPatchModel(BaseModel):
     hat: HatSpec = HatSpec()
     clap: ClapSpec = ClapSpec()
     tom: TomSpec = TomSpec()
+    crash_gain: float = 0.4
 
 
 AnyPatch = PatchModel | DrumPatchModel

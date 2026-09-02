@@ -11,7 +11,7 @@ from ..composer.arranger import LAYERS, Arranger, BarPlan
 from ..composer.harmony import Harmony
 from ..composer.moods import MOODS
 from ..engine.drums import DrumKit
-from ..engine.effects import Limiter, Sidechain
+from ..engine.effects import Effect, Limiter, Sidechain, build_effects
 from ..engine.synth import Synth
 from ..patches.loader import PatchError, load_patch, set_param
 from ..patches.model import DrumPatchModel, PatchModel
@@ -20,7 +20,7 @@ from ..sequencer.transport import Transport
 
 DEFAULT_PATCHES = {"drums": "drums_808", "bass": "bass_moog", "arp": "arp_pluck",
                    "pad": "pad_juno", "lead": "lead_saw", "ambient": "ambient_drone"}
-DUCKED = {"pad": 1.0, "bass": 1.0, "ambient": 0.6, "arp": 0.5}
+DUCKED = {"pad": 1.0, "bass": 0.6, "ambient": 0.6, "arp": 0.5}
 
 
 @dataclass
@@ -60,12 +60,15 @@ class Renderer:
         self.current_gain = {layer: 0.0 for layer in LAYERS}
         self.sidechain = Sidechain(self.sr, depth=0.45, release=0.22)
         self.limiter = Limiter(self.sr, self.bpm, threshold=0.95)
-        self.master_volume = 0.8
+        self.master_volume = 0.7
         self.fade_target, self.fade, self.fade_rate = 1.0, 1.0, 0.0
         self.commands: queue.SimpleQueue = queue.SimpleQueue()
         self.plan: BarPlan | None = None
         self.finished = False
         self.rendered = 0
+        self.auto_fx: dict[str, list[dict]] = {}
+        self.manual_fx: dict[str, list[dict]] = {}
+        self.inserts: dict[str, list[Effect]] = {}
 
     # ----- instruments -----
     def _install(self, layer: str, name: str, patch) -> None:
@@ -107,12 +110,13 @@ class Renderer:
         self.transport.set_bpm(self.bpm)
         for inst in self.instruments.values():
             inst.set_bpm(self.bpm)
+        self._rebuild_inserts()
 
     def set_mood(self, name: str) -> None:
+        """Request a mood change; the arranger applies it through an ambient transition."""
         if name not in MOODS:
             raise ValueError(f"unknown mood {name!r}, choose from {list(MOODS)}")
-        self.mood = MOODS[name]
-        self.arranger.set_mood(self.mood)
+        self.arranger.set_mood(MOODS[name])
 
     def set_layer(self, layer: str, mute: bool | None = None, solo: bool | None = None,
                   volume: float | None = None) -> None:
@@ -139,14 +143,36 @@ class Renderer:
     def next_section(self) -> None:
         self.arranger.force_next_section()
 
+    def set_layer_effects(self, layer: str, specs: list[dict] | None) -> None:
+        """Manual insert chain for a layer or 'master'; None restores the arranger's choice."""
+        if layer not in LAYERS and layer != "master":
+            raise ValueError(f"unknown layer {layer!r}, choose from {LAYERS + ('master',)}")
+        if specs is None:
+            self.manual_fx.pop(layer, None)
+        else:
+            build_effects(specs, self.sr, self.bpm)  # validate before committing
+            self.manual_fx[layer] = list(specs)
+        self._rebuild_inserts()
+
+    def _rebuild_inserts(self) -> None:
+        self.inserts = {}
+        for layer in LAYERS + ("master",):
+            specs = self.manual_fx.get(layer, self.auto_fx.get(layer, []))
+            if specs:
+                self.inserts[layer] = build_effects(specs, self.sr, self.bpm)
+
     def status(self) -> dict:
         p = self.plan
         return {
-            "bpm": self.bpm, "mood": self.mood.name, "seed": self.seed,
+            "bpm": self.bpm, "mood": self.arranger.mood.name, "seed": self.seed,
+            "pending_mood": (self.arranger.pending_mood.name
+                             if self.arranger.pending_mood else None),
             "bar": p.bar if p else 0, "section": p.section.value if p else "intro",
             "chord": p.chord.name if p else "",
             "key": p.key if p else self.arranger.harmony.key_name,
             "elapsed_s": round(self.rendered / self.sr, 1), "finished": self.finished,
+            "effects": {layer: self.manual_fx.get(layer, self.auto_fx.get(layer, []))
+                        for layer in LAYERS + ("master",)},
             "layers": {layer: {"gain": round(self._effective_gain(layer), 3),
                                "muted": layer in self.muted, "solo": layer in self.solo,
                                "volume": self.layer_volume[layer],
@@ -170,6 +196,14 @@ class Renderer:
             self.fade_rate = (plan.fade - self.fade) / bar
             if plan.finished:
                 self.finished = True
+            if plan.mood:
+                self.mood = MOODS[plan.mood]
+            if plan.bpm and abs(plan.bpm - self.bpm) > 0.05:
+                self.set_tempo(plan.bpm)
+            new_fx = plan.fx or {}
+            if new_fx != self.auto_fx:
+                self.auto_fx = dict(new_fx)
+                self._rebuild_inserts()
         kicks = [e.offset for e in events["drums"] if e.on and e.note == 36]
         duck = self.sidechain.gain(n, kicks)
         mix = np.zeros((n, 2), dtype=np.float32)
@@ -177,6 +211,8 @@ class Renderer:
             target = self._effective_gain(layer)
             g0 = self.current_gain[layer]
             sig = self.instruments[layer].render(n, events[layer])
+            for fx in self.inserts.get(layer, ()):
+                sig = fx.process(sig)
             if layer in DUCKED:
                 sig = sig * (1.0 - DUCKED[layer] * (1.0 - duck))[:, None]
             ramp = np.linspace(g0, target, n, endpoint=False, dtype=np.float32)
@@ -186,6 +222,8 @@ class Renderer:
         fade = np.maximum(fade, self.fade_target) if self.fade_rate < 0 else np.minimum(
             fade, self.fade_target)
         self.fade = float(fade[-1])
+        for fx in self.inserts.get("master", ()):
+            mix = fx.process(mix)
         mix *= (self.master_volume * fade)[:, None]
         self.rendered += n
         return self.limiter.process(mix)

@@ -16,7 +16,7 @@ def test_all_samples_exist_finite_and_normalised():
     for name in DRUM_NOTES:
         s = k.samples[name]
         assert s.ndim == 2 and s.shape[1] == 2 and np.isfinite(s).all()
-        assert 0.25 < np.abs(s).max() <= 1.0
+        assert 0.25 < np.abs(s).max() <= 1.5
 
 
 def test_kick_is_low_frequency():
@@ -37,3 +37,13 @@ def test_note_off_is_ignored():
     k = kit()
     out = k.render(512, [NoteEvent(0, 38, 1.0, False)])
     assert np.abs(out).max() == 0
+
+
+def test_kick_has_strong_sub_energy():
+    s = kit().samples["kick"][:, 0]
+    spec = np.abs(np.fft.rfft(s)) ** 2
+    f = np.fft.rfftfreq(len(s), 1 / SR)
+    low, rest = spec[f < 100].sum(), spec[f >= 100].sum()
+    assert low > rest * 3
+    assert np.abs(s).max() > 1.2  # kick gain above unity, louder than the snare
+    assert np.abs(kit().samples["snare"]).max() < 0.7

@@ -52,3 +52,34 @@ def test_deterministic_by_seed():
     a, b = make(seed=9), make(seed=9)
     for _ in range(30):
         assert a.next_bar() == b.next_bar()
+
+
+def test_sections_carry_effect_specs():
+    a = make(seed=4)
+    plans = [a.next_bar() for _ in range(160)]
+    used = {k for p in plans if p.fx for k in p.fx}
+    kinds = {e["type"] for p in plans if p.fx for specs in p.fx.values() for e in specs}
+    assert used & {"pad", "master", "arp"} and kinds & {"gate", "lofi", "bitcrush"}
+
+
+def test_transition_is_ambient_only_and_applies_mood():
+    a = make(seed=1, mood="dark")
+    a.next_bar()
+    a.set_mood(MOODS["outrun"])
+    plans = [a.next_bar() for _ in range(12)]
+    t = [p for p in plans if p.section == Section.TRANSITION]
+    assert t and t[0].section_bar == 0 and t[0].mood == "outrun" and t[0].bpm
+    assert 110 < t[0].bpm < 126 and len(t) == 4
+    for p in t:
+        assert p.gains["drums"] == 0 and p.gains["bass"] == 0 and p.gains["ambient"] == 1.0
+        assert p.patterns["drums"] == []
+    after = plans[plans.index(t[-1]) + 1]
+    assert after.section in (Section.VERSE, Section.CHORUS) and a.mood.name == "outrun"
+
+
+def test_transitions_occur_naturally_and_change_key():
+    a = make(seed=11)
+    plans = [a.next_bar() for _ in range(400)]
+    trans = [p for p in plans if p.section == Section.TRANSITION]
+    assert len(trans) >= 3
+    assert len({p.key for p in plans}) >= 2

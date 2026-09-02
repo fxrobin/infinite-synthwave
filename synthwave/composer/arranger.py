@@ -7,7 +7,7 @@ from enum import StrEnum
 import numpy as np
 
 from .harmony import Chord, Harmony
-from .moods import Mood
+from .moods import MOODS, Mood
 from .patterns import (
     CRASH,
     HAT_C,
@@ -30,20 +30,23 @@ class Section(StrEnum):
     VERSE = "verse"
     CHORUS = "chorus"
     BREAK = "break"
+    TRANSITION = "transition"
     OUTRO = "outro"
 
 
 SECTION_BARS = {Section.INTRO: 8, Section.VERSE: 16, Section.CHORUS: 16, Section.BREAK: 8,
-                Section.OUTRO: 8}
+                Section.TRANSITION: 4, Section.OUTRO: 8}
 _NEXT = {Section.INTRO: [Section.VERSE],
          Section.VERSE: [Section.CHORUS, Section.CHORUS, Section.BREAK],
          Section.CHORUS: [Section.VERSE, Section.BREAK, Section.CHORUS],
-         Section.BREAK: [Section.CHORUS, Section.CHORUS, Section.VERSE]}
+         Section.BREAK: [Section.CHORUS, Section.CHORUS, Section.VERSE],
+         Section.TRANSITION: [Section.VERSE, Section.CHORUS]}
 _GAINS = {
     Section.INTRO: dict(drums=0.6, bass=0.8, arp=0.6, pad=1.0, lead=0.0, ambient=1.0),
     Section.VERSE: dict(drums=1.0, bass=1.0, arp=0.85, pad=0.9, lead=0.35, ambient=0.7),
     Section.CHORUS: dict(drums=1.0, bass=1.0, arp=1.0, pad=1.0, lead=1.0, ambient=0.5),
     Section.BREAK: dict(drums=0.0, bass=0.6, arp=0.7, pad=1.0, lead=0.0, ambient=1.0),
+    Section.TRANSITION: dict(drums=0.0, bass=0.0, arp=0.0, pad=0.5, lead=0.0, ambient=1.0),
     Section.OUTRO: dict(drums=0.7, bass=0.8, arp=0.5, pad=1.0, lead=0.0, ambient=1.0),
 }
 
@@ -60,6 +63,9 @@ class BarPlan:
     fade: float = 1.0
     finished: bool = False
     key: str = ""
+    fx: dict[str, list[dict]] | None = None   # layer (or "master") -> effect specs
+    bpm: float | None = None                  # tempo change requested at this bar
+    mood: str | None = None                   # mood in force from this bar
 
 
 class Arranger:
@@ -72,11 +78,17 @@ class Arranger:
         self.progression = harmony.next_progression()
         self.finished = False
         self.prev_patterns: dict[str, Pattern] | None = None
+        self.pending_mood: Mood | None = None
+        self.transition_requested = False
+        self.bar_bpm: float | None = None
+        self.mood_changed = False
         self._new_styles()
 
     def set_mood(self, mood: Mood) -> None:
-        self.mood = mood
-        self.harmony.set_mood(mood)
+        """Schedule a mood change: applied at the start of the next transition section."""
+        if mood != self.mood:
+            self.pending_mood = mood
+            self.transition_requested = True
 
     def force_next_section(self) -> None:
         self.section_bar = self.section_len
@@ -90,22 +102,74 @@ class Arranger:
         self.arp_mode = str(r.choice(["up", "updown", "random"], p=[0.45, 0.4, 0.15]))
         self.arp_on = self.section == Section.CHORUS or r.random() < self.mood.arp_prob
         self.drums_base = gen_drums(r, self._density(), snare=self.section != Section.INTRO)
+        self.fx = self._section_fx()
+
+    def _section_fx(self) -> dict[str, list[dict]]:
+        r, fx = self.rng, {}
+        energy = self.mood.drum_density
+        if self.section == Section.CHORUS:
+            if r.random() < 0.35 + 0.4 * energy:
+                fx["pad"] = [{"type": "gate", "rate": str(r.choice(["1/16", "1/8", "1/32"])),
+                              "depth": 0.85, "duty": 0.5}]
+            if r.random() < 0.3:
+                fx["arp"] = [{"type": "bitcrush", "bits": 8, "downsample": 2, "mix": 0.5}]
+        elif self.section == Section.BREAK:
+            if r.random() < 0.6:
+                fx["master"] = [{"type": "lofi", "bits": 10, "downsample": 3, "cutoff": 3500,
+                                 "wobble": 0.003, "noise": 0.006}]
+            elif r.random() < 0.5:
+                fx["pad"] = [{"type": "gate", "rate": "1/8", "depth": 0.6, "duty": 0.5}]
+        elif self.section == Section.INTRO:
+            if r.random() < 0.5:
+                fx["master"] = [{"type": "lofi", "bits": 11, "downsample": 2, "cutoff": 3000,
+                                 "wobble": 0.002, "noise": 0.004, "mix": 0.85}]
+        elif self.section == Section.VERSE and r.random() < 0.25:
+            fx["arp"] = [{"type": "gate", "rate": "1/32", "depth": 0.5, "duty": 0.5}]
+        return fx
 
     def _outro_due(self) -> bool:
         return (self.total_bars is not None
                 and self.bar >= self.total_bars - SECTION_BARS[Section.OUTRO])
 
+    def _transition_due(self) -> bool:
+        if self.section == Section.TRANSITION:
+            return False
+        if self.transition_requested:
+            return True
+        if self.section == Section.INTRO:
+            return False
+        return (self.sections_done % 6 == 0
+                or (self.sections_done >= 3 and self.rng.random() < 0.25))
+
+    def _enter_transition(self) -> None:
+        """Ambient-only bars carrying the key / tempo / mood changes."""
+        self.transition_requested = False
+        new_mood = self.pending_mood
+        self.pending_mood = None
+        if new_mood is None and self.rng.random() < 0.35:
+            others = [m for m in MOODS.values() if m is not self.mood]
+            new_mood = others[int(self.rng.integers(len(others)))]
+        if new_mood is not None:
+            self.mood = new_mood
+            self.harmony.set_mood(new_mood)
+            self.bar_bpm = round(float(new_mood.bpm * self.rng.uniform(0.97, 1.03)), 1)
+            self.mood_changed = True
+        if self.rng.random() < 0.7:
+            self.harmony.modulate()
+        self.progression = self.harmony.next_progression()
+
     def _start_section(self) -> None:
         self.sections_done += 1
         if self._outro_due():
             self.section = Section.OUTRO
+        elif self._transition_due():
+            self.section = Section.TRANSITION
+            self._enter_transition()
         else:
             self.section = Section(self.rng.choice([s.value for s in _NEXT[self.section]]))
+            if self.rng.random() < 0.5:
+                self.progression = self.harmony.next_progression()
         self.section_bar, self.section_len = 0, SECTION_BARS[self.section]
-        if self.sections_done % 6 == 0:
-            self.harmony.modulate()
-        if self.rng.random() < 0.6 or self.sections_done % 6 == 0:
-            self.progression = self.harmony.next_progression()
         self._new_styles()
 
     def _silence(self) -> BarPlan:
@@ -127,7 +191,9 @@ class Arranger:
         last = self.section_bar == self.section_len - 1
         first = self.section_bar == 0
         density = self._density()
-        if last and self.section != Section.OUTRO:
+        if self.section == Section.TRANSITION:
+            drums = []
+        elif last and self.section != Section.OUTRO:
             drums = gen_drums(r, density, fill=True, snare=self.section != Section.INTRO)
         else:
             if self.section_bar % 4 == 0 and not first:
@@ -160,7 +226,9 @@ class Arranger:
         self.prev_patterns = patterns
         fade = 1.0 - self.section_bar / self.section_len if self.section == Section.OUTRO else 1.0
         plan = BarPlan(self.bar, self.section, self.section_bar, chord, patterns, gains,
-                       fill=last, fade=fade, key=self.harmony.key_name)
+                       fill=last, fade=fade, key=self.harmony.key_name, fx=self.fx,
+                       bpm=self.bar_bpm, mood=self.mood.name if self.mood_changed else None)
+        self.bar_bpm, self.mood_changed = None, False
         self.bar += 1
         self.section_bar += 1
         return plan

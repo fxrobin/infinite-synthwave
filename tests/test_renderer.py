@@ -51,9 +51,11 @@ def test_commands_and_status():
     assert st["layers"]["bass"]["patch"] == "lead_saw" and st["section"] == "intro"
     assert st["seed"] == 5
     r.set_mood("dreamy")
-    r.next_section()
-    r.render(1024)
-    assert r.status()["mood"] == "dreamy"
+    assert r.status()["pending_mood"] == "dreamy"
+    bars = int(16 * r.transport.samples_per_step)
+    for _ in range(9 * bars // 4096 + 2):      # intro (8 bars) then the transition
+        r.render(4096)
+    assert r.status()["mood"] == "dreamy" and r.status()["section"] == "transition"
 
 
 def test_bad_patch_keeps_state():
@@ -73,3 +75,18 @@ def test_export_wav(tmp_path):
     n = export_wav(r, 4, str(out))
     data, sr = sf.read(str(out))
     assert sr == 44100 and len(data) == n and data.shape[1] == 2 and n >= 4 * 44100
+
+
+def test_layer_effects_manual_and_auto():
+    r = Renderer(RenderConfig(seed=5))
+    r.set_layer_effects("pad", [{"type": "gate", "rate": "1/16"}])
+    r.set_layer_effects("master", [{"type": "lofi", "bits": 8}])
+    r.render(2048)
+    st = r.status()["effects"]
+    assert st["pad"][0]["type"] == "gate" and st["master"][0]["type"] == "lofi"
+    assert "pad" in r.inserts and "master" in r.inserts
+    with pytest.raises(KeyError):
+        r.set_layer_effects("pad", [{"type": "nope"}])
+    assert r.status()["effects"]["pad"][0]["type"] == "gate"
+    r.set_layer_effects("pad", None)
+    assert r.status()["effects"]["pad"] == []

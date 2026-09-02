@@ -121,6 +121,13 @@ def set_patch_param(layer: str, path: str, value: float | str) -> dict:
 
 
 @mcp.tool()
+def set_layer_effects(layer: str, effects: list[dict] | None = None) -> dict:
+    """Manual insert effects for a layer or 'master', e.g. [{"type":"gate","rate":"1/16"}],
+    [{"type":"lofi","bits":8}], [{"type":"bitcrush","bits":6,"downsample":4}]. None = auto."""
+    return _command(lambda r: r.set_layer_effects(layer, effects))
+
+
+@mcp.tool()
 def next_section() -> dict:
     """Jump to the next section at the next bar."""
     return _command(lambda r: r.next_section())

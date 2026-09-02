@@ -11,6 +11,8 @@ from .patches.loader import list_patches
 
 app = typer.Typer(help="Infinite procedural synthwave generator.", no_args_is_help=True)
 _DUR = re.compile(r"^(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s?)?$")
+FX_OPTION = typer.Option(None, help="Insert manuel: layer:type[:k=v,...] "
+                               "ex. pad:gate:rate=1/16 master:lofi:bits=8")
 
 
 def parse_duration(text: str) -> float:
@@ -21,6 +23,24 @@ def parse_duration(text: str) -> float:
     return h * 3600 + mi * 60 + s
 
 
+def parse_fx(text: str) -> tuple[str, dict]:
+    """'pad:gate:rate=1/16,depth=0.8' -> ('pad', {'type': 'gate', 'rate': '1/16', 'depth': 0.8})."""
+    parts = text.split(":", 2)
+    if len(parts) < 2:
+        raise ValueError(f"invalid --fx {text!r}, expected layer:type[:k=v,...]")
+    spec: dict = {"type": parts[1]}
+    if len(parts) == 3 and parts[2]:
+        for kv in parts[2].split(","):
+            k, v = kv.split("=", 1)
+            try:
+                spec[k] = float(v) if "." in v or v.lstrip("-").isdigit() else v
+                if isinstance(spec[k], float) and spec[k].is_integer() and "." not in v:
+                    spec[k] = int(spec[k])
+            except ValueError:
+                spec[k] = v
+    return parts[0], spec
+
+
 @app.command()
 def play(duration: str | None = typer.Option(None, help="ex: 5m, 90s, 1h. Absent = infini"),
          bpm: float | None = typer.Option(None, min=60, max=180),
@@ -28,12 +48,15 @@ def play(duration: str | None = typer.Option(None, help="ex: 5m, 90s, 1h. Absent
          mood: str = typer.Option("dark", help="|".join(MOODS)),
          export: str | None = typer.Option(None, help="Rendu hors-ligne vers un WAV"),
          blocksize: int = typer.Option(1024),
-         device: str | None = typer.Option(None, help="Nom ou index du périphérique")):
+         device: str | None = typer.Option(None, help="Nom ou index du périphérique"),
+         fx: list[str] | None = FX_OPTION):
     """Joue de la synthwave sur la sortie audio (ou exporte en WAV)."""
     seconds = parse_duration(duration) if duration else None
     if export and seconds is None:
         raise typer.BadParameter("--export requires --duration")
     renderer = Renderer(RenderConfig(bpm=bpm, mood=mood, seed=seed, duration_s=seconds))
+    for layer, spec in (parse_fx(f) for f in fx or []):
+        renderer.set_layer_effects(layer, [spec])
     typer.echo(f"seed={renderer.seed} bpm={renderer.bpm:g} mood={mood} "
                f"key={renderer.arranger.harmony.key_name}")
     if export:

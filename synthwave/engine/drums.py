@@ -44,7 +44,9 @@ class DrumKit:
         # kick: sine with exponential pitch drop + short click
         t = _t(sr, k.decay * 3)
         f = k.pitch_end + (k.pitch_start - k.pitch_end) * np.exp(-t / k.pitch_decay)
-        kick = np.sin(2 * np.pi * np.cumsum(f) / sr) * np.exp(-t / k.decay)
+        body = np.sin(2 * np.pi * np.cumsum(f) / sr) * np.exp(-t / k.decay)
+        sub = k.sub * np.sin(2 * np.pi * k.pitch_end * t) * np.exp(-t / k.sub_decay)
+        kick = np.tanh(k.drive * (body + sub)) / np.tanh(k.drive)
         nclick = int(0.002 * sr)
         kick[:nclick] += k.click * rng.uniform(-1, 1, nclick)
         # snare: tonal body + highpassed noise, through gated reverb
@@ -78,10 +80,12 @@ class DrumKit:
         t = _t(sr, 2.0)
         crash = _filt("bp", rng.uniform(-1, 1, len(t)), 6000, 0.1, sr) * np.exp(-t / 0.7)
         self.samples = {
-            "kick": _stereo(kick), "snare": _stereo(snare) * 0.8, "clap": _stereo(clap) * 0.7,
-            "hat_closed": _stereo(hat_c) * 0.35, "hat_open": _stereo(hat_o) * 0.3,
-            "tom_low": _stereo(toms["tom_low"]), "tom_mid": _stereo(toms["tom_mid"]),
-            "crash": _stereo(crash) * 0.4,
+            "kick": _stereo(kick) * k.gain, "snare": _stereo(snare) * s.gain,
+            "clap": _stereo(clap) * c.gain,
+            "hat_closed": _stereo(hat_c) * h.gain, "hat_open": _stereo(hat_o) * h.gain * 0.85,
+            "tom_low": _stereo(toms["tom_low"]) * tm.gain,
+            "tom_mid": _stereo(toms["tom_mid"]) * tm.gain,
+            "crash": _stereo(crash) * patch.crash_gain,
         }
 
     def render(self, n: int, events: list[NoteEvent]) -> np.ndarray:
