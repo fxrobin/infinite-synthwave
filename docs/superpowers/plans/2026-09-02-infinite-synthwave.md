@@ -3004,7 +3004,7 @@ if __name__ == "__main__":
 ```json
 {
   "mcpServers": {
-    "synthwave": {"command": "uv", "args": ["run", "--directory", ".", "synthwave", "mcp"]}
+    "synthwave": {"command": "uv", "args": ["run", "synthwave", "mcp"]}
   }
 }
 ```
