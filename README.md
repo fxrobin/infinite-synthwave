@@ -51,7 +51,7 @@ uv run synthwave mcp                           # serveur MCP (stdio)
 | Option | Description |
 |---|---|
 | `--duration 5m` | `90`, `90s`, `5m`, `1h30m`. Sans → infini en live, obligatoire avec `--export`. |
-| `--mood dark\|noir\|dreamy\|outrun` | Sans → tiré au hasard au démarrage et changé à chaque transition. Avec → figé (sauf `set_mood` MCP). |
+| `--mood <nom>` | `dark\|noir\|dreamy\|outrun\|cyberpunk\|horror\|desert\|chill\|retro\|drive`. Sans → tiré au hasard au démarrage et changé à chaque transition. Avec → figé (sauf `set_mood("random")` MCP). |
 | `--bpm 118` | Tempo fixe (60–180). Sans → tiré dans la zone du mood. |
 | `--bpm-range 80-95` | Zone de tempo (40–200). Redessiné à chaque transition. Prime sur la zone du mood. |
 | `--seed 42` | Seed RNG. Même seed + mêmes options ⇒ même musique bit-identique. |
@@ -60,20 +60,22 @@ uv run synthwave mcp                           # serveur MCP (stdio)
 | `--blocksize 1024` | Taille de bloc audio. |
 | `--fx layer:type:k=v,...` | Insert manuel (répétable). `layer` ou `master`. Ex. `pad:gate:rate=1/16,depth=0.8` `master:lofi:bits=8` `lead:phaser:rate=2/1`. `None` en MCP = retour auto. |
 
-## Moods
+## Moods — 10 ambiances implémentées (`synthwave/composer/moods.py:43`)
 
-| Mood | BPM | Gamme | Accords | Rythme | Patches |
-|---|---|---|---|---|---|
-| `dark` | 82–100 | phrygien | triades, `i‑bII`, `i‑iv‑bII‑i`, `i‑bVI‑bII‑i` | half‑time | jeu `*_dark` (FM, écho percussions) |
-| `noir` | 86–104 | mineur harmonique | triades, `i‑VI‑V‑i`, `i‑iv‑V‑i` | half‑time | jeu `*_dark` |
-| `dreamy` | 98–114 | mineur naturel / majeur | 7e | 4/4 | jeu par défaut |
-| `outrun` | 110–128 | mineur naturel | 7e | 4/4 dense | jeu par défaut |
-| `cyberpunk` | 118–132 | mineur naturel | triades, i‑bII, i‑v‑VI‑iv | 4/4 dense, basse riff/16e | jeu `*_dark`, industriel |
-| `horror` | 66–80 | locrien | triades, i‑bII‑bv‑i | half‑time très lent | jeu `*_dark` |
-| `desert` | 88–104 | phrygien dominant | triades, I‑bII‑I‑bvii | half‑time | jeu `*_dark` |
-| `chill` | 84–96 | dorien | 7e, i‑IV, i‑bVII‑IV‑i | 4/4 léger, basse walk | jeu par défaut |
-| `retro` | 104–118 | mixolydien / majeur | 7e, I‑V‑vi‑IV, I‑bVII‑IV | 4/4 | jeu par défaut, lead pulse |
-| `drive` | 122–136 | mineur naturel | 7e, i‑VI‑III‑VII | 4/4 très dense | jeu par défaut |
+| Mood | BPM | Gamme | 7e | Rythme | Densité drums/arp/lead | Brightness | Patches | Pools (rotation par section) | Styles basse |
+|---|---|---|---|---|---|---|---|---|---|
+| `dark` | 82–100 | phrygien | non | half‑time | 0.35 / 0.45 / 0.2 | 0.6 | `*_dark` | bass: dark/indus/sub/growl/reese · lead: dark/indus/scream | eighths 2, riff 3, sixteenths 2, sync 1, oct 1 |
+| `noir` | 86–104 | mineur harmonique | non | half‑time | 0.4 / 0.5 / 0.3 | 0.7 | `*_dark` | idem dark | idem dark |
+| `dreamy` | 98–114 | mineur→majeur* | oui | 4/4 | 0.5 / 0.75 / 0.4 | 1.0 | bright | bass: moog/sub/pulse/reese · lead: saw/pulse/indus | eighths 3, oct 2, sync 1, walk 1, sixteenths 1 |
+| `outrun` | 110–128 | mineur | oui | 4/4 dense | 0.85 / 0.95 / 0.55 | 1.2 | bright | idem dreamy | idem dreamy |
+| `cyberpunk` | 118–132 | mineur | non | 4/4, pad_oct 3 | 0.9 / 0.9 / 0.5 | 0.8 | `*_dark` | bass: indus/growl/reese · lead: indus/scream/dark | sixteenths 3, riff 3, eighths 2, oct 1 |
+| `horror` | 66–80 | locrien | non | half‑time très lent | 0.2 / 0.3 / 0.15 | 0.5 | `*_dark` | dark pools | dark bass |
+| `desert` | 88–104 | phrygien dominant | non | half‑time | 0.45 / 0.6 / 0.35 | 0.7 | `*_dark` | dark pools | dark bass |
+| `chill` | 84–96 | dorien | oui | 4/4 | 0.4 / 0.6 / 0.3 | 0.9 | bright | bright pools | eighths 2, walk 3, sync 2, oct 1 |
+| `retro` | 104–118 | mixolydien (major 50%) | oui | 4/4 | 0.6 / 0.8 / 0.45 | 1.1 | bright | bright pools | bright bass |
+| `drive` | 122–136 | mineur | oui | 4/4 très dense | 1.0 / 1.0 / 0.5 | 1.2 | drive† | bass: moog/sub/pulse/reese · lead: saw/pulse/scream | eighths 3, sixteenths 3, oct 2, sync 1 |
+
+*`major_prob` : dreamy 0.35, retro 0.5, les autres 0.0. `†drive` pools = moog/sub/pulse/reese + saw/pulse/scream. `pad_octave` 3 (dark/cyberpunk/horror/desert) vs 4 (les autres).
 
 Sans `--mood`, le mood est tiré au hasard au démarrage et retiré à chaque transition ;
 `--mood X` le fige (en MCP, `set_mood("random")` rend la main au hasard).
@@ -81,10 +83,7 @@ Le tempo est tiré dans la zone du mood au démarrage et redessiné à chaque tr
 (`--bpm-range 80-95` ou `bpm_range` dans l'outil MCP `start` pour imposer une zone,
 `--bpm` pour un tempo fixe). Le jeu de patches suit le mood (changé lors des transitions)
 sauf pour les couches chargées à la main via `load_patch`. La basse et le lead changent
-d'instrument à chaque section, tirés dans un pool par mood (`bass_dark`, `bass_industrial`,
-`bass_sub`, `bass_growl`, `bass_reese` / `bass_moog`, `bass_sub`, `bass_pulse`, `bass_reese` ;
-`lead_dark`, `lead_industrial`, `lead_scream` / `lead_saw`, `lead_pulse`, `lead_industrial`). Styles de basse : `eighths`, `octaves`, `syncopated`,
-`sixteenths`, `walk`, `riff` (chromatique b2 / triton), mutés une mesure sur deux.
+d'instrument à chaque section, tirés dans leur pool ; la basse tire aussi un style pondéré par mood (voir colonnes). Styles : `eighths`, `octaves`, `syncopated`, `sixteenths`, `walk`, `riff` (chromatique b2/triton), chorus → `eighths/sixteenths/octaves` forcé.
 
 Même seed + mêmes options ⇒ même musique.
 
@@ -305,30 +304,67 @@ Annonces arrangeur (`synthwave/composer/arranger.py:219`) : `uplifter` à J-2 du
 
 ## Composition — toutes les variations implémentées
 
-### Gammes (`synthwave/composer/harmony.py:21`)
+### Gammes — 8 échelles (`synthwave/composer/harmony.py:35`)
 
-`minor` (0 2 3 5 7 8 10), `major` (0 2 4 5 7 9 11), `phrygian` (0 1 3 5 7 8 10), `harmonic_minor` (0 2 3 5 7 8 11). Tonalité `tonic` 0–11 tirée au hasard, `modulate()` saute de ±3/5/7 demi-tons à chaque transition (70% de chances).
-
-### Progressions (`harmony.py:11`)
-
-| Nom | Degrés | Mood |
+| Échelle | Degrés (demi-tons) | Moods |
 |---|---|---|
-| `i-VI-III-VII` | 0 5 2 6 | dreamy/outrun |
-| `i-VII-VI-VII` | 0 6 5 6 | dreamy/outrun |
-| `i-iv-VI-V` | 0 3 5 4 | dreamy/outrun |
-| `i-VI-VII-i` | 0 5 6 0 | dreamy/outrun |
-| `VI-VII-i-i` | 5 6 0 0 | dreamy/outrun |
-| `i-III-VII-VI` | 0 2 6 5 | dreamy/outrun |
-| `iv-VI-i-VII` | 3 5 0 6 | dreamy/outrun |
-| `i-bII-i-bII` | 0 1 0 1 | dark |
-| `i-iv-bII-i` | 0 3 1 0 | dark |
-| `i-bVI-bII-i` | 0 5 1 0 | dark |
-| `i-bvii-bVI-bII` | 0 6 5 1 | dark |
-| `i-i-bVI-bII` | 0 0 5 1 | dark |
-| `i-iv-i-bII` | 0 3 0 1 | dark |
-| `i-VI-V-i` | 0 5 4 0 | noir |
-| `i-iv-V-i` | 0 3 4 0 | noir |
-| `i-i-VI-V` | 0 0 5 4 | noir |
+| `minor` (naturel) | 0 2 3 5 7 8 10 | dreamy (65%), outrun, cyberpunk, drive |
+| `major` | 0 2 4 5 7 9 11 | dreamy/retro via `major_prob` |
+| `phrygian` | 0 1 3 5 7 8 10 | dark |
+| `harmonic_minor` | 0 2 3 5 7 8 11 | noir |
+| `dorian` | 0 2 3 5 7 9 10 | chill |
+| `mixolydian` | 0 2 4 5 7 9 10 | retro (50% majeur) |
+| `locrian` | 0 1 3 5 6 8 10 | horror |
+| `phrygian_dominant` | 0 1 4 5 7 8 10 | desert |
+
+Tonalité `tonic` 0–11 tirée au hasard, `modulate()` saute de ±3/5/7 demi-tons à chaque transition (70% de chances). `set_mood` applique `SCALES[mood.scale]` (ou `MAJOR` si `rng < major_prob`).
+
+### Progressions — 37 progressions (`harmony.py:11`)
+
+| Famille | Progression | Degrés | Usages (poids) |
+|---|---|---|---|
+| outrun/dreamy/drive | `i-VI-III-VII` | 0 5 2 6 | dreamy 3, outrun 3, drive 3 |
+| | `i-VII-VI-VII` | 0 6 5 6 | dreamy 2, outrun 3, drive 3 |
+| | `i-iv-VI-V` | 0 3 5 4 | dreamy 1, outrun 2 |
+| | `i-VI-VII-i` | 0 5 6 0 | dreamy 2, outrun 2, drive 2 (+cyberpunk 2) |
+| | `VI-VII-i-i` | 5 6 0 0 | dreamy 2, outrun 2, drive 2 |
+| | `i-III-VII-VI` | 0 2 6 5 | dreamy 2 |
+| | `iv-VI-i-VII` | 3 5 0 6 | dreamy 1, outrun 1 |
+| dark | `i-bII-i-bII` | 0 1 0 1 | dark 3, horror 2, desert 1, cyberpunk 2 |
+| | `i-iv-bII-i` | 0 3 1 0 | dark 3, cyberpunk 2 |
+| | `i-bVI-bII-i` | 0 5 1 0 | dark 2 |
+| | `i-bvii-bVI-bII` | 0 6 5 1 | dark 2 |
+| | `i-i-bVI-bII` | 0 0 5 1 | dark 2 |
+| | `i-iv-i-bII` | 0 3 0 1 | dark 2 |
+| noir | `i-VI-V-i` | 0 5 4 0 | noir 3 |
+| | `i-iv-V-i` | 0 3 4 0 | noir 3 |
+| | `i-i-VI-V` | 0 0 5 4 | noir 2 |
+| + harmonic | `i-V-VI-V` | 0 4 5 4 | (réservé, pondération future) |
+| | `iv-V-i-i` | 3 4 0 0 | — |
+| mineur nat. étendu | `i-VII-III-VI` | 0 6 2 5 | drive 2 |
+| | `i-v-VI-iv` | 0 4 5 3 | cyberpunk 2 |
+| | `VI-i-VII-III` | 5 0 6 2 | drive 1 |
+| | `i-III-iv-VI` | 0 2 3 5 | drive 1 |
+| | `i-iv-i-VI` | 0 3 0 5 | cyberpunk 1 |
+| | `i-VI-iv-VII` | 0 5 3 6 | cyberpunk 2 |
+| majeur/mixo | `I-V-vi-IV` | 0 4 5 3 | retro 3 |
+| | `vi-IV-I-V` | 5 3 0 4 | retro 3 |
+| | `I-vi-IV-V` | 0 5 3 4 | retro 2 |
+| | `IV-I-V-vi` | 3 0 4 5 | retro 1 |
+| | `I-bVII-IV-I` | 0 6 3 0 | retro 2 |
+| | `I-IV-bVII-IV` | 0 3 6 3 | retro 2 |
+| | `I-v-bVII-IV` | 0 4 6 3 | retro 1 |
+| dorien | `i-IV-i-IV` | 0 3 0 3 | chill 3 |
+| | `i-bVII-IV-i` | 0 6 3 0 | chill 2 |
+| | `i-ii-bIII-ii` | 0 1 2 1 | chill 2 |
+| | `i-IV-bVII-i` | 0 3 6 0 | chill 2 |
+| | `i-ii-IV-i` | 0 1 3 0 | chill 1 |
+| tension | `i-bII-bv-i` | 0 1 4 0 | horror 3 |
+| | `i-biii-bII-i` | 0 2 1 0 | horror 2 |
+| | `i-bII-bVI-bv` | 0 1 5 4 | horror 2 |
+| | `I-bII-I-bvii` | 0 1 0 6 | desert 3 |
+| | `I-iv-bII-I` | 0 3 1 0 | desert 3 |
+| | `I-bVI-bvii-I` | 0 5 6 0 | desert 2 |
 
 Qualité : sans `sevenths` → triades ; avec → 7e empilées (tierces). Nommage `m/m7/maj7/7/dim/m7b5…`.
 Markov : poids par mood, anti-répétition `×0.25` si même progression que précédemment.
