@@ -114,7 +114,8 @@ d'effets appliquée à toutes les percussions sauf le kick (écho ping‑pong + 
 
 ## MCP
 
-`.mcp.json` à la racine déclare le serveur pour Claude Code. Outils :
+`.mcp.json` à la racine déclare le serveur pour Claude Code (lancé depuis le dossier du
+projet ; pour un autre dossier, ajouter `--directory <chemin>` aux arguments). Outils :
 
 | Outil | Rôle |
 |---|---|

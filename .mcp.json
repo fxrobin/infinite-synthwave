@@ -2,7 +2,7 @@
   "mcpServers": {
     "synthwave": {
       "command": "uv",
-      "args": ["run", "--directory", ".", "synthwave", "mcp"]
+      "args": ["run", "synthwave", "mcp"]
     }
   }
 }
