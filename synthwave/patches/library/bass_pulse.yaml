@@ -1,0 +1,14 @@
+name: bass_pulse
+polyphony: 1
+glide: 0.015
+volume: 0.45
+oscillators:
+  - {wave: square, unison: 2, detune: 5, pwm: 0.35, level: 0.7, spread: 0.2}
+  - {wave: sine, octave: -1, level: 0.9}
+amp_env: {attack: 0.005, decay: 0.25, sustain: 0.8, release: 0.12}
+filter:
+  type: lp
+  cutoff: 380
+  resonance: 0.05
+lfo: {wave: triangle, rate: 0.2, target: cutoff, amount: 60}
+effects: []

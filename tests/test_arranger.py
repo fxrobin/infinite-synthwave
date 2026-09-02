@@ -91,7 +91,8 @@ def test_bass_instrument_rotates_between_sections():
     firsts = [p for p in plans if p.patches]
     basses = {p.patches["bass"] for p in firsts}
     assert len(firsts) >= 5 and len(basses) >= 2
-    assert basses <= {"bass_dark", "bass_industrial", "bass_reese", "bass_moog", "bass_acid"}
+    assert basses <= {"bass_dark", "bass_industrial", "bass_reese", "bass_moog", "bass_sub",
+                      "bass_growl", "bass_pulse"}
     b0, b1 = plans[0].patterns["bass"], plans[1].patterns["bass"]
     assert b0 != b1 or plans[0].chord != plans[1].chord
 

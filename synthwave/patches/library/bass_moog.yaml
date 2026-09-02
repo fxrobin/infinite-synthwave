@@ -1,6 +1,6 @@
 name: bass_moog
 polyphony: 1
-glide: 0.03
+glide: 0.02
 volume: 0.75
 oscillators:
   - {wave: saw, level: 0.8}
@@ -10,6 +10,6 @@ amp_env: {attack: 0.005, decay: 0.15, sustain: 0.7, release: 0.12}
 filter:
   type: lp
   cutoff: 420
-  resonance: 0.3
-  env: {attack: 0.002, decay: 0.18, sustain: 0.1, release: 0.1, amount: 1400}
+  resonance: 0.1
+  env: {attack: 0.005, decay: 0.35, sustain: 0.45, release: 0.15, amount: 450}
 effects: []
