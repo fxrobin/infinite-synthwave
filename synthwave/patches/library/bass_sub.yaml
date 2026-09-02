@@ -1,0 +1,15 @@
+name: bass_sub
+polyphony: 1
+glide: 0.015
+volume: 0.6
+oscillators:
+  - {wave: sine, level: 1.0}
+  - {wave: sine, octave: 1, level: 0.35}
+  - {wave: triangle, level: 0.25}
+amp_env: {attack: 0.008, decay: 0.2, sustain: 0.9, release: 0.15}
+filter:
+  type: lp
+  cutoff: 900
+  resonance: 0.0
+effects:
+  - {type: distortion, drive: 1.8, tone: 1500, mix: 0.6}

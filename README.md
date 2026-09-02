@@ -40,8 +40,8 @@ Le tempo est tiré dans la zone du mood au démarrage et redessiné à chaque tr
 `--bpm` pour un tempo fixe). Le jeu de patches suit le mood (changé lors des transitions)
 sauf pour les couches chargées à la main via `load_patch`. La basse et le lead changent
 d'instrument à chaque section, tirés dans un pool par mood (`bass_dark`, `bass_industrial`,
-`bass_reese` / `bass_moog`, `bass_reese`, `bass_acid` ; `lead_dark`, `lead_industrial` /
-`lead_saw`, `lead_industrial`). Styles de basse : `eighths`, `octaves`, `syncopated`,
+`bass_sub`, `bass_growl`, `bass_reese` / `bass_moog`, `bass_sub`, `bass_pulse`, `bass_reese` ;
+`lead_dark`, `lead_industrial` / `lead_saw`, `lead_industrial`). Styles de basse : `eighths`, `octaves`, `syncopated`,
 `sixteenths`, `walk`, `riff` (chromatique b2 / triton), mutés une mesure sur deux.
 
 Même seed + mêmes options ⇒ même musique.

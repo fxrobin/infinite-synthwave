@@ -1,0 +1,16 @@
+name: bass_growl
+polyphony: 1
+glide: 0.02
+volume: 0.4
+oscillators:
+  - {wave: fm, fm_ratio: 1.0, fm_index: 1.6, level: 0.7}
+  - {wave: saw, level: 0.3}
+  - {wave: sine, octave: -1, level: 0.9}
+amp_env: {attack: 0.01, decay: 0.3, sustain: 0.8, release: 0.15}
+filter:
+  type: lp
+  cutoff: 420
+  resonance: 0.05
+lfo: {wave: sine, rate: 3.5, target: amp, amount: 0.25}
+effects:
+  - {type: distortion, drive: 3.5, tone: 2200, mix: 0.7}

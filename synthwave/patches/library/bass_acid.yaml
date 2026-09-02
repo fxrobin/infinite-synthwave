@@ -9,7 +9,7 @@ amp_env: {attack: 0.003, decay: 0.12, sustain: 0.5, release: 0.08}
 filter:
   type: lp
   cutoff: 240
-  resonance: 0.7
-  env: {attack: 0.001, decay: 0.16, sustain: 0.05, release: 0.1, amount: 2200}
+  resonance: 0.45
+  env: {attack: 0.001, decay: 0.16, sustain: 0.05, release: 0.1, amount: 1200}
 effects:
   - {type: distortion, drive: 3.0, tone: 4000, mix: 0.4}
