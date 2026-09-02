@@ -306,9 +306,27 @@ class Distortion(Effect):
         return (x * (1 - self.mix) + y * self.mix).astype(np.float32)
 
 
+class AutoPan(Effect):
+    """Constant-power stereo auto-pan; rate in Hz or tempo-synced ('1/2', '1/4'...)."""
+
+    def __init__(self, sr: int, bpm: float, rate: float | str = "1/2", depth: float = 0.8,
+                 wave: str = "sine"):
+        hz = 1.0 / note_to_seconds(rate, bpm) if isinstance(rate, str) else float(rate)
+        self.lfo, self.depth = LFO(wave, hz, sr), float(np.clip(depth, 0, 1))
+
+    def process(self, x: np.ndarray) -> np.ndarray:
+        pan = self.depth * self.lfo.render(len(x))
+        angle = (pan + 1.0) * np.pi / 4.0
+        mono = x.mean(axis=1)
+        out = np.stack([mono * np.cos(angle) * np.sqrt(2), mono * np.sin(angle) * np.sqrt(2)],
+                       axis=1)
+        return out.astype(np.float32)
+
+
 _REGISTRY = {"chorus": Chorus, "delay": Delay, "reverb": Reverb,
              "gated_reverb": GatedReverb, "limiter": Limiter,
-             "gate": Gate, "bitcrush": Bitcrush, "lofi": LoFi, "distortion": Distortion}
+             "gate": Gate, "bitcrush": Bitcrush, "lofi": LoFi, "distortion": Distortion,
+             "autopan": AutoPan}
 
 
 def build_effects(specs: list[dict], sr: int, bpm: float) -> list[Effect]:

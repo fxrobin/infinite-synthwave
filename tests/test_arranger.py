@@ -94,3 +94,19 @@ def test_bass_instrument_rotates_between_sections():
     assert basses <= {"bass_dark", "bass_industrial", "bass_reese", "bass_moog", "bass_acid"}
     b0, b1 = plans[0].patterns["bass"], plans[1].patterns["bass"]
     assert b0 != b1 or plans[0].chord != plans[1].chord
+
+
+def test_risers_announce_chorus_and_chorus_is_strong():
+    a = make(seed=5, mood="dark")
+    plans = [a.next_bar() for _ in range(120)]
+    chorus_starts = [i for i, p in enumerate(plans)
+                     if p.section == Section.CHORUS and p.section_bar == 0]
+    assert chorus_starts
+    i = chorus_starts[0]
+    assert any(n.note == 63 for n in plans[i].patterns["riser"])          # impact
+    assert any(n.note == 60 for n in plans[i - 1].patterns["riser"])      # reverse cymbal
+    assert any(n.note == 61 for n in plans[i - 2].patterns["riser"])      # uplifter
+    drums = plans[i].patterns["drums"]
+    assert {n.step for n in drums if n.note == 36} >= {0, 4, 8, 12}
+    assert {n.step for n in drums if n.note == 38} == {4, 12}
+    assert plans[i].fx and "lead" in plans[i].fx

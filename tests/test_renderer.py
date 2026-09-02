@@ -124,8 +124,10 @@ def test_section_patches_applied_by_renderer():
     r = Renderer(RenderConfig(seed=3, mood="dark"))
     seen = set()
     bars = int(16 * r.transport.samples_per_step)
-    for _ in range(28 * bars // 4096):
-        r.render(4096)
+    for _ in range(8):                      # force eight section changes
+        r.next_section()
+        for _ in range(2 * bars // 4096 + 1):
+            r.render(4096)
         seen.add(r.status()["layers"]["bass"]["patch"])
     assert len(seen) >= 2
 
@@ -143,3 +145,10 @@ def test_bpm_drawn_from_range_at_start_and_transitions():
         seen.add(r.bpm)
     assert len(seen) >= 2 and all(70 <= b <= 75 for b in seen)
     assert Renderer(RenderConfig(seed=1, bpm=123)).bpm == 123
+
+
+def test_riser_layer_is_builtin():
+    r = Renderer(RenderConfig(seed=1))
+    assert r.status()["layers"]["riser"]["patch"] == "builtin"
+    with pytest.raises(PatchError):
+        r.load_patch("riser", "pad_juno")

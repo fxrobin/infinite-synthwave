@@ -12,6 +12,7 @@ from ..composer.harmony import Harmony
 from ..composer.moods import MOODS
 from ..engine.drums import DrumKit
 from ..engine.effects import Effect, Limiter, Sidechain, build_effects
+from ..engine.risers import RiserKit
 from ..engine.synth import Synth
 from ..patches.loader import PatchError, load_patch, set_param
 from ..patches.model import DrumPatchModel, PatchModel
@@ -19,7 +20,8 @@ from ..sequencer.tracker import Tracker
 from ..sequencer.transport import Transport
 
 DEFAULT_PATCHES = {"drums": "drums_808", "bass": "bass_moog", "arp": "arp_pluck",
-                   "pad": "pad_juno", "lead": "lead_saw", "ambient": "ambient_drone"}
+                   "pad": "pad_juno", "lead": "lead_saw", "ambient": "ambient_drone",
+                   "riser": "builtin"}
 DUCKED = {"pad": 1.0, "bass": 0.6, "ambient": 0.6, "arp": 0.5}
 
 
@@ -57,6 +59,10 @@ class Renderer:
         self.patch_names: dict[str, str] = {}
         self.manual_patch: set[str] = set(cfg.patches)
         for layer in LAYERS:
+            if layer == "riser":
+                self.instruments[layer] = RiserKit(self.sr, self.rng, self.bpm)
+                self.patch_names[layer] = "builtin"
+                continue
             name = cfg.patches.get(layer, self.mood.patches.get(layer, DEFAULT_PATCHES[layer]))
             self._install(layer, name, load_patch(name))
         self.layer_volume = {layer: 1.0 for layer in LAYERS}
@@ -78,6 +84,8 @@ class Renderer:
 
     # ----- instruments -----
     def _install(self, layer: str, name: str, patch) -> None:
+        if layer == "riser":
+            raise PatchError("layer 'riser' is built-in and has no patch")
         inst = self.instruments.get(layer)
         if layer == "drums":
             if not isinstance(patch, DrumPatchModel):
@@ -143,7 +151,7 @@ class Renderer:
 
     def _apply_mood_patches(self) -> None:
         for layer in LAYERS:
-            if layer in self.manual_patch:
+            if layer in self.manual_patch or layer == "riser":
                 continue
             name = self.mood.patches.get(layer, DEFAULT_PATCHES[layer])
             if name != self.patch_names[layer]:

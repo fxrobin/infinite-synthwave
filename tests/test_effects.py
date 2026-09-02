@@ -124,3 +124,13 @@ def test_distortion_saturates_and_is_bounded():
     assert np.abs(y).max() <= 1.0
     peak_ratio = np.abs(y).max() / np.sqrt((y ** 2).mean())
     assert peak_ratio < np.sqrt(2) * 0.95    # flatter than a sine: clipped
+
+
+def test_autopan_moves_between_channels():
+    from synthwave.engine.effects import AutoPan
+    ap = AutoPan(SR, 120, rate=2.0, depth=1.0)
+    x = np.ones((SR, 2), np.float32) * 0.5
+    y = ap.process(x)
+    q = SR // 8
+    assert y[q, 0] < 0.05 and y[q, 1] > 0.6      # hard right at the LFO peak
+    assert y[3 * q, 1] < 0.05 and y[3 * q, 0] > 0.6

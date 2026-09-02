@@ -59,13 +59,19 @@ synthwave/
   mcp_server.py
 ```
 
-Couches : `drums`, `bass`, `arp`, `pad`, `lead`, `ambient`. Sections : intro → verse →
+Couches : `drums`, `bass`, `arp`, `pad`, `lead`, `ambient`, `riser` (annonces de chorus
+synthétisées : uplifter 2 mesures, cymbale reverse, cri FM, impact). Sections : intro → verse →
 chorus → break → **transition** … avec fills en fin de section et, en mode durée, un outro
 avec fondu. Les transitions (4 mesures, ambient + pad seuls) portent les changements de
 tonalité, de tempo et de mood ; un `set_mood` MCP est appliqué via une transition.
 
+Le chorus est annoncé sur ses deux dernières mesures d'approche (uplifter, cymbale reverse,
+cri) et frappe avec un impact, une batterie 4/4 pleine (kick, snare + clap, hats) même en
+mood half‑time, une basse en croches ou doubles, et un lead quasi systématique.
+
 Effets d'insert choisis par l'arrangeur selon la section (`gate` hachure synchro tempo sur
-pad/arp en chorus, `lofi` master en intro/break, `bitcrush` sur l'arp) ; réglables à la main
+pad/arp en chorus, `lofi` master en intro/break, `bitcrush` sur l'arp, et pour le lead en
+chorus : `autopan`, gate + autopan, distortion + autopan ou bitcrush) ; réglables à la main
 avec `--fx` ou l'outil MCP `set_layer_effects`.
 
 ## Patches YAML
@@ -96,6 +102,7 @@ effects:
   - {type: bitcrush, bits: 8, downsample: 4, mix: 0.5}
   - {type: lofi, bits: 10, downsample: 3, cutoff: 4000, wobble: 0.003, noise: 0.005}
   - {type: distortion, drive: 6.0, tone: 2500, mix: 0.8}      # saturation tanh + tone
+  - {type: autopan, rate: "1/2", depth: 0.9}                   # pan stéréo synchro tempo
 ```
 
 Patch batterie (`kind: drums`) : `kick` (pitch, `sub`, `drive` saturation, `gain`), `snare`
