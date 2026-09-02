@@ -39,7 +39,7 @@ def test_duration_mode_finishes():
 
 
 def test_commands_and_status():
-    r = Renderer(RenderConfig(seed=5))
+    r = Renderer(RenderConfig(seed=5, mood="dark"))
     r.submit(lambda: r.set_tempo(125))
     r.submit(lambda: r.set_layer("lead", mute=True))
     r.submit(lambda: r.set_layer("pad", volume=0.5))
@@ -59,7 +59,7 @@ def test_commands_and_status():
 
 
 def test_bad_patch_keeps_state():
-    r = Renderer(RenderConfig(seed=5))
+    r = Renderer(RenderConfig(seed=5, mood="dark"))
     with pytest.raises(PatchError):
         r.load_patch("drums", "pad_juno")
     with pytest.raises(PatchError):
@@ -152,3 +152,22 @@ def test_riser_layer_is_builtin():
     assert r.status()["layers"]["riser"]["patch"] == "builtin"
     with pytest.raises(PatchError):
         r.load_patch("riser", "pad_juno")
+
+
+def test_random_mood_at_start_and_at_transitions():
+    moods = {Renderer(RenderConfig(seed=s)).mood.name for s in range(8)}
+    assert len(moods) >= 3
+    r = Renderer(RenderConfig(seed=2))
+    assert not r.status()["mood_locked"]
+    seen = {r.mood.name}
+    bars = int(16 * r.transport.samples_per_step)
+    for _ in range(6):
+        r.next_section()
+        for _ in range(3 * bars // 4096 + 1):
+            r.render(4096)
+        seen.add(r.status()["mood"])
+    assert len(seen) >= 2
+    locked = Renderer(RenderConfig(seed=2, mood="outrun"))
+    assert locked.status()["mood_locked"] and locked.mood.name == "outrun"
+    locked.set_mood("random")
+    assert not locked.status()["mood_locked"]

@@ -77,6 +77,7 @@ class Arranger:
                  bpm_range: tuple[float, float] | None = None):
         self.rng, self.harmony, self.mood, self.total_bars = rng, harmony, mood, total_bars
         self.bpm_range = bpm_range   # user override; None = follow the mood
+        self.mood_locked = False     # True: keep the mood across transitions
         self.bar, self.sections_done = 0, 0
         self.section = Section.INTRO
         self.section_bar, self.section_len = 0, SECTION_BARS[Section.INTRO]
@@ -90,8 +91,15 @@ class Arranger:
         self.mood_changed = False
         self._new_styles()
 
-    def set_mood(self, mood: Mood) -> None:
-        """Schedule a mood change: applied at the start of the next transition section."""
+    def set_mood(self, mood: Mood | None) -> None:
+        """Schedule a mood change (applied at the next transition) and lock it.
+
+        None unlocks: every following transition draws a new random mood."""
+        if mood is None:
+            self.mood_locked = False
+            self.transition_requested = True
+            return
+        self.mood_locked = True
         if mood != self.mood:
             self.pending_mood = mood
             self.transition_requested = True
@@ -176,7 +184,7 @@ class Arranger:
         self.transition_requested = False
         new_mood = self.pending_mood
         self.pending_mood = None
-        if new_mood is None and self.rng.random() < 0.35:
+        if new_mood is None and not self.mood_locked:
             others = [m for m in MOODS.values() if m is not self.mood]
             new_mood = others[int(self.rng.integers(len(others)))]
         if new_mood is not None:
