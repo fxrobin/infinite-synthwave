@@ -1,0 +1,16 @@
+name: ambient_drone
+polyphony: 3
+volume: 0.35
+oscillators:
+  - {wave: sine, level: 0.6}
+  - {wave: triangle, octave: 1, level: 0.25}
+  - {wave: noise, level: 0.12}
+amp_env: {attack: 2.5, decay: 1.0, sustain: 0.9, release: 3.0}
+filter:
+  type: lp
+  cutoff: 600
+  resonance: 0.1
+lfo: {wave: triangle, rate: 0.08, target: cutoff, amount: 300}
+effects:
+  - {type: chorus, rate: 0.2, depth: 0.006, mix: 0.5}
+  - {type: reverb, size: 1.0, damping: 0.6, mix: 0.6, predelay: 0.04}

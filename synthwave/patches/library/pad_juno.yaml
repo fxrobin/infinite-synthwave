@@ -1,0 +1,16 @@
+name: pad_juno
+polyphony: 6
+volume: 0.5
+oscillators:
+  - {wave: saw, unison: 3, detune: 14, level: 0.7, spread: 1.0}
+  - {wave: square, octave: -1, level: 0.25, pwm: 0.45}
+amp_env: {attack: 0.9, decay: 0.6, sustain: 0.8, release: 1.8}
+filter:
+  type: lp
+  cutoff: 1400
+  resonance: 0.15
+  env: {attack: 0.8, decay: 1.2, sustain: 0.4, release: 1.5, amount: 900}
+lfo: {wave: sine, rate: 0.25, target: cutoff, amount: 350}
+effects:
+  - {type: chorus, rate: 0.6, depth: 0.004, mix: 0.45}
+  - {type: reverb, size: 0.9, damping: 0.45, mix: 0.35, predelay: 0.03}

@@ -1,0 +1,40 @@
+import pytest
+from synthwave.patches.loader import PatchError, list_patches, load_patch, patch_from_dict, set_param
+from synthwave.patches.model import DrumPatchModel, PatchModel
+
+
+def test_library_lists_and_loads_all():
+    names = list_patches()
+    assert {"bass_moog", "pad_juno", "arp_pluck", "lead_saw", "ambient_drone", "drums_808"} <= set(names)
+    for n in names:
+        p = load_patch(n)
+        assert isinstance(p, (PatchModel, DrumPatchModel))
+
+
+def test_drum_patch_discriminated():
+    assert isinstance(load_patch("drums_808"), DrumPatchModel)
+    assert isinstance(load_patch("pad_juno"), PatchModel)
+
+
+def test_invalid_patch_raises_patch_error():
+    with pytest.raises(PatchError):
+        patch_from_dict({"name": "bad", "oscillators": [{"wave": "laser"}]})
+    with pytest.raises(PatchError):
+        load_patch("does_not_exist")
+
+
+def test_set_param_returns_new_validated_patch():
+    p = load_patch("pad_juno")
+    q = set_param(p, "filter.cutoff", 500)
+    assert q.filter.cutoff == 500 and p.filter.cutoff != 500
+    q = set_param(p, "oscillators.0.detune", 3)
+    assert q.oscillators[0].detune == 3
+    with pytest.raises(PatchError):
+        set_param(p, "oscillators.0.wave", "laser")
+
+
+def test_load_from_path(tmp_path):
+    f = tmp_path / "x.yaml"
+    f.write_text("name: x\noscillators:\n  - wave: sine\n"
+                 "amp_env: {attack: 0.01, decay: 0.1, sustain: 0.5, release: 0.2}\n")
+    assert load_patch(str(f)).name == "x"

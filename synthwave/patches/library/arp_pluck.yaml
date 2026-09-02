@@ -1,0 +1,15 @@
+name: arp_pluck
+polyphony: 6
+volume: 0.55
+oscillators:
+  - {wave: saw, unison: 2, detune: 8, level: 0.8}
+  - {wave: square, octave: 1, level: 0.2, pwm: 0.3}
+amp_env: {attack: 0.002, decay: 0.22, sustain: 0.0, release: 0.15}
+filter:
+  type: lp
+  cutoff: 900
+  resonance: 0.3
+  env: {attack: 0.001, decay: 0.16, sustain: 0.0, release: 0.1, amount: 3200}
+effects:
+  - {type: delay, time: "1/8d", feedback: 0.35, mix: 0.3, pingpong: true}
+  - {type: reverb, size: 0.7, damping: 0.5, mix: 0.2}

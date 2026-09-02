@@ -1,0 +1,17 @@
+name: lead_saw
+polyphony: 2
+glide: 0.05
+volume: 0.5
+oscillators:
+  - {wave: saw, unison: 3, detune: 18, level: 0.8}
+  - {wave: saw, octave: 1, level: 0.3}
+amp_env: {attack: 0.02, decay: 0.3, sustain: 0.7, release: 0.4}
+filter:
+  type: lp
+  cutoff: 2600
+  resonance: 0.2
+  env: {attack: 0.01, decay: 0.4, sustain: 0.5, release: 0.3, amount: 2000}
+lfo: {wave: sine, rate: 5.5, target: pitch, amount: 0.12}
+effects:
+  - {type: delay, time: "1/4", feedback: 0.45, mix: 0.35, pingpong: true}
+  - {type: reverb, size: 0.85, damping: 0.4, mix: 0.3}
