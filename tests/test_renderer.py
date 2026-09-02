@@ -110,3 +110,11 @@ def test_dark_mood_renders():
     r = Renderer(RenderConfig(seed=8, mood="dark"))
     out = render_seconds(r, 3)
     assert np.isfinite(out).all() and np.abs(out).max() > 0.05
+
+
+def test_export_mp3(tmp_path):
+    r = Renderer(RenderConfig(seed=2, duration_s=2))
+    out = tmp_path / "x.mp3"
+    export_wav(r, 2, str(out))
+    data, sr = sf.read(str(out))
+    assert sr == 44100 and len(data) >= 2 * 44100 and out.stat().st_size < 200_000

@@ -18,7 +18,7 @@ pyyaml, pydantic, mcp, typer.
 ```bash
 uv run synthwave play                          # infini, mood dark, Ctrl+C pour arrêter
 uv run synthwave play --duration 5m --mood outrun --bpm 118
-uv run synthwave play --duration 3m --seed 42 --export track.wav   # rendu hors-ligne
+uv run synthwave play --duration 3m --seed 42 --export track.wav   # rendu hors-ligne (.wav .flac .ogg .mp3)
 uv run synthwave play --fx pad:gate:rate=1/16,depth=0.8 --fx master:lofi:bits=8
 uv run synthwave patches                       # patches disponibles
 uv run synthwave devices                       # périphériques audio
