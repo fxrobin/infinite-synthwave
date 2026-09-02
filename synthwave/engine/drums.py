@@ -78,10 +78,10 @@ class DrumKit:
         t = _t(sr, 2.0)
         crash = _filt("bp", rng.uniform(-1, 1, len(t)), 6000, 0.1, sr) * np.exp(-t / 0.7)
         self.samples = {
-            "kick": _stereo(kick), "snare": _stereo(snare), "clap": _stereo(clap),
-            "hat_closed": _stereo(hat_c) * 0.6, "hat_open": _stereo(hat_o) * 0.5,
+            "kick": _stereo(kick), "snare": _stereo(snare) * 0.8, "clap": _stereo(clap) * 0.7,
+            "hat_closed": _stereo(hat_c) * 0.35, "hat_open": _stereo(hat_o) * 0.3,
             "tom_low": _stereo(toms["tom_low"]), "tom_mid": _stereo(toms["tom_mid"]),
-            "crash": _stereo(crash) * 0.6,
+            "crash": _stereo(crash) * 0.4,
         }
 
     def render(self, n: int, events: list[NoteEvent]) -> np.ndarray:

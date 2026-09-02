@@ -1,6 +1,6 @@
 name: drums_808
 kind: drums
-volume: 0.9
+volume: 0.5
 kick: {pitch_start: 170, pitch_end: 48, pitch_decay: 0.045, decay: 0.42, click: 0.35}
 snare: {tone: 185, tone_decay: 0.09, noise_decay: 0.2, gate_hold: 0.28, reverb_size: 0.9, reverb_mix: 0.55}
 hat: {closed_decay: 0.045, open_decay: 0.3, cutoff: 8500}

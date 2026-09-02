@@ -60,8 +60,8 @@ class Renderer:
         self.current_gain = {layer: 0.0 for layer in LAYERS}
         self.sidechain = Sidechain(self.sr, depth=0.45, release=0.22)
         self.limiter = Limiter(self.sr, self.bpm, threshold=0.95)
-        self.master_volume = 0.9
-        self.fade_target, self.fade = 1.0, 1.0
+        self.master_volume = 0.8
+        self.fade_target, self.fade, self.fade_rate = 1.0, 1.0, 0.0
         self.commands: queue.SimpleQueue = queue.SimpleQueue()
         self.plan: BarPlan | None = None
         self.finished = False
@@ -166,6 +166,8 @@ class Renderer:
             self.plan = plan
             self.plan_gain = dict(plan.gains)
             self.fade_target = plan.fade
+            bar = max(1, self.transport.step_samples(16))
+            self.fade_rate = (plan.fade - self.fade) / bar
             if plan.finished:
                 self.finished = True
         kicks = [e.offset for e in events["drums"] if e.on and e.note == 36]
@@ -180,8 +182,10 @@ class Renderer:
             ramp = np.linspace(g0, target, n, endpoint=False, dtype=np.float32)
             mix += sig * ramp[:, None]
             self.current_gain[layer] = target
-        fade = np.linspace(self.fade, self.fade_target, n, endpoint=False, dtype=np.float32)
-        self.fade = self.fade_target
+        fade = self.fade + self.fade_rate * np.arange(1, n + 1, dtype=np.float32)
+        fade = np.maximum(fade, self.fade_target) if self.fade_rate < 0 else np.minimum(
+            fade, self.fade_target)
+        self.fade = float(fade[-1])
         mix *= (self.master_volume * fade)[:, None]
         self.rendered += n
         return self.limiter.process(mix)

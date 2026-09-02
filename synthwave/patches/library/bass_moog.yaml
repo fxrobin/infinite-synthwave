@@ -1,7 +1,7 @@
 name: bass_moog
 polyphony: 1
 glide: 0.03
-volume: 0.9
+volume: 0.45
 oscillators:
   - {wave: saw, level: 0.9}
   - {wave: square, octave: -1, level: 0.5, pwm: 0.5}

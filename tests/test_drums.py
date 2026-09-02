@@ -15,7 +15,7 @@ def test_all_samples_exist_finite_and_normalised():
     for name in DRUM_NOTES:
         s = k.samples[name]
         assert s.ndim == 2 and s.shape[1] == 2 and np.isfinite(s).all()
-        assert 0.4 < np.abs(s).max() <= 1.0
+        assert 0.25 < np.abs(s).max() <= 1.0
 
 
 def test_kick_is_low_frequency():

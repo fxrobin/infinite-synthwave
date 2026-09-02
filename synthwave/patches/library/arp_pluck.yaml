@@ -1,6 +1,6 @@
 name: arp_pluck
 polyphony: 6
-volume: 0.55
+volume: 0.8
 oscillators:
   - {wave: saw, unison: 2, detune: 8, level: 0.8}
   - {wave: square, octave: 1, level: 0.2, pwm: 0.3}

@@ -195,9 +195,13 @@ class Limiter(Effect):
         n = len(x)
         peak = float(np.abs(x).max()) if n else 0.0
         target = min(1.0, self.thr / peak) if peak > 0 else 1.0
-        new = target if target < self.gain else target + (self.gain - target) * self.coef ** n
-        ramp = np.linspace(self.gain, new, n, endpoint=False)
-        self.gain = new
+        if target < self.gain:  # instant attack: the whole block gets the safe gain
+            self.gain = target
+            ramp = np.full(n, target)
+        else:
+            new = target + (self.gain - target) * self.coef ** n
+            ramp = np.linspace(self.gain, new, n, endpoint=False)
+            self.gain = new
         return np.clip(x * ramp[:, None], -1.0, 1.0).astype(np.float32)
 
 
