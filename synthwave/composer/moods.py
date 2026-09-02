@@ -26,9 +26,9 @@ class Mood:
 DARK_PATCHES = {"drums": "drums_dark", "bass": "bass_dark", "arp": "arp_dark",
                 "pad": "pad_dark", "lead": "lead_dark", "ambient": "ambient_dark"}
 DARK_POOLS = {"bass": ["bass_dark", "bass_industrial", "bass_sub", "bass_growl", "bass_reese"],
-              "lead": ["lead_dark", "lead_industrial"]}
+              "lead": ["lead_dark", "lead_industrial", "lead_scream"]}
 BRIGHT_POOLS = {"bass": ["bass_moog", "bass_sub", "bass_pulse", "bass_reese"],
-                "lead": ["lead_saw", "lead_saw", "lead_industrial"]}
+                "lead": ["lead_saw", "lead_pulse", "lead_industrial"]}
 DARK_BASS = {"eighths": 2, "riff": 3, "sixteenths": 2, "syncopated": 1, "octaves": 1}
 BRIGHT_BASS = {"eighths": 3, "octaves": 2, "syncopated": 1, "walk": 1, "sixteenths": 1}
 

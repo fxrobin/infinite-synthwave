@@ -1,0 +1,20 @@
+name: lead_scream
+polyphony: 1
+glide: 0.09
+volume: 1.0
+oscillators:
+  - {wave: saw, unison: 5, detune: 25, level: 0.7, spread: 0.9}
+  - {wave: square, pwm: 0.15, level: 0.4}
+  - {wave: saw, octave: -1, level: 0.3}
+amp_env: {attack: 0.05, decay: 0.5, sustain: 0.85, release: 0.6}
+filter:
+  type: lp
+  cutoff: 1500
+  resonance: 0.25
+  env: {attack: 0.15, decay: 1.2, sustain: 0.5, release: 0.5, amount: 900}
+lfo: {wave: sine, rate: 6.0, target: pitch, amount: 0.15}
+effects:
+  - {type: distortion, drive: 7.0, tone: 3200, mix: 0.85}
+  - {type: phaser, rate: 0.4, depth: 1.0, stages: 6, mix: 0.6, feedback: 0.5}
+  - {type: delay, time: "1/8d", feedback: 0.5, mix: 0.4, pingpong: true}
+  - {type: reverb, size: 0.9, damping: 0.6, mix: 0.35}

@@ -323,10 +323,76 @@ class AutoPan(Effect):
         return out.astype(np.float32)
 
 
+class Phaser(Effect):
+    """Cascade of first-order allpass stages swept by an LFO; coefficients updated per chunk."""
+
+    def __init__(self, sr: int, bpm: float, rate: float | str = 0.3, depth: float = 0.8,
+                 stages: int = 4, mix: float = 0.5, feedback: float = 0.3):
+        hz = 1.0 / note_to_seconds(rate, bpm) if isinstance(rate, str) else float(rate)
+        self.sr, self.lfo = sr, LFO("triangle", hz, sr)
+        self.depth, self.mix = float(np.clip(depth, 0, 1)), mix
+        self.fb = float(np.clip(feedback, 0, 0.9))
+        self.stages = int(np.clip(stages, 2, 8))
+        self.zi = [[np.zeros(1) for _ in range(self.stages)] for _ in (0, 1)]
+        self.last = np.zeros(2)
+
+    def process(self, x: np.ndarray) -> np.ndarray:
+        n = len(x)
+        lfo = self.lfo.render(n)
+        out = np.empty((n, 2))
+        chunk = 128
+        for start in range(0, n, chunk):
+            end = min(n, start + chunk)
+            sweep = 0.5 + 0.5 * float(lfo[start:end].mean())
+            fc = 300.0 * (8.0 ** (sweep * self.depth))        # 300 Hz .. 2.4 kHz
+            g = (1.0 - np.tan(np.pi * fc / self.sr)) / (1.0 + np.tan(np.pi * fc / self.sr))
+            for ch in (0, 1):
+                seg = x[start:end, ch].astype(np.float64)
+                seg[0] += self.fb * self.last[ch]
+                for s in range(self.stages):
+                    seg, self.zi[ch][s] = lfilter([g, -1.0], [1.0, -g], seg, zi=self.zi[ch][s])
+                self.last[ch] = seg[-1]
+                out[start:end, ch] = seg
+        return (x * (1 - self.mix) + out * self.mix).astype(np.float32)
+
+
+class Flanger(Effect):
+    """Short modulated delay with feedback, processed in chunks no longer than the delay."""
+
+    def __init__(self, sr: int, bpm: float, rate: float | str = 0.25, depth: float = 0.002,
+                 base: float = 0.003, feedback: float = 0.5, mix: float = 0.5):
+        hz = 1.0 / note_to_seconds(rate, bpm) if isinstance(rate, str) else float(rate)
+        self.sr, self.lfo = sr, LFO("sine", hz, sr)
+        self.base, self.depth = max(2.0, base * sr), depth * sr
+        self.fb, self.mix = float(np.clip(feedback, 0, 0.9)), mix
+        self.size = int(sr * 0.05)
+        self.buf = np.zeros((self.size, 2))
+        self.pos = 0
+
+    def process(self, x: np.ndarray) -> np.ndarray:
+        n = len(x)
+        lfo = self.lfo.render(n)
+        out = np.empty((n, 2))
+        chunk = max(1, int(self.base) - 1)
+        for start in range(0, n, chunk):
+            end = min(n, start + chunk)
+            k = end - start
+            d = self.base + self.depth * (1.0 + lfo[start:end])
+            p = self.pos + np.arange(k) - d
+            i0 = np.floor(p).astype(int)
+            fr = (p - i0)[:, None]
+            wet = self.buf[i0 % self.size] * (1 - fr) + self.buf[(i0 + 1) % self.size] * fr
+            widx = (self.pos + np.arange(k)) % self.size
+            self.buf[widx] = x[start:end] + wet * self.fb
+            out[start:end] = wet
+            self.pos = (self.pos + k) % self.size
+        return (x * (1 - self.mix) + out * self.mix).astype(np.float32)
+
+
 _REGISTRY = {"chorus": Chorus, "delay": Delay, "reverb": Reverb,
              "gated_reverb": GatedReverb, "limiter": Limiter,
              "gate": Gate, "bitcrush": Bitcrush, "lofi": LoFi, "distortion": Distortion,
-             "autopan": AutoPan}
+             "autopan": AutoPan, "phaser": Phaser, "flanger": Flanger}
 
 
 def build_effects(specs: list[dict], sr: int, bpm: float) -> list[Effect]:

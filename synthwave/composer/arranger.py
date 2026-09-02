@@ -145,6 +145,9 @@ class Arranger:
                 [{"type": "distortion", "drive": 5.0, "tone": 3000, "mix": 0.7},
                  {"type": "autopan", "rate": "1/4", "depth": 0.5}],
                 [{"type": "bitcrush", "bits": 7, "downsample": 3, "mix": 0.45}],
+                [{"type": "phaser", "rate": "2/1", "depth": 0.9, "stages": 6, "mix": 0.6}],
+                [{"type": "flanger", "rate": 0.2, "feedback": 0.6, "mix": 0.5},
+                 {"type": "distortion", "drive": 3.0, "tone": 3500, "mix": 0.5}],
             ]
             fx["lead"] = lead_pool[int(r.integers(len(lead_pool)))]
         elif self.section == Section.BREAK:
@@ -276,7 +279,8 @@ class Arranger:
             gains["arp"] = 0.0
         lead_p = (max(self.mood.lead_prob, 0.7) if self.section == Section.CHORUS
                   else self.mood.lead_prob * 0.5)
-        scale = self.harmony.scale_notes(72, 84)
+        lo = 55 if self.mood.pad_octave <= 3 else 60
+        scale = self.harmony.scale_notes(lo, lo + 19)
         lead = gen_lead(r, chord, scale, density) if r.random() < lead_p else []
         patterns = {
             "drums": drums,

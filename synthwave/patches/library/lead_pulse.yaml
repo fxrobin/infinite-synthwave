@@ -1,0 +1,19 @@
+name: lead_pulse
+polyphony: 1
+glide: 0.04
+volume: 0.9
+oscillators:
+  - {wave: square, unison: 2, detune: 9, pwm: 0.35, level: 0.7, spread: 0.7}
+  - {wave: saw, level: 0.3}
+  - {wave: square, octave: -1, pwm: 0.5, level: 0.3}
+amp_env: {attack: 0.02, decay: 0.4, sustain: 0.7, release: 0.4}
+filter:
+  type: lp
+  cutoff: 1800
+  resonance: 0.15
+  env: {attack: 0.01, decay: 0.6, sustain: 0.45, release: 0.3, amount: 900}
+lfo: {wave: triangle, rate: 0.7, target: pwm, amount: 0.5}
+effects:
+  - {type: flanger, rate: 0.2, depth: 0.002, base: 0.003, feedback: 0.55, mix: 0.5}
+  - {type: delay, time: "1/8d", feedback: 0.4, mix: 0.35, pingpong: true}
+  - {type: reverb, size: 0.8, damping: 0.45, mix: 0.3}
