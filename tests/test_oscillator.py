@@ -47,3 +47,14 @@ def test_noise_uses_rng():
     n1 = render_wave("noise", phase, 0.01, rng=np.random.default_rng(1))
     n2 = render_wave("noise", phase, 0.01, rng=np.random.default_rng(1))
     assert np.array_equal(n1, n2) and np.abs(n1).max() <= 1.0
+
+
+def test_fm_adds_sidebands_and_stays_continuous():
+    osc = Oscillator("fm", SR, np.random.default_rng(0), fm_ratio=2.5, fm_index=1.5)
+    sig = np.concatenate([osc.render(220.0, 1024)[:, 0] for _ in range(20)])
+    assert np.abs(np.diff(sig)).max() < 0.25
+    spec = np.abs(np.fft.rfft(sig * np.hanning(len(sig))))
+    f = np.fft.rfftfreq(len(sig), 1 / SR)
+    fund = spec[np.argmin(abs(f - 220))]
+    side = spec[np.argmin(abs(f - 770))]     # 220 + 550
+    assert side > fund * 0.1

@@ -1,0 +1,16 @@
+name: bass_dark
+polyphony: 1
+glide: 0.06
+volume: 0.45
+oscillators:
+  - {wave: saw, level: 0.7}
+  - {wave: fm, fm_ratio: 0.5, fm_index: 0.6, level: 0.5}
+  - {wave: sine, octave: -1, level: 1.0}
+amp_env: {attack: 0.01, decay: 0.3, sustain: 0.8, release: 0.2}
+filter:
+  type: lp
+  cutoff: 260
+  resonance: 0.4
+  env: {attack: 0.005, decay: 0.35, sustain: 0.15, release: 0.2, amount: 900}
+lfo: {wave: sine, rate: 0.5, target: cutoff, amount: 60}
+effects: []

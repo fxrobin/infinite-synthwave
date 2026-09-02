@@ -66,3 +66,15 @@ def test_mutate_is_bounded_and_keeps_allowed_notes():
     assert in_range(m) and all(n.note in allowed for n in m)
     changed = len(set(base) ^ set(m))
     assert 0 < changed <= 12
+
+
+def test_halftime_drums_put_snare_on_three():
+    p = gen_drums(np.random.default_rng(0), 0.5, halftime=True)
+    assert {n.step for n in p if n.note == 38} == {8}
+    assert 0 in {n.step for n in p if n.note == 36} and 4 not in {n.step for n in p if n.note == 36}
+
+
+def test_pad_octave_and_triad_widening():
+    tri = Chord(4, 0, (0, 3, 7))
+    p = gen_pad(tri, octave=3)
+    assert [n.note for n in p] == [40, 43, 47, 52]

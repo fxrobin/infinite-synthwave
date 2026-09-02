@@ -12,9 +12,18 @@ PROGRESSIONS: dict[str, tuple[int, ...]] = {
     "i-VI-III-VII": (0, 5, 2, 6), "i-VII-VI-VII": (0, 6, 5, 6), "i-iv-VI-V": (0, 3, 5, 4),
     "i-VI-VII-i": (0, 5, 6, 0), "VI-VII-i-i": (5, 6, 0, 0), "i-III-VII-VI": (0, 2, 6, 5),
     "iv-VI-i-VII": (3, 5, 0, 6),
+    # dark (phrygian degrees: 0=i 1=bII 3=iv 5=bVI 6=bvii)
+    "i-bII-i-bII": (0, 1, 0, 1), "i-iv-bII-i": (0, 3, 1, 0), "i-bVI-bII-i": (0, 5, 1, 0),
+    "i-bvii-bVI-bII": (0, 6, 5, 1), "i-i-bVI-bII": (0, 0, 5, 1), "i-iv-i-bII": (0, 3, 0, 1),
+    # harmonic minor
+    "i-VI-V-i": (0, 5, 4, 0), "i-iv-V-i": (0, 3, 4, 0), "i-i-VI-V": (0, 0, 5, 4),
 }
+SCALES = {"minor": (0, 2, 3, 5, 7, 8, 10), "major": (0, 2, 4, 5, 7, 9, 11),
+          "phrygian": (0, 1, 3, 5, 7, 8, 10), "harmonic_minor": (0, 2, 3, 5, 7, 8, 11)}
 _QUALITY = {(0, 3, 7, 10): "m7", (0, 4, 7, 11): "maj7", (0, 4, 7, 10): "7",
-            (0, 3, 6, 10): "m7b5", (0, 4, 8, 11): "maj7#5"}
+            (0, 3, 6, 10): "m7b5", (0, 4, 8, 11): "maj7#5", (0, 3, 7, 11): "mMaj7",
+            (0, 3, 6, 9): "dim7",
+            (0, 3, 7): "m", (0, 4, 7): "", (0, 3, 6): "dim", (0, 4, 8): "aug"}
 
 
 @dataclass(frozen=True)
@@ -42,20 +51,24 @@ class Harmony:
     def __init__(self, rng: np.random.Generator, mood: Mood):
         self.rng, self.mood = rng, mood
         self.tonic = int(rng.integers(0, 12))
-        self.mode = self.MAJOR if rng.random() < mood.major_prob else self.MINOR
         self.current: str | None = None
+        self.set_mood(mood)
 
     def set_mood(self, mood: Mood) -> None:
         self.mood = mood
+        self.mode = (self.MAJOR if self.rng.random() < mood.major_prob
+                     else SCALES.get(mood.scale, self.MINOR))
 
     @property
     def key_name(self) -> str:
-        return NOTE_NAMES[self.tonic] + (" minor" if self.mode == self.MINOR else " major")
+        names = {v: k for k, v in SCALES.items()}
+        return NOTE_NAMES[self.tonic] + " " + names.get(self.mode, "minor").replace("_", " ")
 
     def chord_for_degree(self, deg: int) -> Chord:
         s = self.mode
         root = s[deg % 7]
-        intervals = tuple((s[(deg + k) % 7] - root) % 12 for k in (0, 2, 4, 6))
+        stack = (0, 2, 4, 6) if self.mood.sevenths else (0, 2, 4)
+        intervals = tuple((s[(deg + k) % 7] - root) % 12 for k in stack)
         return Chord((self.tonic + root) % 12, deg % 7, intervals)
 
     def next_progression(self) -> list[Chord]:

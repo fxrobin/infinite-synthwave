@@ -47,3 +47,16 @@ def test_kick_has_strong_sub_energy():
     assert low > rest * 3
     assert np.abs(s).max() > 1.2  # kick gain above unity, louder than the snare
     assert np.abs(kit().samples["snare"]).max() < 0.7
+
+
+def test_perc_bus_echo_but_kick_dry():
+    k = DrumKit(load_patch("drums_dark"), SR, np.random.default_rng(0), bpm=120)
+    d = int(0.375 * SR)  # 1/8d at 120 BPM
+    snare = k.render(d + 2000, [NoteEvent(0, 38, 1.0, True)])
+    assert np.abs(snare[d + 200:d + 1500]).max() > 0.05
+    dry = load_patch("drums_dark").model_copy(update={"perc_effects": []})
+    k2 = DrumKit(load_patch("drums_dark"), SR, np.random.default_rng(0), bpm=120)
+    k3 = DrumKit(dry, SR, np.random.default_rng(0), bpm=120)
+    kick = k2.render(d + 2000, [NoteEvent(0, 36, 1.0, True)])
+    kick_dry = k3.render(d + 2000, [NoteEvent(0, 36, 1.0, True)])
+    assert np.allclose(kick, kick_dry)

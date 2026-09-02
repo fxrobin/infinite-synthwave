@@ -5,7 +5,7 @@ import numpy as np
 from scipy.signal import lfilter
 
 from ..patches.model import DrumPatchModel
-from .effects import GatedReverb
+from .effects import GatedReverb, build_effects
 from .events import NoteEvent
 from .filter import biquad_coeffs
 
@@ -29,13 +29,16 @@ def _filt(kind: str, x: np.ndarray, cutoff: float, res: float, sr: int) -> np.nd
 
 
 class DrumKit:
-    def __init__(self, patch: DrumPatchModel, sr: int, rng: np.random.Generator, bpm=None):
-        self.sr, self.rng = sr, rng
-        self.active: list[tuple[np.ndarray, int, float]] = []  # (sample, position, gain)
+    def __init__(self, patch: DrumPatchModel, sr: int, rng: np.random.Generator,
+                 bpm: float = 120.0):
+        self.sr, self.rng, self.bpm = sr, rng, bpm
+        self.active: list[tuple[np.ndarray, int, float, bool]] = []  # sample, pos, gain, kick
         self.set_patch(patch)
 
     def set_bpm(self, bpm: float) -> None:
-        pass
+        self.bpm = bpm
+        self.perc_fx = build_effects([e.model_dump() for e in self.patch.perc_effects],
+                                     self.sr, bpm)
 
     def set_patch(self, patch: DrumPatchModel) -> None:
         self.patch = patch
@@ -87,24 +90,29 @@ class DrumKit:
             "tom_mid": _stereo(toms["tom_mid"]) * tm.gain,
             "crash": _stereo(crash) * patch.crash_gain,
         }
+        self.set_bpm(self.bpm)
 
     def render(self, n: int, events: list[NoteEvent]) -> np.ndarray:
-        out = np.zeros((n, 2), dtype=np.float32)
+        kick = np.zeros((n, 2), dtype=np.float32)
+        perc = np.zeros((n, 2), dtype=np.float32)
         for ev in events:
             name = NOTE_TO_DRUM.get(ev.note)
             if ev.on and name:
                 if name == "hat_closed":  # closed hat chokes the open hat
                     self.active = [a for a in self.active if a[0] is not self.samples["hat_open"]]
-                self.active.append((self.samples[name], -int(ev.offset), float(ev.velocity)))
+                self.active.append((self.samples[name], -int(ev.offset), float(ev.velocity),
+                                    name == "kick"))
         still = []
-        for sample, pos, gain in self.active:
+        for sample, pos, gain, is_kick in self.active:
             start = max(0, -pos)          # first output index for this hit inside the block
             src = max(0, pos)             # first sample index
             k = min(n - start, len(sample) - src)
             if k > 0:
-                out[start:start + k] += sample[src:src + k] * gain
+                (kick if is_kick else perc)[start:start + k] += sample[src:src + k] * gain
             pos += n
             if pos < len(sample):
-                still.append((sample, pos, gain))
+                still.append((sample, pos, gain, is_kick))
         self.active = still
-        return out * self.patch.volume
+        for fx in self.perc_fx:
+            perc = fx.process(perc)
+        return (kick + perc) * self.patch.volume

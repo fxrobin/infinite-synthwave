@@ -4,7 +4,7 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-Wave = Literal["saw", "square", "triangle", "sine", "noise"]
+Wave = Literal["saw", "square", "triangle", "sine", "noise", "fm"]
 
 
 class OscSpec(BaseModel):
@@ -16,6 +16,8 @@ class OscSpec(BaseModel):
     level: float = Field(1.0, ge=0.0, le=2.0)
     pwm: float = Field(0.5, ge=0.05, le=0.95)
     spread: float = Field(1.0, ge=0.0, le=1.0)
+    fm_ratio: float = Field(2.0, gt=0.0, le=16.0)
+    fm_index: float = Field(0.0, ge=0.0, le=10.0)
 
 
 class EnvSpec(BaseModel):
@@ -113,6 +115,7 @@ class DrumPatchModel(BaseModel):
     clap: ClapSpec = ClapSpec()
     tom: TomSpec = TomSpec()
     crash_gain: float = 0.4
+    perc_effects: list[EffectSpec] = []   # applied to everything except the kick
 
 
 AnyPatch = PatchModel | DrumPatchModel

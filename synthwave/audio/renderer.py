@@ -50,8 +50,9 @@ class Renderer:
         self.tracker = Tracker(self.transport, self.arranger)
         self.instruments: dict[str, Synth | DrumKit] = {}
         self.patch_names: dict[str, str] = {}
+        self.manual_patch: set[str] = set(cfg.patches)
         for layer in LAYERS:
-            name = cfg.patches.get(layer, DEFAULT_PATCHES[layer])
+            name = cfg.patches.get(layer, self.mood.patches.get(layer, DEFAULT_PATCHES[layer]))
             self._install(layer, name, load_patch(name))
         self.layer_volume = {layer: 1.0 for layer in LAYERS}
         self.muted: set[str] = set()
@@ -77,7 +78,7 @@ class Renderer:
             if not isinstance(patch, DrumPatchModel):
                 raise PatchError(f"layer 'drums' needs a drum patch, got {patch.name!r}")
             if inst is None:
-                inst = DrumKit(patch, self.sr, self.rng)
+                inst = DrumKit(patch, self.sr, self.rng, self.bpm)
             else:
                 inst.set_patch(patch)
         else:
@@ -133,6 +134,15 @@ class Renderer:
         if layer not in LAYERS:
             raise ValueError(f"unknown layer {layer!r}, choose from {LAYERS}")
         self._install(layer, name, load_patch(name))
+        self.manual_patch.add(layer)
+
+    def _apply_mood_patches(self) -> None:
+        for layer in LAYERS:
+            if layer in self.manual_patch:
+                continue
+            name = self.mood.patches.get(layer, DEFAULT_PATCHES[layer])
+            if name != self.patch_names[layer]:
+                self._install(layer, name, load_patch(name))
 
     def set_patch_param(self, layer: str, path: str, value) -> None:
         if layer not in LAYERS:
@@ -198,6 +208,7 @@ class Renderer:
                 self.finished = True
             if plan.mood:
                 self.mood = MOODS[plan.mood]
+                self._apply_mood_patches()
             if plan.bpm and abs(plan.bpm - self.bpm) > 0.05:
                 self.set_tempo(plan.bpm)
             new_fx = plan.fx or {}

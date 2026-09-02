@@ -64,7 +64,7 @@ def test_bad_patch_keeps_state():
         r.load_patch("drums", "pad_juno")
     with pytest.raises(PatchError):
         r.set_patch_param("pad", "filter.cutoff", "nope")
-    assert r.status()["layers"]["drums"]["patch"] == "drums_808"
+    assert r.status()["layers"]["drums"]["patch"] == "drums_dark"
     r.set_patch_param("pad", "filter.cutoff", 700)
     assert r.instruments["pad"].patch.filter.cutoff == 700
 
@@ -90,3 +90,23 @@ def test_layer_effects_manual_and_auto():
     assert r.status()["effects"]["pad"][0]["type"] == "gate"
     r.set_layer_effects("pad", None)
     assert r.status()["effects"]["pad"] == []
+
+
+def test_mood_patches_swap_on_transition():
+    r = Renderer(RenderConfig(seed=5, mood="outrun"))
+    assert r.status()["layers"]["pad"]["patch"] == "pad_juno"
+    r.load_patch("lead", "lead_saw")
+    r.set_mood("dark")
+    bars = int(16 * r.transport.samples_per_step)
+    for _ in range(9 * bars // 4096 + 2):
+        r.render(4096)
+    st = r.status()
+    assert st["mood"] == "dark" and st["layers"]["pad"]["patch"] == "pad_dark"
+    assert st["layers"]["drums"]["patch"] == "drums_dark"
+    assert st["layers"]["lead"]["patch"] == "lead_saw"   # manual choice kept
+
+
+def test_dark_mood_renders():
+    r = Renderer(RenderConfig(seed=8, mood="dark"))
+    out = render_seconds(r, 3)
+    assert np.isfinite(out).all() and np.abs(out).max() > 0.05

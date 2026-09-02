@@ -27,14 +27,26 @@ def _sorted(p: Pattern) -> Pattern:
 
 
 def gen_drums(rng: np.random.Generator, density: float, fill: bool = False,
-              snare: bool = True, crash: bool = False) -> Pattern:
-    p: Pattern = [Note(s, KICK, 1.0) for s in (0, 4, 8, 12)]
-    if rng.random() < density * 0.5:
-        p.append(Note(int(rng.choice([10, 14, 7])), KICK, 0.8))
-    if snare:
-        p += [Note(4, SNARE, 1.0), Note(12, SNARE, 1.0)]
-        if rng.random() < density * 0.4:
-            p += [Note(4, CLAP, 0.7), Note(12, CLAP, 0.7)]
+              snare: bool = True, crash: bool = False, halftime: bool = False) -> Pattern:
+    if halftime:  # slow, heavy: kick on 1 (+ a syncopated one), snare on 3 only
+        p: Pattern = [Note(0, KICK, 1.0)]
+        p.append(Note(int(rng.choice([6, 10, 7, 11])), KICK, 0.85))
+        if rng.random() < density:
+            p.append(Note(int(rng.choice([13, 14])), KICK, 0.7))
+        if snare:
+            p.append(Note(8, SNARE, 1.0))
+            if rng.random() < 0.5:
+                p.append(Note(8, CLAP, 0.6))
+            if rng.random() < density * 0.6:
+                p.append(Note(int(rng.choice([14, 15, 11])), int(rng.choice([TOM_L, TOM_M])), 0.6))
+    else:
+        p = [Note(s, KICK, 1.0) for s in (0, 4, 8, 12)]
+        if rng.random() < density * 0.5:
+            p.append(Note(int(rng.choice([10, 14, 7])), KICK, 0.8))
+        if snare:
+            p += [Note(4, SNARE, 1.0), Note(12, SNARE, 1.0)]
+            if rng.random() < density * 0.4:
+                p += [Note(4, CLAP, 0.7), Note(12, CLAP, 0.7)]
     for s in range(0, STEPS, 2):
         p.append(Note(s, HAT_C, 0.8 if s % 4 == 0 else 0.55))
     for s in range(1, STEPS, 2):
@@ -82,10 +94,12 @@ def gen_arp(rng: np.random.Generator, chord: Chord, mode: str, octaves: int = 2)
     return [Note(s, seq[s], 0.85 if s % 4 == 0 else 0.7, 1) for s in range(STEPS)]
 
 
-def gen_pad(chord: Chord) -> Pattern:
-    notes = chord.notes(4)
+def gen_pad(chord: Chord, octave: int = 4) -> Pattern:
+    notes = chord.notes(octave)
     if chord.root_pc >= 6:  # keep voicing low: drop the root an octave
         notes = [notes[0] - 12] + notes[1:]
+    if len(notes) == 3:     # triads: add the octave for width
+        notes.append(notes[0] + 12)
     return [Note(0, n, 0.7, STEPS) for n in notes]
 
 

@@ -101,7 +101,8 @@ class Arranger:
         self.bass_style = str(r.choice(["eighths", "octaves", "syncopated"], p=[0.5, 0.3, 0.2]))
         self.arp_mode = str(r.choice(["up", "updown", "random"], p=[0.45, 0.4, 0.15]))
         self.arp_on = self.section == Section.CHORUS or r.random() < self.mood.arp_prob
-        self.drums_base = gen_drums(r, self._density(), snare=self.section != Section.INTRO)
+        self.drums_base = gen_drums(r, self._density(), snare=self.section != Section.INTRO,
+                                    halftime=self.mood.halftime)
         self.fx = self._section_fx()
 
     def _section_fx(self) -> dict[str, list[dict]]:
@@ -194,7 +195,8 @@ class Arranger:
         if self.section == Section.TRANSITION:
             drums = []
         elif last and self.section != Section.OUTRO:
-            drums = gen_drums(r, density, fill=True, snare=self.section != Section.INTRO)
+            drums = gen_drums(r, density, fill=True, snare=self.section != Section.INTRO,
+                              halftime=self.mood.halftime)
         else:
             if self.section_bar % 4 == 0 and not first:
                 self.drums_base = mutate(r, self.drums_base, 0.15, [HAT_C])
@@ -213,7 +215,7 @@ class Arranger:
             "drums": drums,
             "bass": gen_bass(r, chord, self.bass_style),
             "arp": gen_arp(r, chord, self.arp_mode) if self.arp_on else [],
-            "pad": gen_pad(chord),
+            "pad": gen_pad(chord, self.mood.pad_octave),
             "lead": lead,
             "ambient": gen_ambient(chord),
         }

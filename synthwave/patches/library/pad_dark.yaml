@@ -1,0 +1,17 @@
+name: pad_dark
+polyphony: 6
+volume: 0.22
+oscillators:
+  - {wave: saw, unison: 4, detune: 10, level: 0.55, spread: 1.0}
+  - {wave: fm, fm_ratio: 1.0, fm_index: 0.25, level: 0.45}
+  - {wave: square, octave: -1, level: 0.2, pwm: 0.3}
+amp_env: {attack: 1.6, decay: 1.0, sustain: 0.85, release: 3.5}
+filter:
+  type: lp
+  cutoff: 520
+  resonance: 0.2
+  env: {attack: 2.0, decay: 2.0, sustain: 0.5, release: 2.0, amount: 350}
+lfo: {wave: triangle, rate: 0.12, target: cutoff, amount: 180}
+effects:
+  - {type: chorus, rate: 0.3, depth: 0.005, mix: 0.5}
+  - {type: reverb, size: 1.0, damping: 0.55, mix: 0.5, predelay: 0.04}

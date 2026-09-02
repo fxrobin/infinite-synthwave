@@ -17,7 +17,8 @@ class Voice:
     def __init__(self, patch: PatchModel, sr: int, rng: np.random.Generator):
         self.patch, self.sr = patch, sr
         self.oscs = [Oscillator(o.wave, sr, rng, o.unison, o.detune, o.octave, o.semi, o.level,
-                                o.pwm, o.spread) for o in patch.oscillators]
+                                o.pwm, o.spread, o.fm_ratio, o.fm_index)
+                     for o in patch.oscillators]
         e = patch.amp_env
         self.amp_env = ADSR(e.attack, e.decay, e.sustain, e.release, sr)
         self.filter = Filter(patch.filter.type, sr) if patch.filter else None

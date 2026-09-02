@@ -25,8 +25,17 @@ uv run synthwave devices                       # périphériques audio
 uv run synthwave mcp                           # serveur MCP (stdio)
 ```
 
-Moods : `dark` (100 BPM, mineur, filtres fermés), `dreamy` (108 BPM, majeur possible,
-pads dominants), `outrun` (118 BPM, batterie dense, arpèges permanents).
+Moods :
+
+| Mood | BPM | Gamme | Accords | Rythme | Patches |
+|---|---|---|---|---|---|
+| `dark` | 92 | phrygien | triades, i‑bII, i‑iv‑bII‑i, i‑bVI‑bII‑i | half‑time | jeu `*_dark` (FM, écho percussions) |
+| `noir` | 96 | mineur harmonique | triades, i‑VI‑V‑i, i‑iv‑V‑i | half‑time | jeu `*_dark` |
+| `dreamy` | 108 | mineur naturel / majeur | 7e | 4/4 | jeu par défaut |
+| `outrun` | 118 | mineur naturel | 7e | 4/4 dense | jeu par défaut |
+
+Le jeu de patches suit le mood (changé lors des transitions) sauf pour les couches chargées
+à la main via `load_patch`.
 
 Même seed + mêmes options ⇒ même musique.
 
@@ -62,7 +71,8 @@ name: pad_juno
 polyphony: 6
 volume: 0.5
 oscillators:
-  - {wave: saw, unison: 3, detune: 14, level: 0.7, spread: 1.0}   # saw|square|triangle|sine|noise
+  - {wave: saw, unison: 3, detune: 14, level: 0.7, spread: 1.0}   # saw|square|triangle|sine|noise|fm
+  - {wave: fm, fm_ratio: 3.5, fm_index: 1.4, level: 0.4}           # FM 2 opérateurs (cloches, growl)
   - {wave: square, octave: -1, level: 0.25, pwm: 0.45}
 amp_env: {attack: 0.9, decay: 0.6, sustain: 0.8, release: 1.8}
 filter:
@@ -81,7 +91,9 @@ effects:
 ```
 
 Patch batterie (`kind: drums`) : `kick` (pitch, `sub`, `drive` saturation, `gain`), `snare`
-(gated reverb, `gain`), `hat`, `clap`, `tom`, `crash_gain`. Voir `drums_808.yaml`.
+(gated reverb, `gain`), `hat`, `clap`, `tom`, `crash_gain`, et `perc_effects` : chaîne
+d'effets appliquée à toutes les percussions sauf le kick (écho ping‑pong + reverb dans
+`drums_dark.yaml`). Voir `drums_808.yaml`.
 
 ## MCP
 

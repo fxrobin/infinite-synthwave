@@ -1,0 +1,18 @@
+name: lead_dark
+polyphony: 2
+glide: 0.08
+volume: 1.6
+oscillators:
+  - {wave: fm, fm_ratio: 3.5, fm_index: 1.4, level: 0.6}
+  - {wave: sine, level: 0.5}
+  - {wave: saw, octave: -1, level: 0.15}
+amp_env: {attack: 0.01, decay: 0.8, sustain: 0.4, release: 1.2}
+filter:
+  type: lp
+  cutoff: 1800
+  resonance: 0.15
+  env: {attack: 0.005, decay: 0.6, sustain: 0.2, release: 0.5, amount: 1500}
+lfo: {wave: sine, rate: 4.5, target: pitch, amount: 0.08}
+effects:
+  - {type: delay, time: "1/4d", feedback: 0.6, mix: 0.5, pingpong: true}
+  - {type: reverb, size: 0.95, damping: 0.5, mix: 0.45, predelay: 0.02}
