@@ -22,7 +22,8 @@ from .patterns import (
     mutate,
 )
 
-LAYERS = ("drums", "bass", "arp", "pad", "lead", "ambient")
+LAYERS = ("drums", "bass", "arp", "pad", "lead", "ambient", "riser")
+RISER_REV, RISER_UP, RISER_SCREAM, RISER_IMPACT, RISER_SHORT = 60, 61, 62, 63, 64
 
 
 class Section(StrEnum):
@@ -42,12 +43,13 @@ _NEXT = {Section.INTRO: [Section.VERSE],
          Section.BREAK: [Section.CHORUS, Section.CHORUS, Section.VERSE],
          Section.TRANSITION: [Section.VERSE, Section.CHORUS]}
 _GAINS = {
-    Section.INTRO: dict(drums=0.6, bass=0.8, arp=0.6, pad=1.0, lead=0.0, ambient=1.0),
-    Section.VERSE: dict(drums=1.0, bass=1.0, arp=0.85, pad=0.9, lead=0.35, ambient=0.7),
-    Section.CHORUS: dict(drums=1.0, bass=1.0, arp=1.0, pad=1.0, lead=1.0, ambient=0.5),
-    Section.BREAK: dict(drums=0.0, bass=0.6, arp=0.7, pad=1.0, lead=0.0, ambient=1.0),
-    Section.TRANSITION: dict(drums=0.0, bass=0.0, arp=0.0, pad=0.5, lead=0.0, ambient=1.0),
-    Section.OUTRO: dict(drums=0.7, bass=0.8, arp=0.5, pad=1.0, lead=0.0, ambient=1.0),
+    Section.INTRO: dict(drums=0.6, bass=0.8, arp=0.6, pad=1.0, lead=0.0, ambient=1.0, riser=1.0),
+    Section.VERSE: dict(drums=1.0, bass=1.0, arp=0.85, pad=0.9, lead=0.35, ambient=0.7, riser=1.0),
+    Section.CHORUS: dict(drums=1.0, bass=1.0, arp=1.0, pad=1.0, lead=1.0, ambient=0.5, riser=1.0),
+    Section.BREAK: dict(drums=0.0, bass=0.6, arp=0.7, pad=1.0, lead=0.0, ambient=1.0, riser=1.0),
+    Section.TRANSITION: dict(drums=0.0, bass=0.0, arp=0.0, pad=0.5, lead=0.0, ambient=1.0,
+                             riser=1.0),
+    Section.OUTRO: dict(drums=0.7, bass=0.8, arp=0.5, pad=1.0, lead=0.0, ambient=1.0, riser=1.0),
 }
 
 
@@ -78,6 +80,7 @@ class Arranger:
         self.bar, self.sections_done = 0, 0
         self.section = Section.INTRO
         self.section_bar, self.section_len = 0, SECTION_BARS[Section.INTRO]
+        self.next_section = Section.VERSE
         self.progression = harmony.next_progression()
         self.finished = False
         self.prev_patterns: dict[str, Pattern] | None = None
@@ -110,7 +113,12 @@ class Arranger:
         self.arp_mode = str(r.choice(["up", "updown", "random"], p=[0.45, 0.4, 0.15]))
         self.arp_on = self.section == Section.CHORUS or r.random() < self.mood.arp_prob
         self.drums_base = gen_drums(r, self._density(), snare=self.section != Section.INTRO,
-                                    halftime=self.mood.halftime)
+                                    halftime=self.mood.halftime,
+                                    strong=self.section == Section.CHORUS)
+        if self.section == Section.CHORUS:
+            self.bass_style = str(r.choice(["eighths", "sixteenths", "octaves"],
+                                           p=[0.5, 0.35, 0.15]))
+            self.arp_on = True
         self.fx = self._section_fx()
 
     def _section_fx(self) -> dict[str, list[dict]]:
@@ -122,6 +130,15 @@ class Arranger:
                               "depth": 0.85, "duty": 0.5}]
             if r.random() < 0.3:
                 fx["arp"] = [{"type": "bitcrush", "bits": 8, "downsample": 2, "mix": 0.5}]
+            lead_pool = [
+                [{"type": "autopan", "rate": str(r.choice(["1/2", "1/4", "1/1"])), "depth": 0.9}],
+                [{"type": "gate", "rate": "1/16", "depth": 0.7, "duty": 0.5},
+                 {"type": "autopan", "rate": "1/2", "depth": 0.6}],
+                [{"type": "distortion", "drive": 5.0, "tone": 3000, "mix": 0.7},
+                 {"type": "autopan", "rate": "1/4", "depth": 0.5}],
+                [{"type": "bitcrush", "bits": 7, "downsample": 3, "mix": 0.45}],
+            ]
+            fx["lead"] = lead_pool[int(r.integers(len(lead_pool)))]
         elif self.section == Section.BREAK:
             if r.random() < 0.6:
                 fx["master"] = [{"type": "lofi", "bits": 10, "downsample": 3, "cutoff": 3500,
@@ -180,11 +197,31 @@ class Arranger:
             self.section = Section.TRANSITION
             self._enter_transition()
         else:
-            self.section = Section(self.rng.choice([s.value for s in _NEXT[self.section]]))
+            self.section = self.next_section
             if self.rng.random() < 0.5:
                 self.progression = self.harmony.next_progression()
         self.section_bar, self.section_len = 0, SECTION_BARS[self.section]
+        self.next_section = Section(self.rng.choice(
+            [s.value for s in _NEXT.get(self.section, [Section.VERSE])]))
         self._new_styles()
+
+    def _risers(self) -> Pattern:
+        """Announce the coming chorus on the two last bars; drop an impact on its first beat."""
+        remaining = self.section_len - self.section_bar   # bars left including this one
+        going_to_chorus = self.next_section == Section.CHORUS and self.section != Section.OUTRO
+        p: Pattern = []
+        if going_to_chorus and remaining == 2:
+            p.append(Note(0, RISER_UP, 0.9, 32))
+        if going_to_chorus and remaining == 1:
+            p.append(Note(0, RISER_REV, 1.0, 16))
+            if self.rng.random() < 0.6:
+                p.append(Note(8, RISER_SCREAM, 0.8, 8))
+        if remaining == 1 and not going_to_chorus and self.section not in (
+                Section.TRANSITION, Section.OUTRO) and self.rng.random() < 0.5:
+            p.append(Note(8, RISER_SHORT, 0.8, 8))
+        if self.section == Section.CHORUS and self.section_bar == 0:
+            p.append(Note(0, RISER_IMPACT, 1.0, 8))
+        return p
 
     def _bass(self, r: np.random.Generator, chord: Chord) -> Pattern:
         """Regenerate on the chord each bar; every second bar apply a light mutation."""
@@ -217,7 +254,7 @@ class Arranger:
             drums = []
         elif last and self.section != Section.OUTRO:
             drums = gen_drums(r, density, fill=True, snare=self.section != Section.INTRO,
-                              halftime=self.mood.halftime)
+                              halftime=self.mood.halftime, strong=self.section == Section.CHORUS)
         else:
             if self.section_bar % 4 == 0 and not first:
                 self.drums_base = mutate(r, self.drums_base, 0.15, [HAT_C])
@@ -229,7 +266,8 @@ class Arranger:
             gains["drums"] = 1.0
         if not self.arp_on:
             gains["arp"] = 0.0
-        lead_p = self.mood.lead_prob * (1.0 if self.section == Section.CHORUS else 0.5)
+        lead_p = (max(self.mood.lead_prob, 0.7) if self.section == Section.CHORUS
+                  else self.mood.lead_prob * 0.5)
         scale = self.harmony.scale_notes(72, 84)
         lead = gen_lead(r, chord, scale, density) if r.random() < lead_p else []
         patterns = {
@@ -239,6 +277,7 @@ class Arranger:
             "pad": gen_pad(chord, self.mood.pad_octave),
             "lead": lead,
             "ambient": gen_ambient(chord),
+            "riser": self._risers() if self.section != Section.TRANSITION else [],
         }
         tries = 0
         while self.prev_patterns is not None and patterns == self.prev_patterns and tries < 4:

@@ -27,7 +27,23 @@ def _sorted(p: Pattern) -> Pattern:
 
 
 def gen_drums(rng: np.random.Generator, density: float, fill: bool = False,
-              snare: bool = True, crash: bool = False, halftime: bool = False) -> Pattern:
+              snare: bool = True, crash: bool = False, halftime: bool = False,
+              strong: bool = False) -> Pattern:
+    if strong:  # chorus: four on the floor, snare + clap on 2 and 4, driving hats
+        p: Pattern = [Note(s, KICK, 1.0) for s in (0, 4, 8, 12)]
+        p.append(Note(int(rng.choice([10, 14])), KICK, 0.75))
+        p += [Note(4, SNARE, 1.0), Note(12, SNARE, 1.0), Note(4, CLAP, 0.8), Note(12, CLAP, 0.8)]
+        p += [Note(s, HAT_C, 0.85 if s % 4 == 0 else 0.5) for s in range(0, STEPS, 2)]
+        p += [Note(s, HAT_C, 0.35) for s in range(1, STEPS, 2)
+              if rng.random() < 0.5 + density * 0.5]
+        p.append(Note(14, HAT_O, 0.6))
+        if fill:
+            p = [n for n in p if n.step < 12]
+            p += [Note(12 + i, int(rng.choice([SNARE, TOM_M, TOM_L])), 0.6 + 0.1 * i)
+                  for i in range(4)]
+        if crash:
+            p.append(Note(0, CRASH, 0.8))
+        return _sorted(p)
     if halftime:  # slow, heavy: kick on 1 (+ a syncopated one), snare on 3 only
         p: Pattern = [Note(0, KICK, 1.0)]
         p.append(Note(int(rng.choice([6, 10, 7, 11])), KICK, 0.85))
