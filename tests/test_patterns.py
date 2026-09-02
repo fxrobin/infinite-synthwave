@@ -53,7 +53,7 @@ def test_pad_and_ambient_hold_whole_bar():
 
 
 def test_lead_notes_in_scale_and_sorted():
-    scale = [n for n in range(72, 85) if n % 12 in {9, 11, 0, 2, 4, 5, 7}]
+    scale = [n for n in range(60, 80) if n % 12 in {9, 11, 0, 2, 4, 5, 7}]
     p = gen_lead(np.random.default_rng(4), AM7, scale, 0.8)
     assert p and in_range(p) and all(n.note in scale for n in p)
     assert [n.step for n in p] == sorted(n.step for n in p)

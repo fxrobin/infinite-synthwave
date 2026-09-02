@@ -134,3 +134,23 @@ def test_autopan_moves_between_channels():
     q = SR // 8
     assert y[q, 0] < 0.05 and y[q, 1] > 0.6      # hard right at the LFO peak
     assert y[3 * q, 1] < 0.05 and y[3 * q, 0] > 0.6
+
+
+def test_phaser_notches_and_is_stable():
+    from synthwave.engine.effects import Phaser
+    ph = Phaser(SR, 120, rate=0.5, depth=1.0, stages=4, mix=1.0)
+    x = np.random.default_rng(1).normal(size=(SR, 2)).astype(np.float32) * 0.1
+    y = np.concatenate([ph.process(x[:20000]), ph.process(x[20000:])])
+    assert np.isfinite(y).all() and np.abs(y).max() < 2.0
+    assert not np.allclose(y, x, atol=1e-3)
+
+
+def test_flanger_adds_comb_and_survives_blocks():
+    from synthwave.engine.effects import Flanger
+    fl = Flanger(SR, 120, rate=0.1, depth=0.001, base=0.003, feedback=0.5, mix=1.0)
+    x = np.zeros((8192, 2), np.float32)
+    x[0] = 1.0
+    y = fl.process(x)
+    lo, hi = int(0.003 * SR), int(0.005 * SR)          # delay sweeps base .. base + 2*depth
+    assert np.abs(y[lo - 5:hi + 5]).max() > 0.2 and np.abs(y[2 * lo - 5:2 * hi + 5]).max() > 0.05
+    assert np.isfinite(y).all()

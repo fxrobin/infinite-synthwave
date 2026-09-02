@@ -3,13 +3,15 @@ polyphony: 6
 volume: 0.7
 oscillators:
   - {wave: square, pwm: 0.25, level: 0.6}
-  - {wave: fm, fm_ratio: 3.0, fm_index: 0.8, level: 0.35}
-amp_env: {attack: 0.002, decay: 0.3, sustain: 0.0, release: 0.2}
+  - {wave: saw, unison: 2, detune: 10, level: 0.4}
+amp_env: {attack: 0.003, decay: 0.45, sustain: 0.1, release: 0.25}
 filter:
   type: lp
   cutoff: 600
   resonance: 0.35
-  env: {attack: 0.001, decay: 0.12, sustain: 0.0, release: 0.1, amount: 1800}
+  env: {attack: 0.002, decay: 0.3, sustain: 0.15, release: 0.1, amount: 1200}
 effects:
+  - {type: distortion, drive: 2.5, tone: 2500, mix: 0.45}
+  - {type: phaser, rate: 0.2, depth: 0.7, stages: 4, mix: 0.4}
   - {type: delay, time: "1/8", feedback: 0.55, mix: 0.45, pingpong: true}
   - {type: reverb, size: 0.9, damping: 0.6, mix: 0.3}

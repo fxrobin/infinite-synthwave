@@ -142,8 +142,8 @@ def gen_lead(rng: np.random.Generator, chord: Chord, scale_notes: list[int],
     if not scale_notes:
         return []
     chord_pcs = {(chord.root_pc + i) % 12 for i in chord.intervals}
-    grid = [0, 2, 3, 4, 6, 8, 10, 11, 12, 14]
-    count = max(1, min(len(grid), int(round(2 + density * 4))))
+    grid = [0, 2, 4, 6, 8, 10, 12, 14]
+    count = max(1, min(len(grid), int(round(2 + density * 3))))
     steps = sorted(int(s) for s in rng.choice(grid, size=count, replace=False))
     p: Pattern = []
     prev = int(rng.choice(scale_notes))
@@ -152,7 +152,7 @@ def gen_lead(rng: np.random.Generator, chord: Chord, scale_notes: list[int],
         strong = [n for n in near if n % 12 in chord_pcs]
         note = int(rng.choice(strong if (s % 4 == 0 and strong) else near))
         nxt = steps[i + 1] if i + 1 < len(steps) else STEPS
-        p.append(Note(s, note, 0.8, max(1, min(4, nxt - s))))
+        p.append(Note(s, note, 0.8, max(2, min(8, nxt - s))))   # long, legato phrases
         prev = note
     return p
 

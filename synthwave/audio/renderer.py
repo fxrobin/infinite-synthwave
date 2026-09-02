@@ -23,6 +23,7 @@ DEFAULT_PATCHES = {"drums": "drums_808", "bass": "bass_moog", "arp": "arp_pluck"
                    "pad": "pad_juno", "lead": "lead_saw", "ambient": "ambient_drone",
                    "riser": "builtin"}
 DUCKED = {"pad": 1.0, "bass": 0.6, "ambient": 0.6, "arp": 0.5}
+LAYER_TRIM = {"lead": 2.5}   # static make-up gain per layer, applied before the mix
 
 
 @dataclass
@@ -244,7 +245,7 @@ class Renderer:
         for layer in LAYERS:
             target = self._effective_gain(layer)
             g0 = self.current_gain[layer]
-            sig = self.instruments[layer].render(n, events[layer])
+            sig = self.instruments[layer].render(n, events[layer]) * LAYER_TRIM.get(layer, 1.0)
             for fx in self.inserts.get(layer, ()):
                 sig = fx.process(sig)
             if layer in DUCKED:
