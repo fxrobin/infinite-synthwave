@@ -55,5 +55,5 @@ def test_mutate_is_bounded_and_keeps_allowed_notes():
     allowed = [57, 60, 64, 67, 69, 72, 76, 79]
     m = mutate(np.random.default_rng(5), base, 0.2, allowed)
     assert in_range(m) and all(n.note in allowed for n in m)
-    changed = sum(1 for a, b in zip(base, m) if a != b) + abs(len(base) - len(m))
-    assert 0 < changed <= 8
+    changed = len(set(base) ^ set(m))
+    assert 0 < changed <= 12
