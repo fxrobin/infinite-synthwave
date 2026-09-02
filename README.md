@@ -68,6 +68,12 @@ uv run synthwave mcp                           # serveur MCP (stdio)
 | `noir` | 86–104 | mineur harmonique | triades, `i‑VI‑V‑i`, `i‑iv‑V‑i` | half‑time | jeu `*_dark` |
 | `dreamy` | 98–114 | mineur naturel / majeur | 7e | 4/4 | jeu par défaut |
 | `outrun` | 110–128 | mineur naturel | 7e | 4/4 dense | jeu par défaut |
+| `cyberpunk` | 118–132 | mineur naturel | triades, i‑bII, i‑v‑VI‑iv | 4/4 dense, basse riff/16e | jeu `*_dark`, industriel |
+| `horror` | 66–80 | locrien | triades, i‑bII‑bv‑i | half‑time très lent | jeu `*_dark` |
+| `desert` | 88–104 | phrygien dominant | triades, I‑bII‑I‑bvii | half‑time | jeu `*_dark` |
+| `chill` | 84–96 | dorien | 7e, i‑IV, i‑bVII‑IV‑i | 4/4 léger, basse walk | jeu par défaut |
+| `retro` | 104–118 | mixolydien / majeur | 7e, I‑V‑vi‑IV, I‑bVII‑IV | 4/4 | jeu par défaut, lead pulse |
+| `drive` | 122–136 | mineur naturel | 7e, i‑VI‑III‑VII | 4/4 très dense | jeu par défaut |
 
 Sans `--mood`, le mood est tiré au hasard au démarrage et retiré à chaque transition ;
 `--mood X` le fige (en MCP, `set_mood("random")` rend la main au hasard).

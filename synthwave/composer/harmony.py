@@ -17,9 +17,25 @@ PROGRESSIONS: dict[str, tuple[int, ...]] = {
     "i-bvii-bVI-bII": (0, 6, 5, 1), "i-i-bVI-bII": (0, 0, 5, 1), "i-iv-i-bII": (0, 3, 0, 1),
     # harmonic minor
     "i-VI-V-i": (0, 5, 4, 0), "i-iv-V-i": (0, 3, 4, 0), "i-i-VI-V": (0, 0, 5, 4),
+    "i-V-VI-V": (0, 4, 5, 4), "iv-V-i-i": (3, 4, 0, 0),
+    # more natural minor
+    "i-VII-III-VI": (0, 6, 2, 5), "i-v-VI-iv": (0, 4, 5, 3), "VI-i-VII-III": (5, 0, 6, 2),
+    "i-III-iv-VI": (0, 2, 3, 5), "i-iv-i-VI": (0, 3, 0, 5), "i-VI-iv-VII": (0, 5, 3, 6),
+    # major / mixolydian (degrees are scale-relative)
+    "I-V-vi-IV": (0, 4, 5, 3), "vi-IV-I-V": (5, 3, 0, 4), "I-vi-IV-V": (0, 5, 3, 4),
+    "IV-I-V-vi": (3, 0, 4, 5), "I-bVII-IV-I": (0, 6, 3, 0), "I-IV-bVII-IV": (0, 3, 6, 3),
+    "I-v-bVII-IV": (0, 4, 6, 3),
+    # dorian
+    "i-IV-i-IV": (0, 3, 0, 3), "i-bVII-IV-i": (0, 6, 3, 0), "i-ii-bIII-ii": (0, 1, 2, 1),
+    "i-IV-bVII-i": (0, 3, 6, 0), "i-ii-IV-i": (0, 1, 3, 0),
+    # locrian / phrygian dominant (tension)
+    "i-bII-bv-i": (0, 1, 4, 0), "i-biii-bII-i": (0, 2, 1, 0), "i-bII-bVI-bv": (0, 1, 5, 4),
+    "I-bII-I-bvii": (0, 1, 0, 6), "I-iv-bII-I": (0, 3, 1, 0), "I-bVI-bvii-I": (0, 5, 6, 0),
 }
 SCALES = {"minor": (0, 2, 3, 5, 7, 8, 10), "major": (0, 2, 4, 5, 7, 9, 11),
-          "phrygian": (0, 1, 3, 5, 7, 8, 10), "harmonic_minor": (0, 2, 3, 5, 7, 8, 11)}
+          "phrygian": (0, 1, 3, 5, 7, 8, 10), "harmonic_minor": (0, 2, 3, 5, 7, 8, 11),
+          "dorian": (0, 2, 3, 5, 7, 9, 10), "mixolydian": (0, 2, 4, 5, 7, 9, 10),
+          "locrian": (0, 1, 3, 5, 6, 8, 10), "phrygian_dominant": (0, 1, 4, 5, 7, 8, 10)}
 _QUALITY = {(0, 3, 7, 10): "m7", (0, 4, 7, 11): "maj7", (0, 4, 7, 10): "7",
             (0, 3, 6, 10): "m7b5", (0, 4, 8, 11): "maj7#5", (0, 3, 7, 11): "mMaj7",
             (0, 3, 6, 9): "dim7",

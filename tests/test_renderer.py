@@ -171,3 +171,12 @@ def test_random_mood_at_start_and_at_transitions():
     assert locked.status()["mood_locked"] and locked.mood.name == "outrun"
     locked.set_mood("random")
     assert not locked.status()["mood_locked"]
+
+
+def test_every_mood_renders_finite_audio():
+    from synthwave.composer.moods import MOODS
+    for name in MOODS:
+        r = Renderer(RenderConfig(seed=3, mood=name))
+        r.arranger.force_next_section()
+        out = render_seconds(r, 1.5)
+        assert np.isfinite(out).all() and np.abs(out).max() > 0.02, name

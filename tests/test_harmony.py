@@ -61,3 +61,23 @@ def test_noir_mood_has_major_dominant():
     h = Harmony(np.random.default_rng(0), MOODS["noir"])
     h.tonic = 9  # A harmonic minor
     assert h.chord_for_degree(4).name == "E" and h.chord_for_degree(0).name == "Am"
+
+
+def test_all_moods_progressions_exist_and_scales_valid():
+    from synthwave.composer.harmony import SCALES
+    for mood in MOODS.values():
+        assert mood.scale in SCALES
+        for name, w in mood.progressions.items():
+            assert name in PROGRESSIONS, (mood.name, name)
+            assert all(0 <= d < 7 for d in PROGRESSIONS[name]) and w >= 0
+        h = Harmony(np.random.default_rng(1), mood)
+        prog = h.next_progression()
+        assert len(prog) == 4 and all(len(c.intervals) in (3, 4) for c in prog)
+    assert len(MOODS) >= 10 and len(PROGRESSIONS) >= 35
+
+
+def test_new_scale_key_names():
+    for scale in ("dorian", "mixolydian", "locrian", "phrygian_dominant"):
+        mood = next(m for m in MOODS.values() if m.scale == scale)
+        h = Harmony(np.random.default_rng(0), mood)
+        assert h.key_name.endswith((scale.replace("_", " "), "major"))
