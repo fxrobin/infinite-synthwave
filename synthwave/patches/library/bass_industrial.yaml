@@ -1,0 +1,16 @@
+name: bass_industrial
+polyphony: 1
+glide: 0.02
+volume: 0.4
+oscillators:
+  - {wave: saw, unison: 2, detune: 6, level: 0.8, spread: 0.3}
+  - {wave: fm, fm_ratio: 2.0, fm_index: 1.2, level: 0.5}
+  - {wave: sine, octave: -1, level: 0.9}
+amp_env: {attack: 0.003, decay: 0.2, sustain: 0.75, release: 0.1}
+filter:
+  type: lp
+  cutoff: 320
+  resonance: 0.45
+  env: {attack: 0.002, decay: 0.2, sustain: 0.2, release: 0.1, amount: 1600}
+effects:
+  - {type: distortion, drive: 6.0, tone: 2500, mix: 0.8}

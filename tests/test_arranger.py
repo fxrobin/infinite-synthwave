@@ -69,7 +69,7 @@ def test_transition_is_ambient_only_and_applies_mood():
     plans = [a.next_bar() for _ in range(12)]
     t = [p for p in plans if p.section == Section.TRANSITION]
     assert t and t[0].section_bar == 0 and t[0].mood == "outrun" and t[0].bpm
-    assert 110 < t[0].bpm < 126 and len(t) == 4
+    assert 110 <= t[0].bpm <= 128 and len(t) == 4
     for p in t:
         assert p.gains["drums"] == 0 and p.gains["bass"] == 0 and p.gains["ambient"] == 1.0
         assert p.patterns["drums"] == []
@@ -83,3 +83,14 @@ def test_transitions_occur_naturally_and_change_key():
     trans = [p for p in plans if p.section == Section.TRANSITION]
     assert len(trans) >= 3
     assert len({p.key for p in plans}) >= 2
+
+
+def test_bass_instrument_rotates_between_sections():
+    a = make(seed=3, mood="dark")
+    plans = [a.next_bar() for _ in range(200)]
+    firsts = [p for p in plans if p.patches]
+    basses = {p.patches["bass"] for p in firsts}
+    assert len(firsts) >= 5 and len(basses) >= 2
+    assert basses <= {"bass_dark", "bass_industrial", "bass_reese", "bass_moog", "bass_acid"}
+    b0, b1 = plans[0].patterns["bass"], plans[1].patterns["bass"]
+    assert b0 != b1 or plans[0].chord != plans[1].chord

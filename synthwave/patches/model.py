@@ -46,7 +46,7 @@ class LfoSpec(BaseModel):
 class EffectSpec(BaseModel):
     model_config = ConfigDict(extra="allow")
     type: Literal["chorus", "delay", "reverb", "gated_reverb", "limiter", "gate", "bitcrush",
-                  "lofi"]
+                  "lofi", "distortion"]
 
 
 class PatchModel(BaseModel):

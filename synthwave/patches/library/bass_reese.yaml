@@ -1,0 +1,16 @@
+name: bass_reese
+polyphony: 1
+glide: 0.05
+volume: 0.45
+oscillators:
+  - {wave: saw, unison: 3, detune: 22, level: 0.8, spread: 0.4}
+  - {wave: sine, octave: -1, level: 0.8}
+amp_env: {attack: 0.02, decay: 0.3, sustain: 0.85, release: 0.25}
+filter:
+  type: lp
+  cutoff: 300
+  resonance: 0.25
+  env: {attack: 0.01, decay: 0.5, sustain: 0.3, release: 0.2, amount: 500}
+lfo: {wave: sine, rate: 0.3, target: cutoff, amount: 120}
+effects:
+  - {type: distortion, drive: 2.5, tone: 3000, mix: 0.5}

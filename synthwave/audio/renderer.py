@@ -31,6 +31,7 @@ class RenderConfig:
     seed: int | None = None
     duration_s: float | None = None
     patches: dict[str, str] = field(default_factory=dict)
+    bpm_range: tuple[float, float] | None = None   # overrides the mood's range when set
 
 
 class Renderer:
@@ -42,11 +43,15 @@ class Renderer:
                      else int(np.random.SeedSequence().entropy % 2**31))
         self.rng = np.random.default_rng(self.seed)
         self.mood = MOODS[cfg.mood]
-        self.bpm = float(cfg.bpm or self.mood.bpm)
+        if cfg.bpm_range is not None and cfg.bpm_range[0] > cfg.bpm_range[1]:
+            raise ValueError("bpm_range must be (low, high)")
+        lo, hi = cfg.bpm_range or self.mood.bpm_range
+        self.bpm = float(cfg.bpm) if cfg.bpm else round(float(self.rng.uniform(lo, hi)), 1)
         self.transport = Transport(self.sr, self.bpm)
         total_bars = (math.ceil(cfg.duration_s / self.transport.bar_seconds)
                       if cfg.duration_s else None)
-        self.arranger = Arranger(self.rng, Harmony(self.rng, self.mood), self.mood, total_bars)
+        self.arranger = Arranger(self.rng, Harmony(self.rng, self.mood), self.mood, total_bars,
+                                 bpm_range=cfg.bpm_range)
         self.tracker = Tracker(self.transport, self.arranger)
         self.instruments: dict[str, Synth | DrumKit] = {}
         self.patch_names: dict[str, str] = {}
@@ -175,6 +180,7 @@ class Renderer:
         p = self.plan
         return {
             "bpm": self.bpm, "mood": self.arranger.mood.name, "seed": self.seed,
+            "bpm_range": list(self.arranger.bpm_range or self.arranger.mood.bpm_range),
             "pending_mood": (self.arranger.pending_mood.name
                              if self.arranger.pending_mood else None),
             "bar": p.bar if p else 0, "section": p.section.value if p else "intro",
@@ -209,6 +215,9 @@ class Renderer:
             if plan.mood:
                 self.mood = MOODS[plan.mood]
                 self._apply_mood_patches()
+            for layer, name in (plan.patches or {}).items():
+                if layer not in self.manual_patch and name != self.patch_names[layer]:
+                    self._install(layer, name, load_patch(name))
             if plan.bpm and abs(plan.bpm - self.bpm) > 0.05:
                 self.set_tempo(plan.bpm)
             new_fx = plan.fx or {}

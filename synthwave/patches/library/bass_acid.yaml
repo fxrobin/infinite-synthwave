@@ -1,0 +1,15 @@
+name: bass_acid
+polyphony: 1
+glide: 0.04
+volume: 0.5
+oscillators:
+  - {wave: saw, level: 0.9}
+  - {wave: sine, octave: -1, level: 0.6}
+amp_env: {attack: 0.003, decay: 0.12, sustain: 0.5, release: 0.08}
+filter:
+  type: lp
+  cutoff: 240
+  resonance: 0.7
+  env: {attack: 0.001, decay: 0.16, sustain: 0.05, release: 0.1, amount: 2200}
+effects:
+  - {type: distortion, drive: 3.0, tone: 4000, mix: 0.4}

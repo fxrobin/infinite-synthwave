@@ -118,3 +118,28 @@ def test_export_mp3(tmp_path):
     export_wav(r, 2, str(out))
     data, sr = sf.read(str(out))
     assert sr == 44100 and len(data) >= 2 * 44100 and out.stat().st_size < 200_000
+
+
+def test_section_patches_applied_by_renderer():
+    r = Renderer(RenderConfig(seed=3, mood="dark"))
+    seen = set()
+    bars = int(16 * r.transport.samples_per_step)
+    for _ in range(28 * bars // 4096):
+        r.render(4096)
+        seen.add(r.status()["layers"]["bass"]["patch"])
+    assert len(seen) >= 2
+
+
+def test_bpm_drawn_from_range_at_start_and_transitions():
+    bpms = {Renderer(RenderConfig(seed=s, mood="dark")).bpm for s in range(6)}
+    assert len(bpms) >= 3 and all(82 <= b <= 100 for b in bpms)
+    r = Renderer(RenderConfig(seed=4, mood="dark", bpm_range=(70, 75)))
+    assert 70 <= r.bpm <= 75 and r.status()["bpm_range"] == [70, 75]
+    seen = {r.bpm}
+    r.set_mood("noir")                       # forces a transition, which redraws the tempo
+    bars = int(16 * r.transport.samples_per_step)
+    for _ in range(14 * bars // 4096):
+        r.render(4096)
+        seen.add(r.bpm)
+    assert len(seen) >= 2 and all(70 <= b <= 75 for b in seen)
+    assert Renderer(RenderConfig(seed=1, bpm=123)).bpm == 123

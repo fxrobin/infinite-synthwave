@@ -78,3 +78,13 @@ def test_pad_octave_and_triad_widening():
     tri = Chord(4, 0, (0, 3, 7))
     p = gen_pad(tri, octave=3)
     assert [n.note for n in p] == [40, 43, 47, 52]
+
+
+def test_new_bass_styles():
+    for style in ("sixteenths", "walk", "riff"):
+        p = gen_bass(np.random.default_rng(3), AM7, style)
+        assert p and in_range(p)
+    riff = gen_bass(np.random.default_rng(3), AM7, "riff")
+    assert any(n.note % 12 in (10, 3) for n in riff)      # b2 or tritone of A
+    six = gen_bass(np.random.default_rng(3), AM7, "sixteenths")
+    assert len(six) == STEPS

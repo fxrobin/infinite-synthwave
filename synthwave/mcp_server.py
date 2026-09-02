@@ -45,16 +45,20 @@ def _command(fn) -> dict:
 
 @mcp.tool()
 def start(mood: str = "dark", bpm: float | None = None, seed: int | None = None,
-          duration_s: float | None = None) -> dict:
-    """Start synthwave on the audio output (infinite unless duration_s given)."""
+          duration_s: float | None = None, bpm_range: list[float] | None = None) -> dict:
+    """Start synthwave on the audio output (infinite unless duration_s given).
+
+    bpm fixes the tempo; bpm_range=[low, high] bounds the random tempo drawn at start
+    and at each transition (default: the mood's own range)."""
     global _player, _renderer
     from .audio.output import Player
     with _lock:
         if _player is not None and _player.running:
             return {"ok": False, "error": "already running; call stop first"}
         try:
+            rng = (float(bpm_range[0]), float(bpm_range[1])) if bpm_range else None
             _renderer = Renderer(RenderConfig(mood=mood, bpm=bpm, seed=seed,
-                                              duration_s=duration_s))
+                                              duration_s=duration_s, bpm_range=rng))
             _player = Player(_renderer)
             _player.start()
         except Exception as e:

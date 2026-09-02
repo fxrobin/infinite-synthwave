@@ -72,12 +72,25 @@ def gen_bass(rng: np.random.Generator, chord: Chord, style: str) -> Pattern:
         p = [Note(s, root, 1.0 if s % 4 == 0 else 0.8, 2) for s in range(0, STEPS, 2)]
     elif style == "octaves":
         p = [Note(s, root + (12 if (s // 2) % 2 else 0), 0.9, 1) for s in range(0, STEPS, 2)]
+    elif style == "sixteenths":  # pumping 16ths, octave pops on the off-beats
+        p = [Note(s, root + (12 if s % 4 == 3 and rng.random() < 0.5 else 0),
+                  0.95 if s % 4 == 0 else 0.6, 1) for s in range(STEPS)]
+    elif style == "walk":  # root, fifth, octave, seventh-ish
+        walk = [root, root, fifth, root + 12, root, root + 10, fifth, root]
+        p = [Note(s, walk[s // 2], 0.9 if s % 4 == 0 else 0.75, 2) for s in range(0, STEPS, 2)]
+    elif style == "riff":  # chromatic menace: b2 and tritone passing tones
+        b2, tritone = root + 1, root + 6
+        p = [Note(0, root, 1.0, 2), Note(2, root, 0.8, 1), Note(3, root, 0.7, 1),
+             Note(6, int(rng.choice([b2, tritone])), 0.85, 2), Note(8, root, 1.0, 2),
+             Note(10, root, 0.8, 1), Note(11, root, 0.7, 1),
+             Note(14, int(rng.choice([b2, tritone, fifth])), 0.85, 1),
+             Note(15, root, 0.7, 1)]
     else:  # syncopated
         steps = (0, 3, 6, 8, 11, 14)
         p = [Note(s, root, 0.9, 2) for s in steps]
         if rng.random() < 0.5:
             p[-1] = Note(14, fifth, 0.8, 2)
-    if rng.random() < 0.3:
+    if style not in ("sixteenths", "riff") and rng.random() < 0.3:
         p.append(Note(15, root + 12, 0.6, 1))
     return _sorted(p)
 

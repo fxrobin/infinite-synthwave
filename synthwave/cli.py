@@ -23,6 +23,16 @@ def parse_duration(text: str) -> float:
     return h * 3600 + mi * 60 + s
 
 
+def parse_bpm_range(text: str) -> tuple[float, float]:
+    try:
+        lo, hi = (float(v) for v in text.split("-", 1))
+    except ValueError as e:
+        raise ValueError(f"invalid --bpm-range {text!r}, expected e.g. 85-100") from e
+    if not 40 <= lo <= hi <= 200:
+        raise ValueError(f"bpm range {text!r} must satisfy 40 <= low <= high <= 200")
+    return lo, hi
+
+
 def parse_fx(text: str) -> tuple[str, dict]:
     """'pad:gate:rate=1/16,depth=0.8' -> ('pad', {'type': 'gate', 'rate': '1/16', 'depth': 0.8})."""
     parts = text.split(":", 2)
@@ -43,7 +53,9 @@ def parse_fx(text: str) -> tuple[str, dict]:
 
 @app.command()
 def play(duration: str | None = typer.Option(None, help="ex: 5m, 90s, 1h. Absent = infini"),
-         bpm: float | None = typer.Option(None, min=60, max=180),
+         bpm: float | None = typer.Option(None, min=60, max=180, help="Tempo fixe"),
+         bpm_range: str | None = typer.Option(None, help="Zone de tempo, ex. 85-100 "
+                                                          "(défaut : zone du mood)"),
          seed: int | None = typer.Option(None),
          mood: str = typer.Option("dark", help="|".join(MOODS)),
          export: str | None = typer.Option(None, help="Rendu hors-ligne vers un WAV"),
@@ -54,7 +66,9 @@ def play(duration: str | None = typer.Option(None, help="ex: 5m, 90s, 1h. Absent
     seconds = parse_duration(duration) if duration else None
     if export and seconds is None:
         raise typer.BadParameter("--export requires --duration")
-    renderer = Renderer(RenderConfig(bpm=bpm, mood=mood, seed=seed, duration_s=seconds))
+    rng = parse_bpm_range(bpm_range) if bpm_range else None
+    renderer = Renderer(RenderConfig(bpm=bpm, mood=mood, seed=seed, duration_s=seconds,
+                                     bpm_range=rng))
     for layer, spec in (parse_fx(f) for f in fx or []):
         renderer.set_layer_effects(layer, [spec])
     typer.echo(f"seed={renderer.seed} bpm={renderer.bpm:g} mood={mood} "

@@ -17,7 +17,8 @@ pyyaml, pydantic, mcp, typer.
 
 ```bash
 uv run synthwave play                          # infini, mood dark, Ctrl+C pour arrêter
-uv run synthwave play --duration 5m --mood outrun --bpm 118
+uv run synthwave play --duration 5m --mood outrun --bpm 118      # tempo fixe
+uv run synthwave play --mood dark --bpm-range 80-95                # zone de tempo
 uv run synthwave play --duration 3m --seed 42 --export track.wav   # rendu hors-ligne (.wav .flac .ogg .mp3)
 uv run synthwave play --fx pad:gate:rate=1/16,depth=0.8 --fx master:lofi:bits=8
 uv run synthwave patches                       # patches disponibles
@@ -29,13 +30,19 @@ Moods :
 
 | Mood | BPM | Gamme | Accords | Rythme | Patches |
 |---|---|---|---|---|---|
-| `dark` | 92 | phrygien | triades, i‑bII, i‑iv‑bII‑i, i‑bVI‑bII‑i | half‑time | jeu `*_dark` (FM, écho percussions) |
-| `noir` | 96 | mineur harmonique | triades, i‑VI‑V‑i, i‑iv‑V‑i | half‑time | jeu `*_dark` |
-| `dreamy` | 108 | mineur naturel / majeur | 7e | 4/4 | jeu par défaut |
-| `outrun` | 118 | mineur naturel | 7e | 4/4 dense | jeu par défaut |
+| `dark` | 82–100 | phrygien | triades, i‑bII, i‑iv‑bII‑i, i‑bVI‑bII‑i | half‑time | jeu `*_dark` (FM, écho percussions) |
+| `noir` | 86–104 | mineur harmonique | triades, i‑VI‑V‑i, i‑iv‑V‑i | half‑time | jeu `*_dark` |
+| `dreamy` | 98–114 | mineur naturel / majeur | 7e | 4/4 | jeu par défaut |
+| `outrun` | 110–128 | mineur naturel | 7e | 4/4 dense | jeu par défaut |
 
-Le jeu de patches suit le mood (changé lors des transitions) sauf pour les couches chargées
-à la main via `load_patch`.
+Le tempo est tiré dans la zone du mood au démarrage et redessiné à chaque transition
+(`--bpm-range 80-95` ou `bpm_range` dans l'outil MCP `start` pour imposer une zone,
+`--bpm` pour un tempo fixe). Le jeu de patches suit le mood (changé lors des transitions)
+sauf pour les couches chargées à la main via `load_patch`. La basse et le lead changent
+d'instrument à chaque section, tirés dans un pool par mood (`bass_dark`, `bass_industrial`,
+`bass_reese` / `bass_moog`, `bass_reese`, `bass_acid` ; `lead_dark`, `lead_industrial` /
+`lead_saw`, `lead_industrial`). Styles de basse : `eighths`, `octaves`, `syncopated`,
+`sixteenths`, `walk`, `riff` (chromatique b2 / triton), mutés une mesure sur deux.
 
 Même seed + mêmes options ⇒ même musique.
 
@@ -88,6 +95,7 @@ effects:
   - {type: gate, rate: "1/16", depth: 0.8, duty: 0.5}          # hachure synchro tempo
   - {type: bitcrush, bits: 8, downsample: 4, mix: 0.5}
   - {type: lofi, bits: 10, downsample: 3, cutoff: 4000, wobble: 0.003, noise: 0.005}
+  - {type: distortion, drive: 6.0, tone: 2500, mix: 0.8}      # saturation tanh + tone
 ```
 
 Patch batterie (`kind: drums`) : `kick` (pitch, `sub`, `drive` saturation, `gain`), `snare`

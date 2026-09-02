@@ -114,3 +114,13 @@ def test_lofi_is_finite_and_darker():
     assert np.isfinite(y).all()
     hf = lambda s: np.abs(np.fft.rfft(s[:, 0]))[int(len(s) * 8000 / SR):].sum()  # noqa: E731
     assert hf(y) < hf(x) * 0.2
+
+
+def test_distortion_saturates_and_is_bounded():
+    from synthwave.engine.effects import Distortion
+    d = Distortion(SR, 120, drive=8.0, tone=6000, mix=1.0)
+    x = np.stack([np.sin(np.arange(4096) * 0.03)] * 2, axis=1).astype(np.float32)
+    y = d.process(x)
+    assert np.abs(y).max() <= 1.0
+    peak_ratio = np.abs(y).max() / np.sqrt((y ** 2).mean())
+    assert peak_ratio < np.sqrt(2) * 0.95    # flatter than a sine: clipped

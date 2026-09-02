@@ -66,12 +66,15 @@ class BarPlan:
     fx: dict[str, list[dict]] | None = None   # layer (or "master") -> effect specs
     bpm: float | None = None                  # tempo change requested at this bar
     mood: str | None = None                   # mood in force from this bar
+    patches: dict[str, str] | None = None     # per-section instrument choice (layer -> patch)
 
 
 class Arranger:
     def __init__(self, rng: np.random.Generator, harmony: Harmony, mood: Mood,
-                 total_bars: int | None = None):
+                 total_bars: int | None = None,
+                 bpm_range: tuple[float, float] | None = None):
         self.rng, self.harmony, self.mood, self.total_bars = rng, harmony, mood, total_bars
+        self.bpm_range = bpm_range   # user override; None = follow the mood
         self.bar, self.sections_done = 0, 0
         self.section = Section.INTRO
         self.section_bar, self.section_len = 0, SECTION_BARS[Section.INTRO]
@@ -98,7 +101,12 @@ class Arranger:
 
     def _new_styles(self) -> None:
         r = self.rng
-        self.bass_style = str(r.choice(["eighths", "octaves", "syncopated"], p=[0.5, 0.3, 0.2]))
+        styles = self.mood.bass_styles or {"eighths": 3, "octaves": 2, "syncopated": 1}
+        w = np.array(list(styles.values()), dtype=float)
+        self.bass_style = str(list(styles)[int(r.choice(len(styles), p=w / w.sum()))])
+        self.section_patches = {layer: str(pool[int(r.integers(len(pool)))])
+                                for layer, pool in self.mood.pools.items()}
+        self.bass_base: Pattern | None = None
         self.arp_mode = str(r.choice(["up", "updown", "random"], p=[0.45, 0.4, 0.15]))
         self.arp_on = self.section == Section.CHORUS or r.random() < self.mood.arp_prob
         self.drums_base = gen_drums(r, self._density(), snare=self.section != Section.INTRO,
@@ -142,6 +150,10 @@ class Arranger:
         return (self.sections_done % 6 == 0
                 or (self.sections_done >= 3 and self.rng.random() < 0.25))
 
+    def draw_bpm(self) -> float:
+        lo, hi = self.bpm_range or self.mood.bpm_range
+        return round(float(self.rng.uniform(lo, hi)), 1)
+
     def _enter_transition(self) -> None:
         """Ambient-only bars carrying the key / tempo / mood changes."""
         self.transition_requested = False
@@ -153,8 +165,9 @@ class Arranger:
         if new_mood is not None:
             self.mood = new_mood
             self.harmony.set_mood(new_mood)
-            self.bar_bpm = round(float(new_mood.bpm * self.rng.uniform(0.97, 1.03)), 1)
             self.mood_changed = True
+        if new_mood is not None or self.rng.random() < 0.7:
+            self.bar_bpm = self.draw_bpm()
         if self.rng.random() < 0.7:
             self.harmony.modulate()
         self.progression = self.harmony.next_progression()
@@ -172,6 +185,14 @@ class Arranger:
                 self.progression = self.harmony.next_progression()
         self.section_bar, self.section_len = 0, SECTION_BARS[self.section]
         self._new_styles()
+
+    def _bass(self, r: np.random.Generator, chord: Chord) -> Pattern:
+        """Regenerate on the chord each bar; every second bar apply a light mutation."""
+        p = gen_bass(r, chord, self.bass_style)
+        if self.section_bar % 2 == 1:
+            root = chord.bass_note()
+            p = mutate(r, p, 0.2, [root, root + 12, root + 7, root + 1, root + 6])
+        return p
 
     def _silence(self) -> BarPlan:
         plan = BarPlan(self.bar, Section.OUTRO, 0, self.progression[0],
@@ -213,7 +234,7 @@ class Arranger:
         lead = gen_lead(r, chord, scale, density) if r.random() < lead_p else []
         patterns = {
             "drums": drums,
-            "bass": gen_bass(r, chord, self.bass_style),
+            "bass": self._bass(r, chord),
             "arp": gen_arp(r, chord, self.arp_mode) if self.arp_on else [],
             "pad": gen_pad(chord, self.mood.pad_octave),
             "lead": lead,
@@ -229,7 +250,8 @@ class Arranger:
         fade = 1.0 - self.section_bar / self.section_len if self.section == Section.OUTRO else 1.0
         plan = BarPlan(self.bar, self.section, self.section_bar, chord, patterns, gains,
                        fill=last, fade=fade, key=self.harmony.key_name, fx=self.fx,
-                       bpm=self.bar_bpm, mood=self.mood.name if self.mood_changed else None)
+                       bpm=self.bar_bpm, mood=self.mood.name if self.mood_changed else None,
+                       patches=self.section_patches if first else None)
         self.bar_bpm, self.mood_changed = None, False
         self.bar += 1
         self.section_bar += 1

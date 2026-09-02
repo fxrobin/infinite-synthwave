@@ -291,9 +291,24 @@ class LoFi(Effect):
         return (x * (1 - self.mix) + y * self.mix).astype(np.float32)
 
 
+class Distortion(Effect):
+    """tanh drive with a post lowpass 'tone' and level compensation."""
+
+    def __init__(self, sr: int, bpm: float, drive: float = 4.0, tone: float = 4000,
+                 mix: float = 1.0):
+        self.drive = max(1.0, float(drive))
+        self.lp, self.tone, self.mix = Filter("lp", sr), tone, mix
+        self.comp = 1.0 / np.tanh(self.drive * 0.5)
+
+    def process(self, x: np.ndarray) -> np.ndarray:
+        y = np.tanh(x * self.drive) * self.comp * 0.5
+        y = self.lp.process(y.astype(np.float32), self.tone, 0.0)
+        return (x * (1 - self.mix) + y * self.mix).astype(np.float32)
+
+
 _REGISTRY = {"chorus": Chorus, "delay": Delay, "reverb": Reverb,
              "gated_reverb": GatedReverb, "limiter": Limiter,
-             "gate": Gate, "bitcrush": Bitcrush, "lofi": LoFi}
+             "gate": Gate, "bitcrush": Bitcrush, "lofi": LoFi, "distortion": Distortion}
 
 
 def build_effects(specs: list[dict], sr: int, bpm: float) -> list[Effect]:
