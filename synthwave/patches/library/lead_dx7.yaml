@@ -1,0 +1,21 @@
+# Yamaha DX7 — « solid lead » FM 6 opérateurs façon 2 porteuses : brillant, digital, sans filtre analogique.
+name: lead_dx7
+polyphony: 1
+glide: 0.03
+volume: 1.6
+oscillators:
+  - {wave: fm, fm_ratio: 1.0, fm_index: 2.2, level: 0.6}
+  - {wave: fm, fm_ratio: 2.0, fm_index: 2.5, level: 0.45}
+  - {wave: sine, octave: -1, level: 0.15}
+amp_env: {attack: 0.01, decay: 0.5, sustain: 0.75, release: 0.4}
+filter:
+  type: lp
+  cutoff: 3500
+  resonance: 0.05
+  key_track: 0.4
+  env: {attack: 0.005, decay: 0.5, sustain: 0.4, release: 0.3, amount: 1500}
+lfo: {wave: sine, rate: 5.6, target: pitch, amount: 0.12}
+effects:
+  - {type: chorus, rate: 0.35, depth: 0.0025, mix: 0.3}
+  - {type: delay, time: "1/8", feedback: 0.4, mix: 0.35, pingpong: true}
+  - {type: reverb, size: 0.9, damping: 0.55, mix: 0.3}

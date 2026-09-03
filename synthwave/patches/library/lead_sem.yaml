@@ -1,0 +1,20 @@
+# Oberheim SEM — filtre 2 pôles multimode (ici passe-bande) : nasillard, chaud, un peu creux.
+name: lead_sem
+polyphony: 1
+glide: 0.04
+volume: 2.0
+oscillators:
+  - {wave: saw, level: 1.5}
+  - {wave: square, pwm: 0.4, level: 1.0}
+  - {wave: saw, octave: -1, level: 0.5}
+amp_env: {attack: 0.02, decay: 0.4, sustain: 0.8, release: 0.4}
+filter:
+  type: bp
+  cutoff: 1100
+  resonance: 0.3
+  env: {attack: 0.02, decay: 0.6, sustain: 0.5, release: 0.4, amount: 900}
+lfo: {wave: sine, rate: 5.0, target: pitch, amount: 0.12}
+effects:
+  - {type: phaser, rate: 0.2, depth: 0.6, stages: 4, mix: 0.35}
+  - {type: delay, time: "1/4", feedback: 0.4, mix: 0.3, pingpong: true}
+  - {type: reverb, size: 0.86, damping: 0.5, mix: 0.3}

@@ -1,0 +1,21 @@
+# Roland D-50 — synthèse LA : attaque « cloche » FM courte + corps saw doux, grande réverbe intégrée.
+name: lead_d50
+polyphony: 2
+glide: 0.02
+volume: 1.8
+oscillators:
+  - {wave: saw, unison: 2, detune: 10, level: 0.5, spread: 0.7}
+  - {wave: fm, fm_ratio: 3.5, fm_index: 1.8, level: 0.25}
+  - {wave: sine, octave: 1, level: 0.15}
+amp_env: {attack: 0.03, decay: 0.6, sustain: 0.7, release: 0.9}
+filter:
+  type: lp
+  cutoff: 1400
+  resonance: 0.1
+  key_track: 0.3
+  env: {attack: 0.005, decay: 0.25, sustain: 0.3, release: 0.4, amount: 2200}
+lfo: {wave: sine, rate: 5.0, target: pitch, amount: 0.1}
+effects:
+  - {type: chorus, rate: 0.4, depth: 0.003, mix: 0.4}
+  - {type: delay, time: "1/4d", feedback: 0.4, mix: 0.35, pingpong: true}
+  - {type: reverb, size: 0.95, damping: 0.5, mix: 0.45, predelay: 0.03}
