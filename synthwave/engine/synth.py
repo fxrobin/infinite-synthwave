@@ -112,8 +112,9 @@ class Synth:
                 out += v.render(n)
         return out
 
-    def render(self, n: int, events: list[NoteEvent]) -> np.ndarray:  # noqa: C901 - event slicing branches
-        """Render."""
+    def render(self, n: int, events: list[NoteEvent], gain: np.ndarray | None = None) -> np.ndarray:  # noqa: C901 - event slicing branches
+        """Render ``n`` samples; ``gain`` (per-sample) is applied to the dry signal,
+        before the patch effects, so delay/reverb tails survive a muted layer."""
         out = np.zeros((n, 2), dtype=np.float32)
         pos = 0
         for ev in sorted(events):
@@ -128,6 +129,8 @@ class Synth:
         if pos < n:
             out[pos:] = self._render_voices(n - pos)
         out *= self.patch.volume
+        if gain is not None:
+            out *= gain[:, None]
         for fx in self.effects:
             out = fx.process(out)
         return out

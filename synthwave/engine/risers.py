@@ -100,21 +100,23 @@ class RiserKit:
             "impact": _stereo(imp, 0.9, sr),
         }
 
-    def render(self, n: int, events: list[NoteEvent]) -> np.ndarray:
-        """Render."""
+    def render(self, n: int, events: list[NoteEvent], gain: np.ndarray | None = None) -> np.ndarray:
+        """Render ``n`` samples; ``gain`` is a per-sample multiplier (same API as Synth)."""
         out = np.zeros((n, 2), dtype=np.float32)
         for ev in events:
             name = NOTE_TO_RISER.get(ev.note)
             if ev.on and name:
                 self.active.append((self.samples[name], -int(ev.offset), float(ev.velocity)))
         still = []
-        for sample, pos, gain in self.active:
+        for sample, pos, vel in self.active:
             start, src = max(0, -pos), max(0, pos)
             k = min(n - start, len(sample) - src)
             if k > 0:
-                out[start : start + k] += sample[src : src + k] * gain
+                out[start : start + k] += sample[src : src + k] * vel
             pos += n
             if pos < len(sample):
-                still.append((sample, pos, gain))
+                still.append((sample, pos, vel))
         self.active = still
+        if gain is not None:
+            out *= gain[:, None]
         return out * self.volume
