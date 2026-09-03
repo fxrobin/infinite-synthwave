@@ -1,0 +1,18 @@
+# VHS : souffle de bande et bourdon grave, bitcrush + flanger, bande fatiguée.
+name: ambient_vhs
+polyphony: 3
+volume: 0.85
+oscillators:
+  - {wave: noise, level: 0.4}
+  - {wave: fm, fm_ratio: 0.5, fm_index: 0.6, octave: -1, level: 0.5}
+  - {wave: triangle, octave: -2, level: 0.3}
+amp_env: {attack: 2.5, decay: 1.0, sustain: 0.9, release: 3.5}
+filter:
+  type: lp
+  cutoff: 700
+  resonance: 0.3
+lfo: {wave: triangle, rate: 0.05, target: cutoff, amount: 400}
+effects:
+  - {type: bitcrush, bits: 7, downsample: 2, mix: 0.3}
+  - {type: flanger, rate: 0.05, depth: 0.004, base: 0.006, feedback: 0.5, mix: 0.45}
+  - {type: reverb, size: 1.0, damping: 0.7, mix: 0.6, predelay: 0.04}

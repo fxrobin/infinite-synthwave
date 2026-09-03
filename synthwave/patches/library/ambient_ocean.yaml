@@ -1,0 +1,17 @@
+# Océan : ressac de bruit passe-bande balayé très lentement, autopan large, aucune hauteur nette.
+name: ambient_ocean
+polyphony: 3
+volume: 1.7
+oscillators:
+  - {wave: noise, level: 0.75}
+  - {wave: sine, octave: -2, level: 0.3}
+amp_env: {attack: 4.0, decay: 1.5, sustain: 0.85, release: 5.0}
+filter:
+  type: bp
+  cutoff: 900
+  resonance: 0.25
+lfo: {wave: sine, rate: 0.045, target: cutoff, amount: 700}
+effects:
+  - {type: autopan, rate: 0.04, depth: 0.8}
+  - {type: lofi, bits: 11, downsample: 1, cutoff: 7000, wobble: 0.002, noise: 0.001, mix: 0.35}
+  - {type: reverb, size: 1.0, damping: 0.55, mix: 0.65, predelay: 0.05}
