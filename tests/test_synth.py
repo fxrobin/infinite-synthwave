@@ -79,3 +79,15 @@ def test_update_patch_keeps_voices_playing():
     assert np.abs(out).max() > 0.001  # note still sounding
     s.update_patch(load_patch("pad_dark"))  # structural change -> reset
     assert s.voices != voices
+
+
+def test_gain_ramp_applied_before_effects_keeps_delay_tail():
+    """Muting a layer (gain 0) must not cut the delay/reverb tail already in the effect."""
+    patch = simple_patch(effects=[{"type": "delay", "time": 0.05, "feedback": 0.5, "mix": 0.5}])
+    s = Synth(patch, SR, np.random.default_rng(0), 110)
+    s.render(4096, [NoteEvent(0, 60, 1.0, True), NoteEvent(2048, 60, 1.0, False)])
+    zero = np.zeros(4096, dtype=np.float32)
+    tail = s.render(4096, [], gain=zero)
+    assert np.abs(tail).max() > 1e-3  # echo still audible although the dry signal is gated
+    later = s.render(4096, [NoteEvent(0, 60, 1.0, True)], gain=zero)
+    assert np.abs(later).max() < np.abs(tail).max()  # dry note gated, tail decaying

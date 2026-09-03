@@ -362,13 +362,15 @@ class Renderer:
         for layer in LAYERS:
             target = self._effective_gain(layer)
             g0 = self.current_gain[layer]
-            sig = self.instruments[layer].render(n, events[layer]) * LAYER_TRIM.get(layer, 1.0)
+            # The gain ramp is applied to the dry signal, before the patch effects and the
+            # inserts: a layer leaving the mix keeps its delay/reverb tail ringing out.
+            ramp = np.linspace(g0, target, n, endpoint=False, dtype=np.float32)
+            ramp *= LAYER_TRIM.get(layer, 1.0)
+            sig = self.instruments[layer].render(n, events[layer], gain=ramp)
             for fx in self.inserts.get(layer, ()):
                 sig = fx.process(sig)
             if layer in DUCKED:
                 sig = sig * (1.0 - DUCKED[layer] * (1.0 - duck))[:, None]
-            ramp = np.linspace(g0, target, n, endpoint=False, dtype=np.float32)
-            sig = sig * ramp[:, None]
             self.levels[layer] = float(np.abs(sig).max()) if n else 0.0
             mix += sig
             self.current_gain[layer] = target

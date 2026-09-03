@@ -173,8 +173,8 @@ class DrumKit:
         }
         self.set_bpm(self.bpm)
 
-    def render(self, n: int, events: list[NoteEvent]) -> np.ndarray:  # noqa: C901 - drum routing branches
-        """Render."""
+    def render(self, n: int, events: list[NoteEvent], gain: np.ndarray | None = None) -> np.ndarray:  # noqa: C901 - drum routing branches
+        """Render ``n`` samples; ``gain`` (per-sample) is applied before ``perc_fx``."""
         kick = np.zeros((n, 2), dtype=np.float32)
         perc = np.zeros((n, 2), dtype=np.float32)
         for ev in events:
@@ -186,16 +186,19 @@ class DrumKit:
                     (self.samples[name], -int(ev.offset), float(ev.velocity), name == "kick")
                 )
         still = []
-        for sample, pos, gain, is_kick in self.active:
+        for sample, pos, vel, is_kick in self.active:
             start = max(0, -pos)  # first output index for this hit inside the block
             src = max(0, pos)  # first sample index
             k = min(n - start, len(sample) - src)
             if k > 0:
-                (kick if is_kick else perc)[start : start + k] += sample[src : src + k] * gain
+                (kick if is_kick else perc)[start : start + k] += sample[src : src + k] * vel
             pos += n
             if pos < len(sample):
-                still.append((sample, pos, gain, is_kick))
+                still.append((sample, pos, vel, is_kick))
         self.active = still
+        if gain is not None:
+            kick *= gain[:, None]
+            perc *= gain[:, None]
         for fx in self.perc_fx:
             perc = fx.process(perc)
         return (kick + perc) * self.patch.volume

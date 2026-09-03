@@ -108,3 +108,10 @@ def test_tick_crash_roll_and_soft_kick():
         return sp[f > 1500].sum() / sp.sum()
 
     assert hf(soft) < hf(hard)  # less clicky / driven
+
+
+def test_gain_ramp_keeps_perc_effect_tail():
+    k = DrumKit(load_patch("drums_hall"), SR, np.random.default_rng(0))
+    k.render(4096, [NoteEvent(0, 38, 1.0, True)])
+    tail = k.render(4096, [], gain=np.zeros(4096, dtype=np.float32))
+    assert np.abs(tail).max() > 1e-3
