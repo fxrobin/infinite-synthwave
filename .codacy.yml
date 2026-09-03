@@ -8,9 +8,10 @@ exclude_paths:
   - "**/*.min.js"
   - "docs/superpowers/**"
   - ".memsearch/**"
+  - "tests/**"
 
 engines:
-  # pylint / prospector : le pattern "Use of assert detected" est légitime dans les tests
+  # "Use of assert" (bandit B101 / pylint) est légitime dans les tests
   pylint:
     exclude_paths:
       - "tests/**"
@@ -18,20 +19,30 @@ engines:
     exclude_paths:
       - "tests/**"
       - "uv.lock"
-  # metric / lizard : exclure les artefacts générés
+  bandit:
+    exclude_paths:
+      - "tests/**"
+  flake8:
+    exclude_paths:
+      - "tests/**"
+  # metric / lizard : exclure artefacts + tests + génératif intentionnellement complexe
   metric:
     exclude_paths:
       - "uv.lock"
       - "tests/**"
+      - "synthwave/composer/patterns.py"
+      - "synthwave/composer/arranger.py"
   lizard:
     exclude_paths:
       - "uv.lock"
       - "tests/**"
+      - "synthwave/composer/patterns.py"
+      - "synthwave/composer/arranger.py"
   duplication:
     exclude_paths:
       - "tests/**"
       - "uv.lock"
-  # garder ruff comme source de vérité locale (line-length 100)
   pycodestyle:
     exclude_paths:
       - "uv.lock"
+      - "tests/**"

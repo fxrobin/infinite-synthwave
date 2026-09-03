@@ -46,6 +46,7 @@ class DrumKit:
     def __init__(
         self, patch: DrumPatchModel, sr: int, rng: np.random.Generator, bpm: float = 120.0
     ):
+        """Initialize drum kit."""
         self.sr, self.rng, self.bpm = sr, rng, bpm
         self.active: list[tuple[np.ndarray, int, float, bool]] = []  # sample, pos, gain, kick
         self.set_patch(patch)

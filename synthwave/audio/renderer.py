@@ -296,6 +296,23 @@ class Renderer:
             return 0.0
         return self.plan_gain[layer] * self.layer_volume[layer]
 
+    def _apply_plan_mood(self, plan) -> None:
+        if plan.mood:
+            self.mood = MOODS[plan.mood]
+            self._apply_mood_patches()
+        for layer, name in (plan.patches or {}).items():
+            if layer not in self.manual_patch and name != self.patch_names[layer]:
+                self._install(layer, name, load_patch(name))
+
+    def _apply_plan_tempo(self, plan) -> None:
+        if plan.bpm and abs(plan.bpm - self.bpm) > 0.05:
+            self.set_tempo(plan.bpm)
+        self._apply_auto_tweaks(plan.tweaks or {})
+        new_fx = plan.fx or {}
+        if new_fx != self.auto_fx:
+            self.auto_fx = dict(new_fx)
+            self._rebuild_inserts()
+
     def _apply_plan(self, plan) -> None:
         self.plan = plan
         self.plan_gain = dict(plan.gains)
@@ -304,19 +321,8 @@ class Renderer:
         self.fade_rate = (plan.fade - self.fade) / bar
         if plan.finished:
             self.finished = True
-        if plan.mood:
-            self.mood = MOODS[plan.mood]
-            self._apply_mood_patches()
-        for layer, name in (plan.patches or {}).items():
-            if layer not in self.manual_patch and name != self.patch_names[layer]:
-                self._install(layer, name, load_patch(name))
-        if plan.bpm and abs(plan.bpm - self.bpm) > 0.05:
-            self.set_tempo(plan.bpm)
-        self._apply_auto_tweaks(plan.tweaks or {})
-        new_fx = plan.fx or {}
-        if new_fx != self.auto_fx:
-            self.auto_fx = dict(new_fx)
-            self._rebuild_inserts()
+        self._apply_plan_mood(plan)
+        self._apply_plan_tempo(plan)
 
     def _mix_layers(self, n: int, events: dict, duck) -> np.ndarray:
         mix = np.zeros((n, 2), dtype=np.float32)

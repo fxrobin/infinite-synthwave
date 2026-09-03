@@ -174,6 +174,7 @@ class Arranger:
         bpm: float | None = None,
         track_s: float = TRACK_SECONDS,
     ):
+        """Initialize arranger."""
         self.rng, self.harmony, self.mood, self.total_bars = rng, harmony, mood, total_bars
         self.bpm_range = bpm_range  # user override; None = follow the mood
         self.bpm = float(bpm) if bpm else float(mood.bpm)

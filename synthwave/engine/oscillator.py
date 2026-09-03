@@ -50,7 +50,7 @@ def render_wave(
 
 
 class Oscillator:
-    def __init__(
+    def __init__(  # noqa: PLR0913 - DSP voice needs many params (bundled in OscSpec in caller)
         self,
         wave: str,
         sr: int,
@@ -65,6 +65,7 @@ class Oscillator:
         fm_ratio: float = 2.0,
         fm_index: float = 0.0,
     ):
+        """Initialize oscillator voice."""
         if wave not in WAVES:
             raise ValueError(f"unknown wave {wave!r}")
         self.wave, self.sr, self.rng = wave, sr, rng
