@@ -109,7 +109,7 @@ synthwave/
   mcp_server.py
 ```
 
-Couches : `drums`, `bass`, `arp`, `pad`, `lead`, `ambient`, `riser` (annonces de chorus
+Couches : `drums`, `bass`, `arp`, `pad`, `lead`, `lead2`, `ambient`, `riser` (annonces de chorus
 synthétisées : uplifter 2 mesures, cymbale reverse, cri FM, impact).
 
 Le flux infini est une suite de **morceaux** d'environ 3 min 30 (`--track`, `track_s` en MCP) :
@@ -439,7 +439,7 @@ Annonces arrangeur (`synthwave/composer/arranger.py:219`) : `uplifter` à J-2 du
 - **Gains de section** : `intro drums 0.6/lead 0.0` → `verse` → `chorus full` → `break drums 0.0/lead 0.0` → `transition drums/bass/arp/lead 0.0` → `outro` avec `fade` linéaire sur 8 bars.
 - **Trim par couche** (`audio/renderer.py:26`) : `LAYER_TRIM = {"lead": 2.5}` — make-up gain statique appliqué avant mix pour compenser le niveau perçu du lead (×2.5, les autres ×1.0).
 - **Master** : rampe de gain par couche (`current→target` sur un bloc, appliquée **avant** les effets de la couche pour que les queues de delay/reverb continuent de sonner) → inserts `master` (auto/manuels) → `master_volume 0.7` × `fade` linéaire → **couleur master** → `Limiter threshold 0.95`.
-- **Couleur master** (`MASTER_COLORS`, `--master-color`, MCP `set_master_color`, `POST /api/master_color`) : étage de saturation permanent placé après le volume, donc toujours attaqué au même niveau. `clean` (aucun), `tape` (défaut : saturation douce + bitcrush 13 bits), `vhs` (bande usée : disto + lofi 10 bits, wobble, souffle), `mic` (micro saturé : disto drive 3.2, bande 4.5 kHz, lofi 11 bits), `crush` (bitcrush 8 bits + disto). Le `lofi` n'y apparaît qu'en mix 1.0 : son chemin humide est retardé par le wobble, un mix partiel filtrerait le master en peigne. Mesuré sur un rendu `outrun` de 15 s :
+- **Couleur master** (`MASTER_COLORS`, `--master-color`, MCP `set_master_color`, `POST /api/master_color`) : étage de saturation permanent placé après le volume, donc toujours attaqué au même niveau. **Choisie par la composition** par défaut (`auto`) : une couleur tirée par morceau selon la luminosité du mood (moods clairs `tape`/`clean`, moods sombres `vhs`/`mic`), puis déplacée d'un cran sur l'échelle `clean < tape < vhs < mic < crush` selon la section — intro plus sale (50 %), chorus plus propre (40 %), break sur bande usée. Une valeur donnée à la main (`--master-color vhs`, MCP, UI) verrouille le choix ; `auto` rend la main. `clean` (aucun), `tape` (défaut : saturation douce + bitcrush 13 bits), `vhs` (bande usée : disto + lofi 10 bits, wobble, souffle), `mic` (micro saturé : disto drive 3.2, bande 4.5 kHz, lofi 11 bits), `crush` (bitcrush 8 bits + disto). Le `lofi` n'y apparaît qu'en mix 1.0 : son chemin humide est retardé par le wobble, un mix partiel filtrerait le master en peigne. Mesuré sur un rendu `outrun` de 15 s :
 
 | Couleur | Crête | RMS | Énergie > 4 kHz | Distorsion (sinus 220 Hz) |
 |---|---|---|---|---|
@@ -528,6 +528,7 @@ Markov : poids par mood, anti-répétition `×0.25` si même progression que pr�
 | `pad` | `gen_pad` | Tenue `STEPS` sur notes de l'accord, voicing grave si root≥6, octave ajoutée si triade |
 | `ambient` | `gen_ambient` | Tenue root + 5th (octave 3) |
 | `lead` | `gen_theme` + `render_motif` | **Thème par morceau** : motif *question* (2–5 notes sur la grille des croches, note d'accord sur les temps forts, pas ≤ tierce) + *réponse* (même rythme, contour retouché, résout sur la tonique) + *contre-mélodie* (contour inversé, notes longues). Rendu par accord en **séquence diatonique** (offsets en degrés depuis la fondamentale) avec ornements (`vary`) : question/réponse alternées par mesure en verse/chorus, octave sup. en 2e moitié de chorus, contre-mélodie dans les breaks (80 %) et en 2e moitié de verse (30 %). Tessiture `lo=55` (dark/noir) sinon `60`. **Moods droits** : phrasé staccato — chaque note dure au plus 3 pas et laisse un silence avant la suivante (durée `min(3, écart-1)` au lieu de tenir jusqu'à la note suivante), ornements divisés par 2.5 : le thème revient tel quel |
+| `lead2` | `harmonize` | Voix d'harmonie : le motif du lead transposé de −2 (tierce), −5 (sixte) ou −7 degrés diatoniques, tirage figé par section ; même rythme, vélocité ×0.75, notes bornées à la gamme. Muette dès que le lead se tait et pendant un pre-drop. Patch propre (`pools["lead2"]` : voix douces), trim ×1.6 contre ×2.5 pour le lead |
 | `riser` | `_risers` | Voir ci-dessus |
 | `mutate` | `mutate` | Drop 30%, nudge ±1 step 30%, substitution note 40%, insertion libre 50% ; utilisé basse/drums/ambient |
 
@@ -535,10 +536,10 @@ Markov : poids par mood, anti-répétition `×0.25` si même progression que pr�
 
 | Section | Bars | Gains particuliers | FX auto possibles |
 |---|---|---|---|
-| `intro` | 8 | build-up : arp 2, kick 4, basse 6 | `master lofi` 50% |
-| `verse` | 16 | arp 0.85 pad 0.9 lead 0.35 ; arp à 2, groove complet + lead à 4 ; pre-drop en dernière mesure si chorus suit | `arp gate 1/32` 25% |
-| `chorus` | 16 | full + lead 1.0 (lead à 2) ; drop au milieu 40 % | `pad gate 1/16-1/32` 35–55%, `arp bitcrush`, `lead` 6 pools (autopan / gate+autopan / disto+autopan / bitcrush / phaser 6 stages / flanger+disto) |
-| `break` | 8 | pad+ambient, arp à 2, basse à 4, kick à 6, pre-drop si chorus suit | `master lofi` 60% sinon `pad gate 1/8` |
+| `intro` | 8 | build-up : arp 2, kick 4, basse 6 | `master lofi` 50% ; couleur master d'un cran plus sale 50 % |
+| `verse` | 16 | arp 0.85 pad 0.9 lead 0.35 lead2 0.25 ; arp à 2, lead à 4, lead2 à 8 ; pre-drop en dernière mesure si chorus suit | `arp gate 1/32` 25% |
+| `chorus` | 16 | full + lead 1.0 (à 2) + lead2 0.7 (à 4) ; drop au milieu 40 % | `pad gate 1/16-1/32` 35–55%, `arp bitcrush`, `lead` 6 pools (autopan / gate+autopan / disto+autopan / bitcrush / phaser 6 stages / flanger+disto) ; couleur master d'un cran plus propre 40 % |
+| `break` | 8 | pad+ambient, lead 0.6 (à 2) + lead2 0.45 (à 4), arp à 2, basse à 4, kick à 6, pre-drop si chorus suit | `master lofi` 60% sinon `pad gate 1/8` ; couleur master `vhs`/`mic`/`crush` |
 | `transition` | 4 | drums/bass/arp/lead 0.0 pad 0.5 ambient 1.0, accord pivot | — (porte tonalité/tempo/mood) |
 | `outro` | 8 | arp off à 2, kick seul à 4, basse+batterie off à 6 ; fade 1→0 en mode durée seulement | — |
 

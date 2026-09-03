@@ -183,7 +183,7 @@
 const $ = (s) => document.querySelector(s);
 const state = { meta: null, st: null, tweakLayer: null, dragging: new Set() };
 const LAYER_COLORS = { drums: "#ffb547", bass: "#ff2d95", arp: "#19e6ff", pad: "#8b5cf6",
-                       lead: "#4ade80", ambient: "#c084fc", riser: "#f472b6" };
+                       lead: "#4ade80", lead2: "#22d3ee", ambient: "#c084fc", riser: "#f472b6" };
 
 function toast(msg, ok = true) {
   const t = $("#toast"); t.textContent = msg; t.style.borderColor = ok ? "var(--cyan)" : "var(--pink)";

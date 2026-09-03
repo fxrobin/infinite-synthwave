@@ -76,9 +76,10 @@ def set_mood(mood: str) -> dict:
 @mcp.tool()
 def set_master_color(color: str) -> dict:
     """
-    Colour the whole mix: clean|tape|vhs|mic|crush.
+    Colour the whole mix: auto|clean|tape|vhs|mic|crush.
 
     Always-on saturation / lo-fi stage between the master inserts and the limiter.
+    'auto' hands it back to the arranger, which colours each section.
     """
     return _command(lambda r: r.set_master_color(color))
 

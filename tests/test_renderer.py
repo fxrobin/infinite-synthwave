@@ -247,3 +247,29 @@ def test_master_color_can_be_changed_live_and_rejects_unknown_names():
     assert np.isfinite(mic).all() and np.abs(mic).max() <= 1.0
     with pytest.raises(ValueError):
         r.set_master_color("nope")
+
+
+def test_arranger_drives_master_color_unless_it_is_set_by_hand():
+    moved = False
+    for seed in (31, 7):  # a section only moves the colour some of the time
+        auto = Renderer(RenderConfig(seed=seed, mood="outrun"))
+        assert auto.status()["master_color_locked"] is False
+        seen = {auto.master_color}
+        for _ in range(10):  # walk through sections: a break wears the tape out
+            auto.next_section()
+            for _ in range(120):
+                auto.render(1024)
+            seen.add(auto.master_color)
+        assert seen <= set(MASTER_COLORS)
+        moved = moved or len(seen) >= 2
+    assert moved, "the composition never touched the master colour"
+
+    manual = Renderer(RenderConfig(seed=31, mood="outrun", master_color="clean"))
+    assert manual.status()["master_color_locked"] is True
+    for _ in range(8):
+        manual.next_section()
+        for _ in range(120):
+            manual.render(1024)
+    assert manual.master_color == "clean"  # a hand-picked colour is never overridden
+    manual.set_master_color("auto")
+    assert manual.status()["master_color_locked"] is False

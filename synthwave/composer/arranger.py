@@ -32,11 +32,12 @@ from .patterns import (
     gen_pad,
     gen_predrop,
     gen_theme,
+    harmonize,
     mutate,
     render_motif,
 )
 
-LAYERS = ("drums", "bass", "arp", "pad", "lead", "ambient", "riser")
+LAYERS = ("drums", "bass", "arp", "pad", "lead", "lead2", "ambient", "riser")
 RISER_REV, RISER_UP, RISER_SCREAM, RISER_IMPACT, RISER_SHORT = 60, 61, 62, 63, 64
 TRACK_SECONDS = 210.0  # ~3'30 per track
 MAX_TRACK_SECTIONS = 8  # safety net when sections are forced by hand
@@ -70,22 +71,40 @@ _NEXT = {
     Section.TRANSITION: [Section.INTRO],
 }
 _ROLL_SECTIONS = (Section.VERSE, Section.CHORUS, Section.OUTRO)
+# Master colour picked by the composition (names from audio.renderer.MASTER_COLORS).
+# Bright moods stay close to clean tape, dark ones wear the tape out.
+_MASTER_COLORS_BRIGHT = (("tape", 5), ("clean", 3), ("vhs", 2), ("mic", 1))
+_MASTER_COLORS_DARK = (("vhs", 4), ("mic", 3), ("tape", 2), ("crush", 1))
+_BREAK_COLORS = ("vhs", "mic", "crush")  # a break drops the mix onto worn tape
+# Ladder from cleanest to dirtiest: sections move along it around the track's colour.
+_COLOR_LADDER = ("clean", "tape", "vhs", "mic", "crush")
+
 _GAINS = {
-    Section.INTRO: dict(drums=0.6, bass=0.8, arp=0.6, pad=1.0, lead=0.0, ambient=1.0, riser=1.0),
-    Section.VERSE: dict(drums=1.0, bass=1.0, arp=0.85, pad=0.9, lead=0.35, ambient=0.7, riser=1.0),
-    Section.CHORUS: dict(drums=1.0, bass=1.0, arp=1.0, pad=1.0, lead=1.0, ambient=0.5, riser=1.0),
-    Section.BREAK: dict(drums=1.0, bass=0.6, arp=0.7, pad=1.0, lead=0.6, ambient=1.0, riser=1.0),
-    Section.TRANSITION: dict(
-        drums=0.0, bass=0.0, arp=0.0, pad=0.5, lead=0.0, ambient=1.0, riser=1.0
+    Section.INTRO: dict(
+        drums=0.6, bass=0.8, arp=0.6, pad=1.0, lead=0.0, lead2=0.0, ambient=1.0, riser=1.0
     ),
-    Section.OUTRO: dict(drums=0.7, bass=0.8, arp=0.5, pad=1.0, lead=0.0, ambient=1.0, riser=1.0),
+    Section.VERSE: dict(
+        drums=1.0, bass=1.0, arp=0.85, pad=0.9, lead=0.35, lead2=0.25, ambient=0.7, riser=1.0
+    ),
+    Section.CHORUS: dict(
+        drums=1.0, bass=1.0, arp=1.0, pad=1.0, lead=1.0, lead2=0.7, ambient=0.5, riser=1.0
+    ),
+    Section.BREAK: dict(
+        drums=1.0, bass=0.6, arp=0.7, pad=1.0, lead=0.6, lead2=0.45, ambient=1.0, riser=1.0
+    ),
+    Section.TRANSITION: dict(
+        drums=0.0, bass=0.0, arp=0.0, pad=0.5, lead=0.0, lead2=0.0, ambient=1.0, riser=1.0
+    ),
+    Section.OUTRO: dict(
+        drums=0.7, bass=0.8, arp=0.5, pad=1.0, lead=0.0, lead2=0.0, ambient=1.0, riser=1.0
+    ),
 }
 # Build-up: bar of the section at which a layer enters (absent = from the first bar).
 _ENTRY = {
     Section.INTRO: {"arp": 2, "drums": 4, "bass": 6},
-    Section.VERSE: {"arp": 2, "lead": 4},
-    Section.CHORUS: {"lead": 2},
-    Section.BREAK: {"lead": 2, "arp": 2, "bass": 4, "drums": 6},
+    Section.VERSE: {"arp": 2, "lead": 4, "lead2": 8},
+    Section.CHORUS: {"lead": 2, "lead2": 4},
+    Section.BREAK: {"lead": 2, "lead2": 4, "arp": 2, "bass": 4, "drums": 6},
 }
 # Tear-down (outro): bar from which a layer is gone.
 _EXIT = {Section.OUTRO: {"arp": 2, "bass": 6, "drums": 6}}
@@ -167,6 +186,7 @@ class BarPlan:
     track_bar: int = 0
     track_bars: int = 0
     tweaks: dict[str, dict[str, float]] | None = None  # live patch gestures (layer -> path -> ×)
+    master_color: str | None = None  # master colour for this section (None = unchanged)
 
 
 class Arranger:
@@ -247,6 +267,7 @@ class Arranger:
         self.track_bar, self.track_sections = 0, 0
         # one theme per track; the eighties moods play it short and detached
         self.theme = gen_theme(self.rng, self.mood.drum_density, staccato=self.mood.straight)
+        self.track_color = self._draw_master_color()
         secs = self.track_s * float(self.rng.uniform(0.92, 1.08))
         bars = int(round(secs / self._bar_seconds() / 4.0)) * 4
         self.track_bars = max(bars, SECTION_BARS[Section.INTRO] + 8 + SECTION_BARS[Section.OUTRO])
@@ -270,6 +291,8 @@ class Arranger:
             modes, weights = ["up", "updown"], [0.5, 0.5]
         self.arp_mode = str(r.choice(modes, p=weights))
         self.arp_on = self.section == Section.CHORUS or r.random() < self.mood.arp_prob
+        # second lead: a diatonic third or sixth under the theme, fixed for the section
+        self.harmony_degrees = int(r.choice([-2, -2, -2, -5, -7]))
         m = self.mood
         self.drums_base = gen_drums(
             r,
@@ -296,6 +319,31 @@ class Arranger:
             self.arp_on = True
             self.mid_drop = self.section_len >= 16 and r.random() < 0.4
         self.fx = self._section_fx()
+        self.section_color = self._section_color()
+
+    def _draw_master_color(self) -> str:
+        """Master colour of a track, weighted by how bright the mood is."""
+        table = _MASTER_COLORS_BRIGHT if self.mood.brightness >= 0.9 else _MASTER_COLORS_DARK
+        names = [n for n, _ in table]
+        w = np.array([x for _, x in table], dtype=float)
+        return str(self.rng.choice(names, p=w / w.sum()))
+
+    def _section_color(self) -> str:
+        """Colour for the section starting here, around the track's own colour: a break
+        drops onto worn tape, an intro often comes in one notch dirtier, a chorus often
+        opens up one notch cleaner, everything else plays the track colour.
+        """
+        if self.section == Section.BREAK:
+            return str(self.rng.choice(_BREAK_COLORS))
+        step = 0
+        if self.section == Section.INTRO and self.rng.random() < 0.5:
+            step = 1
+        elif self.section == Section.CHORUS and self.rng.random() < 0.4:
+            step = -1
+        if not step:
+            return self.track_color
+        i = _COLOR_LADDER.index(self.track_color) if self.track_color in _COLOR_LADDER else 1
+        return _COLOR_LADDER[int(np.clip(i + step, 0, len(_COLOR_LADDER) - 1))]
 
     def _section_fx(self) -> dict[str, list[dict]]:
         """Section fx."""
@@ -477,8 +525,8 @@ class Arranger:
         for layer, at in _EXIT.get(self.section, {}).items():
             if self.section_bar >= at:
                 gains[layer] = 0.0
-        if predrop:
-            gains["lead"] = 0.0
+        if predrop:  # the melody clears out before the drop, harmony included
+            gains["lead"] = gains["lead2"] = 0.0
             gains["drums"] = 1.0
         if not self.arp_on:
             gains["arp"] = 0.0
@@ -584,6 +632,17 @@ class Arranger:
             vary *= 0.4
         return render_motif(r, motif, chord, scale, octave=octave, vary=vary)
 
+    def _lead2(self, chord: Chord, lead: Pattern) -> Pattern:
+        """Second lead: the same phrase harmonised under the theme (a diatonic third or
+        sixth below, an octave below when the lead is up high), so it doubles the hook
+        without competing with it. Silent whenever the lead is silent.
+        """
+        if not lead:
+            return []
+        lo = 55 if self.mood.pad_octave <= 3 else 60
+        scale = self.harmony.scale_notes(lo - 12, lo + 19)
+        return harmonize(lead, scale, self.harmony_degrees)
+
     def _tweaks(self, predrop: bool) -> dict[str, dict[str, float]]:
         """Section gestures + per-bar sweeps: the filter opens over the 4 bars before a
         chorus (build-up), closes down in a break, and rises through the intro.
@@ -651,6 +710,7 @@ class Arranger:
             "arp": gen_arp(r, chord, self.arp_mode) if self.arp_on else [],
             "pad": gen_pad(chord, self.mood.pad_octave),
             "lead": lead,
+            "lead2": self._lead2(chord, lead),
             "ambient": gen_ambient(chord),
             "riser": self._risers(predrop) if self.section != Section.TRANSITION else [],
         }
@@ -690,6 +750,7 @@ class Arranger:
             track_bar=self.track_bar,
             track_bars=self.track_bars,
             tweaks=self._tweaks(predrop) or None,
+            master_color=self.section_color if first else None,
         )
         self.bar_bpm, self.mood_changed = None, False
         self.bar += 1

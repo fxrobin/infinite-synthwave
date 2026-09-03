@@ -216,7 +216,8 @@ def play(  # noqa: PLR0913 - CLI entry point bundles user options
     device: str | None = typer.Option(None, help="Nom ou index du périphérique"),
     fx: list[str] | None = FX_OPTION,
     master_color: str = typer.Option(
-        "tape", help="Couleur master permanente : " + "|".join(MASTER_COLORS)
+        "auto",
+        help="Couleur master : auto (choisie par la composition) ou " + "|".join(MASTER_COLORS),
     ),
 ):
     """Joue de la synthwave sur la sortie audio (ou exporte en WAV)."""

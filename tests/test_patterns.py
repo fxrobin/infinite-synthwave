@@ -7,6 +7,7 @@ from synthwave.composer.patterns import (
     SNAP,
     STEPS,
     TICK,
+    Note,
     add_roll,
     drum_layer,
     gen_ambient,
@@ -16,6 +17,7 @@ from synthwave.composer.patterns import (
     gen_lead,
     gen_pad,
     gen_theme,
+    harmonize,
     mutate,
     render_motif,
 )
@@ -225,3 +227,19 @@ def test_straight_bass_is_short_and_deterministic():
     assert a == b
     assert [n.step for n in a] == list(range(0, STEPS, 2))
     assert all(n.length == 1 for n in a)  # punchy eighths, not tied
+
+
+def test_harmonize_moves_every_note_by_diatonic_degrees():
+    scale = [57, 59, 60, 62, 64, 65, 67, 69, 71, 72]  # A minor over two octaves
+    theme = [Note(0, 69, 0.8, 2), Note(4, 72, 0.8, 2)]
+    third_below = harmonize(theme, scale, -2)
+    assert [n.note for n in third_below] == [65, 69]  # a diatonic third under each note
+    assert [(n.step, n.length) for n in third_below] == [(0, 2), (4, 2)]
+    assert all(n.vel < 0.8 for n in third_below)  # the harmony sits under the theme
+
+
+def test_harmonize_keeps_notes_inside_the_scale_range():
+    scale = [60, 62, 64, 65, 67]
+    out = harmonize([Note(0, 60, 0.9, 1)], scale, -3)
+    assert out[0].note == 60  # clipped to the lowest scale note, never off-scale
+    assert harmonize([], scale, -2) == []

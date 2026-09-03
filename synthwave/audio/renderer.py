@@ -28,6 +28,7 @@ DEFAULT_PATCHES = {
     "arp": "arp_pluck",
     "pad": "pad_juno",
     "lead": "lead_saw",
+    "lead2": "lead_hollow",
     "ambient": "ambient_drone",
     "riser": "builtin",
 }
@@ -72,7 +73,7 @@ MASTER_COLORS: dict[str, list[dict]] = {
 }
 
 DUCKED = {"pad": 1.0, "bass": 0.6, "ambient": 0.6, "arp": 0.5}
-LAYER_TRIM = {"lead": 2.5}  # static make-up gain per layer, applied before the mix
+LAYER_TRIM = {"lead": 2.5, "lead2": 1.6}  # static make-up gain per layer, before the mix
 
 
 @dataclass
@@ -87,7 +88,7 @@ class RenderConfig:
     patches: dict[str, str] = field(default_factory=dict)
     bpm_range: tuple[float, float] | None = None  # overrides the mood's range when set
     track_s: float = TRACK_SECONDS  # target length of one track (intro -> outro)
-    master_color: str = "tape"  # always-on master stage, see MASTER_COLORS
+    master_color: str = "auto"  # always-on master stage: "auto" = composed, else MASTER_COLORS
 
 
 class Renderer:
@@ -143,9 +144,10 @@ class Renderer:
         self.current_gain = {layer: 0.0 for layer in LAYERS}
         self.sidechain = Sidechain(self.sr, depth=0.45, release=0.22)
         self.limiter = Limiter(self.sr, self.bpm, threshold=0.95)
-        if cfg.master_color not in MASTER_COLORS:
+        if cfg.master_color != "auto" and cfg.master_color not in MASTER_COLORS:
             raise ValueError(f"unknown master colour: {cfg.master_color}")
-        self.master_color = cfg.master_color
+        self.master_color_locked = cfg.master_color != "auto"
+        self.master_color = cfg.master_color if self.master_color_locked else "tape"
         self.master_color_fx: list[Effect] = build_effects(
             MASTER_COLORS[self.master_color], self.sr, self.bpm
         )
@@ -321,11 +323,15 @@ class Renderer:
         self.master_color_fx = build_effects(MASTER_COLORS[self.master_color], self.sr, self.bpm)
 
     def set_master_color(self, name: str) -> None:
-        """Pick the always-on master stage (see `MASTER_COLORS`)."""
-        if name not in MASTER_COLORS:
+        """Pick the always-on master stage (see `MASTER_COLORS`); 'auto' hands it back to
+        the arranger, which colours each section.
+        """
+        if name != "auto" and name not in MASTER_COLORS:
             raise ValueError(f"unknown master colour: {name}")
-        self.master_color = name
-        self._rebuild_inserts()
+        self.master_color_locked = name != "auto"
+        if self.master_color_locked:
+            self.master_color = name
+            self._rebuild_inserts()
 
     def status(self) -> dict:  # noqa: C901 - status aggregates many fields
         """Status."""
@@ -336,6 +342,7 @@ class Renderer:
             "seed": self.seed,
             "mood_locked": self.arranger.mood_locked,
             "master_color": self.master_color,
+            "master_color_locked": self.master_color_locked,
             "bpm_range": list(self.arranger.bpm_range or self.arranger.mood.bpm_range),
             "pending_mood": (
                 self.arranger.pending_mood.name if self.arranger.pending_mood else None
@@ -411,6 +418,10 @@ class Renderer:
             self.finished = True
         self._apply_plan_mood(plan)
         self._apply_plan_tempo(plan)
+        if plan.master_color and not self.master_color_locked:
+            if plan.master_color != self.master_color:
+                self.master_color = plan.master_color
+                self._rebuild_inserts()
 
     def _mix_layers(self, n: int, events: dict, duck) -> np.ndarray:
         """Mix layers."""
