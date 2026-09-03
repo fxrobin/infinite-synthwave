@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' ws: wss:; img-src 'self' data:; object-src 'none'">
 <title>Infinite Synthwave</title>
 <style>
   :root {
@@ -220,8 +221,9 @@ function buildLayers() {
     const el = document.createElement("div"); el.className = "card layer"; el.id = "layer-" + layer;
     el.style.borderTop = "3px solid " + LAYER_COLORS[layer];
     const patches = state.meta.patches.filter(p => p.startsWith(layer + "_"));
+    // construction DOM sans innerHTML pour les patch names (XSS stocké)
     el.innerHTML = `
-      <div class="name"><span>${layer}</span><span class="mini" data-gain></span></div>
+      <div class="name"><span></span><span class="mini" data-gain></span></div>
       <div class="meter"><i data-meter></i></div>
       <div style="display:flex;gap:6px;align-items:center">
         <button class="small" data-mute>M</button><button class="small" data-solo>S</button>
@@ -230,11 +232,18 @@ function buildLayers() {
       </div>
       ${layer === "riser" ? `<div class="mini">annonces de chorus (built-in)</div>` : `
       <div style="display:flex;gap:6px;align-items:center">
-        <select data-patch style="flex:1">${patches.map(p => `<option>${p}</option>`).join("")}</select>
+        <select data-patch style="flex:1"></select>
         <button class="small" data-tweak>tweak</button>
       </div>
       <div class="chips" data-fx></div>
       <div class="chips" data-tweaks></div>`}`;
+    el.querySelector(".name span").textContent = layer;
+    if (layer !== "riser") {
+      const sel = el.querySelector("[data-patch]");
+      for (const name of patches) {
+        const o = document.createElement("option"); o.value = name; o.textContent = name; sel.appendChild(o);
+      }
+    }
     root.appendChild(el);
     el.querySelector("[data-mute]").onclick = () => api("layer", { layer, mute: !state.st.layers[layer].muted });
     el.querySelector("[data-solo]").onclick = () => api("layer", { layer, solo: !state.st.layers[layer].solo });
@@ -259,8 +268,12 @@ function fxChips(container, layer, specs, manual) {
     container.appendChild(c);
   });
   const add = document.createElement("select"); add.className = "chip add";
-  add.innerHTML = `<option value="">+ effet</option>` +
-    Object.keys(state.meta.effects).map(k => `<option>${k}</option>`).join("");
+  {
+    const o0 = document.createElement("option"); o0.value = ""; o0.textContent = "+ effet"; add.appendChild(o0);
+    for (const k of Object.keys(state.meta.effects)) {
+      const o = document.createElement("option"); o.value = k; o.textContent = k; add.appendChild(o);
+    }
+  }
   add.onchange = () => { if (!add.value) return;
     const spec = { type: add.value, ...state.meta.effects[add.value] };
     api("effects", { layer, effects: [...(specs || []), spec] }); add.value = ""; };
