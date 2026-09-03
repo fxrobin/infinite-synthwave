@@ -9,23 +9,32 @@ from .events import NoteEvent
 from .voice import Voice
 
 
-def _has_structural_change(new: PatchModel, old: PatchModel) -> bool:
-    if new.polyphony != old.polyphony:
-        return True
+def _oscillators_changed(new: PatchModel, old: PatchModel) -> bool:
     if len(new.oscillators) != len(old.oscillators):
         return True
-    if any(
+    return any(
         a.wave != b.wave or a.unison != b.unison or a.octave != b.octave or a.semi != b.semi
         for a, b in zip(new.oscillators, old.oscillators, strict=True)
-    ):
-        return True
+    )
+
+
+def _filter_changed(new: PatchModel, old: PatchModel) -> bool:
     if (new.filter is None) != (old.filter is None):
         return True
     if new.filter and old.filter:
         if new.filter.type != old.filter.type:
             return True
-        if (new.filter.env is None) != (old.filter.env is None):
-            return True
+        return (new.filter.env is None) != (old.filter.env is None)
+    return False
+
+
+def _has_structural_change(new: PatchModel, old: PatchModel) -> bool:
+    if new.polyphony != old.polyphony:
+        return True
+    if _oscillators_changed(new, old):
+        return True
+    if _filter_changed(new, old):
+        return True
     if (new.lfo is None) != (old.lfo is None):
         return True
     return [e.type for e in new.effects] != [e.type for e in old.effects]

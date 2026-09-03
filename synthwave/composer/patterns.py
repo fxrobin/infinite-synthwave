@@ -28,7 +28,7 @@ def _sorted(p: Pattern) -> Pattern:
     return sorted(p, key=lambda n: (n.step, n.note))
 
 
-def gen_drums(
+def gen_drums(  # noqa: PLR0913 - drum pattern needs many flags (bundled from arranger)
     rng: np.random.Generator,
     density: float,
     fill: bool = False,

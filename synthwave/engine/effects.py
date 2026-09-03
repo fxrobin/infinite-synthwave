@@ -55,6 +55,7 @@ class Chorus(Effect):
     def __init__(
         self, sr: int, bpm: float, rate: float = 0.5, depth: float = 0.003, mix: float = 0.4
     ):
+        """Initialize chorus."""
         self.size = int(sr * 0.2)
         self.buf = np.zeros((self.size, 2))
         self.pos = 0
@@ -316,6 +317,7 @@ class Bitcrush(Effect):
     """Bit-depth reduction + sample-and-hold downsampling."""
 
     def __init__(self, sr: int, bpm: float, bits: float = 8, downsample: int = 4, mix: float = 1.0):
+        """Initialize bitcrush."""
         self.levels = 2.0 ** (float(np.clip(bits, 2, 16)) - 1)
         self.k = max(1, int(downsample))
         self.mix = mix
