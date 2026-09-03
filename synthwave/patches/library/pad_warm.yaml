@@ -1,0 +1,17 @@
+name: pad_warm
+polyphony: 6
+volume: 0.45
+oscillators:
+  - {wave: triangle, unison: 3, detune: 8, level: 0.6, spread: 0.9}
+  - {wave: saw, level: 0.25}
+  - {wave: sine, octave: -1, level: 0.35}
+amp_env: {attack: 1.0, decay: 1.2, sustain: 0.85, release: 2.5}
+filter:
+  type: lp
+  cutoff: 900
+  resonance: 0.1
+  env: {attack: 2.0, decay: 2.0, sustain: 0.5, release: 2.0, amount: 300}
+lfo: {wave: triangle, rate: 0.08, target: cutoff, amount: 200}
+effects:
+  - {type: chorus, rate: 0.25, depth: 0.005, mix: 0.4}
+  - {type: reverb, size: 0.88, damping: 0.6, mix: 0.35, predelay: 0.02}

@@ -7,14 +7,14 @@ from dataclasses import dataclass, field
 
 import numpy as np
 
-from ..composer.arranger import LAYERS, Arranger, BarPlan
+from ..composer.arranger import LAYERS, TRACK_SECONDS, Arranger, BarPlan
 from ..composer.harmony import Harmony
 from ..composer.moods import MOODS
 from ..engine.drums import DrumKit
 from ..engine.effects import Effect, Limiter, Sidechain, build_effects
 from ..engine.risers import RiserKit
 from ..engine.synth import Synth
-from ..patches.loader import PatchError, load_patch, set_param
+from ..patches.loader import PatchError, apply_tweaks, load_patch, set_param
 from ..patches.model import DrumPatchModel, PatchModel
 from ..sequencer.tracker import Tracker
 from ..sequencer.transport import Transport
@@ -35,6 +35,7 @@ class RenderConfig:
     duration_s: float | None = None
     patches: dict[str, str] = field(default_factory=dict)
     bpm_range: tuple[float, float] | None = None   # overrides the mood's range when set
+    track_s: float = TRACK_SECONDS                 # target length of one track (intro -> outro)
 
 
 class Renderer:
@@ -55,11 +56,14 @@ class Renderer:
         total_bars = (math.ceil(cfg.duration_s / self.transport.bar_seconds)
                       if cfg.duration_s else None)
         self.arranger = Arranger(self.rng, Harmony(self.rng, self.mood), self.mood, total_bars,
-                                 bpm_range=cfg.bpm_range)
+                                 bpm_range=cfg.bpm_range, bpm=self.bpm, track_s=cfg.track_s)
         self.arranger.mood_locked = cfg.mood is not None
         self.tracker = Tracker(self.transport, self.arranger)
         self.instruments: dict[str, Synth | DrumKit] = {}
         self.patch_names: dict[str, str] = {}
+        self.base_patch: dict[str, PatchModel | DrumPatchModel] = {}   # loaded + manual edits
+        self.auto_tweaks: dict[str, dict[str, float]] = {}            # arranger gestures
+        self.auto_tweaks_enabled = True
         self.manual_patch: set[str] = set(cfg.patches)
         for layer in LAYERS:
             if layer == "riser":
@@ -84,11 +88,17 @@ class Renderer:
         self.auto_fx: dict[str, list[dict]] = {}
         self.manual_fx: dict[str, list[dict]] = {}
         self.inserts: dict[str, list[Effect]] = {}
+        self.levels: dict[str, float] = {layer: 0.0 for layer in LAYERS + ("master",)}
+        self.scope = np.zeros(256, dtype=np.float32)   # last block, downsampled, for UIs
 
     # ----- instruments -----
-    def _install(self, layer: str, name: str, patch) -> None:
+    def _install(self, layer: str, name: str, patch, live: bool = False) -> None:
+        """Load `patch` into a layer. `live`: parameter-only change, keep voices running."""
         if layer == "riser":
             raise PatchError("layer 'riser' is built-in and has no patch")
+        self.base_patch[layer] = patch
+        if self.auto_tweaks_enabled and layer in self.auto_tweaks:
+            patch = apply_tweaks(patch, self.auto_tweaks[layer])
         inst = self.instruments.get(layer)
         if layer == "drums":
             if not isinstance(patch, DrumPatchModel):
@@ -102,6 +112,8 @@ class Renderer:
                 raise PatchError(f"layer {layer!r} needs a synth patch, got {patch.name!r}")
             if inst is None:
                 inst = Synth(patch, self.sr, self.rng, self.bpm)
+            elif live:
+                inst.update_patch(patch)
             else:
                 inst.set_patch(patch)
         self.instruments[layer] = inst
@@ -125,6 +137,7 @@ class Renderer:
     def set_tempo(self, bpm: float) -> None:
         self.bpm = float(np.clip(bpm, 60, 180))
         self.transport.set_bpm(self.bpm)
+        self.arranger.bpm = self.bpm
         for inst in self.instruments.values():
             inst.set_bpm(self.bpm)
         self._rebuild_inserts()
@@ -166,8 +179,26 @@ class Renderer:
     def set_patch_param(self, layer: str, path: str, value) -> None:
         if layer not in LAYERS:
             raise ValueError(f"unknown layer {layer!r}, choose from {LAYERS}")
-        inst = self.instruments[layer]
-        self._install(layer, self.patch_names[layer], set_param(inst.patch, path, value))
+        base = self.base_patch[layer]
+        self._install(layer, self.patch_names[layer], set_param(base, path, value), live=True)
+        self.manual_patch.add(layer)      # a hand-tweaked patch is kept across sections
+
+    def set_auto_tweaks(self, enabled: bool) -> None:
+        """Enable / disable the arranger's live patch gestures (filter sweeps, detune...)."""
+        self.auto_tweaks_enabled = bool(enabled)
+        for layer in LAYERS:
+            if layer in self.base_patch:
+                self._install(layer, self.patch_names[layer], self.base_patch[layer], live=True)
+
+    def _apply_auto_tweaks(self, tweaks: dict[str, dict[str, float]]) -> None:
+        changed = {layer for layer in set(tweaks) | set(self.auto_tweaks)
+                   if tweaks.get(layer) != self.auto_tweaks.get(layer)}
+        self.auto_tweaks = {k: dict(v) for k, v in tweaks.items()}
+        if not self.auto_tweaks_enabled:
+            return
+        for layer in changed:
+            if layer in self.base_patch:
+                self._install(layer, self.patch_names[layer], self.base_patch[layer], live=True)
 
     def next_section(self) -> None:
         self.arranger.force_next_section()
@@ -199,15 +230,26 @@ class Renderer:
             "pending_mood": (self.arranger.pending_mood.name
                              if self.arranger.pending_mood else None),
             "bar": p.bar if p else 0, "section": p.section.value if p else "intro",
+            "section_bar": p.section_bar if p else 0,
             "chord": p.chord.name if p else "",
+            "drop": p.drop if p else False,
+            "track": p.track if p else self.arranger.track,
+            "track_bar": p.track_bar if p else 0, "track_bars": self.arranger.track_bars,
             "key": p.key if p else self.arranger.harmony.key_name,
             "elapsed_s": round(self.rendered / self.sr, 1), "finished": self.finished,
             "effects": {layer: self.manual_fx.get(layer, self.auto_fx.get(layer, []))
                         for layer in LAYERS + ("master",)},
+            "manual_fx": sorted(self.manual_fx),
+            "auto_tweaks": self.auto_tweaks_enabled,
+            "tweaks": {k: {p: round(f, 3) for p, f in v.items()}
+                       for k, v in self.auto_tweaks.items()},
+            "levels": {k: round(v, 3) for k, v in self.levels.items()},
             "layers": {layer: {"gain": round(self._effective_gain(layer), 3),
                                "muted": layer in self.muted, "solo": layer in self.solo,
                                "volume": self.layer_volume[layer],
-                               "patch": self.patch_names[layer]} for layer in LAYERS},
+                               "patch": self.patch_names[layer],
+                               "manual_patch": layer in self.manual_patch}
+                       for layer in LAYERS},
         }
 
     # ----- rendering -----
@@ -235,6 +277,7 @@ class Renderer:
                     self._install(layer, name, load_patch(name))
             if plan.bpm and abs(plan.bpm - self.bpm) > 0.05:
                 self.set_tempo(plan.bpm)
+            self._apply_auto_tweaks(plan.tweaks or {})
             new_fx = plan.fx or {}
             if new_fx != self.auto_fx:
                 self.auto_fx = dict(new_fx)
@@ -251,7 +294,9 @@ class Renderer:
             if layer in DUCKED:
                 sig = sig * (1.0 - DUCKED[layer] * (1.0 - duck))[:, None]
             ramp = np.linspace(g0, target, n, endpoint=False, dtype=np.float32)
-            mix += sig * ramp[:, None]
+            sig = sig * ramp[:, None]
+            self.levels[layer] = float(np.abs(sig).max()) if n else 0.0
+            mix += sig
             self.current_gain[layer] = target
         fade = self.fade + self.fade_rate * np.arange(1, n + 1, dtype=np.float32)
         fade = np.maximum(fade, self.fade_target) if self.fade_rate < 0 else np.minimum(
@@ -261,4 +306,8 @@ class Renderer:
             mix = fx.process(mix)
         mix *= (self.master_volume * fade)[:, None]
         self.rendered += n
-        return self.limiter.process(mix)
+        out = self.limiter.process(mix)
+        self.levels["master"] = float(np.abs(out).max()) if n else 0.0
+        if n >= 256:
+            self.scope = out[:: max(1, n // 256), 0][:256].astype(np.float32)
+        return out

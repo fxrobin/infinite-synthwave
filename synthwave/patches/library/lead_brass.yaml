@@ -1,0 +1,18 @@
+name: lead_brass
+polyphony: 1
+glide: 0.05
+volume: 1.4
+oscillators:
+  - {wave: saw, unison: 3, detune: 10, level: 0.7, spread: 0.7}
+  - {wave: saw, octave: -1, level: 0.35}
+amp_env: {attack: 0.08, decay: 0.4, sustain: 0.8, release: 0.4}
+filter:
+  type: lp
+  cutoff: 900
+  resonance: 0.15
+  env: {attack: 0.12, decay: 0.6, sustain: 0.55, release: 0.4, amount: 1600}
+lfo: {wave: sine, rate: 5.0, target: pitch, amount: 0.12}
+effects:
+  - {type: chorus, rate: 0.5, depth: 0.003, mix: 0.3}
+  - {type: delay, time: "1/4", feedback: 0.35, mix: 0.3, pingpong: true}
+  - {type: reverb, size: 0.85, damping: 0.5, mix: 0.3}

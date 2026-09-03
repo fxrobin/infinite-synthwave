@@ -9,6 +9,7 @@ from .harmony import Chord
 
 STEPS = 16
 KICK, SNARE, CLAP, HAT_C, TOM_L, HAT_O, TOM_M, CRASH = 36, 38, 39, 42, 45, 46, 47, 49
+SNAP, RIDE, SHAKER, TICK, CROLL = 40, 51, 70, 44, 57
 
 
 @dataclass(frozen=True)
@@ -28,15 +29,37 @@ def _sorted(p: Pattern) -> Pattern:
 
 def gen_drums(rng: np.random.Generator, density: float, fill: bool = False,
               snare: bool = True, crash: bool = False, halftime: bool = False,
-              strong: bool = False) -> Pattern:
+              strong: bool = False, snap: bool = False, ride: bool = False,
+              shaker: bool = False, tick: bool = False) -> Pattern:
+    """One bar of drums. `snap`: finger snaps take the backbeat (layered with the snare in a
+    strong chorus); `ride`: the ride cymbal replaces the closed hats on the 8ths; `shaker`:
+    16th-note shaker underneath."""
+    p = _gen_drums(rng, density, fill, snare, crash, halftime, strong)
+    if snap and snare:
+        keep = strong
+        p = [n for n in p if n.note != SNARE or keep]
+        p += [Note(s, SNAP, 0.9 if not strong else 0.7) for s in ((8,) if halftime else (4, 12))]
+    if ride:
+        p = [Note(n.step, RIDE, n.vel) if n.note == HAT_C and n.step % 2 == 0 else n for n in p]
+    if tick:   # dry "tic tic" closed hat on every 8th, replacing the washy closed hats there
+        p = [n for n in p if not (n.note == HAT_C and n.step % 2 == 0)]
+        p += [Note(s, TICK, 0.8 if s % 4 == 0 else 0.55) for s in range(0, STEPS, 2)]
+    if shaker:
+        p += [Note(s, SHAKER, 0.55 if s % 4 == 2 else 0.3) for s in range(STEPS)]
+    return _sorted(p)
+
+
+def _gen_drums(rng: np.random.Generator, density: float, fill: bool, snare: bool, crash: bool,
+               halftime: bool, strong: bool) -> Pattern:
     if strong:  # chorus: four on the floor, snare + clap on 2 and 4, driving hats
         p: Pattern = [Note(s, KICK, 1.0) for s in (0, 4, 8, 12)]
         p.append(Note(int(rng.choice([10, 14])), KICK, 0.75))
         p += [Note(4, SNARE, 1.0), Note(12, SNARE, 1.0), Note(4, CLAP, 0.8), Note(12, CLAP, 0.8)]
-        p += [Note(s, HAT_C, 0.85 if s % 4 == 0 else 0.5) for s in range(0, STEPS, 2)]
-        p += [Note(s, HAT_C, 0.35) for s in range(1, STEPS, 2)
+        p += [Note(s, HAT_C, 0.9 if s % 4 == 0 else 0.6) for s in range(0, STEPS, 2)]
+        p += [Note(s, HAT_C, 0.4) for s in range(1, STEPS, 2)
               if rng.random() < 0.5 + density * 0.5]
-        p.append(Note(14, HAT_O, 0.6))
+        for s in (6, 14) if rng.random() < 0.4 else (14,):
+            p.append(Note(s, HAT_O, 0.65))
         if fill:
             p = [n for n in p if n.step < 12]
             p += [Note(12 + i, int(rng.choice([SNARE, TOM_M, TOM_L])), 0.6 + 0.1 * i)
@@ -64,12 +87,12 @@ def gen_drums(rng: np.random.Generator, density: float, fill: bool = False,
             if rng.random() < density * 0.4:
                 p += [Note(4, CLAP, 0.7), Note(12, CLAP, 0.7)]
     for s in range(0, STEPS, 2):
-        p.append(Note(s, HAT_C, 0.8 if s % 4 == 0 else 0.55))
+        p.append(Note(s, HAT_C, 0.85 if s % 4 == 0 else 0.6))
     for s in range(1, STEPS, 2):
         if rng.random() < density * 0.7:
-            p.append(Note(s, HAT_C, 0.4))
+            p.append(Note(s, HAT_C, 0.45))
     if rng.random() < density * 0.6:
-        p.append(Note(14, HAT_O, 0.6))
+        p.append(Note(int(rng.choice([14, 6, 10])), HAT_O, 0.6))
     if fill:
         p = [n for n in p if n.step < 12]
         roll = rng.choice([SNARE, TOM_M, TOM_L], size=4)
@@ -79,6 +102,51 @@ def gen_drums(rng: np.random.Generator, density: float, fill: bool = False,
     if crash:
         p.append(Note(0, CRASH, 0.8))
     return _sorted(p)
+
+
+_ROLL_VOICES = {"snare": (SNARE, SNARE, SNARE, SNARE),
+                "toms_down": (SNARE, TOM_M, TOM_L, TOM_L),
+                "toms_up": (TOM_L, TOM_M, SNARE, SNARE),
+                "alternate": (SNARE, TOM_M, SNARE, TOM_L)}
+
+
+def gen_roll(rng: np.random.Generator, start: int, length: int,
+             vel: tuple[float, float] = (0.5, 0.9)) -> Pattern:
+    """16th-note drum roll of `length` steps from `start`, crescendo, on snare and/or toms."""
+    voices = _ROLL_VOICES[str(rng.choice(list(_ROLL_VOICES)))]
+    vels = np.linspace(vel[0], vel[1], length)
+    return [Note(start + i, voices[(i * 4) // length], float(round(vels[i], 3)))
+            for i in range(length)]
+
+
+def add_roll(rng: np.random.Generator, pattern: Pattern, start: int, length: int) -> Pattern:
+    """Overlay a roll on [start, start+length): strips snare/hats/toms there, keeps kick + crash."""
+    window = set(range(start, min(STEPS, start + length)))
+    kept = [n for n in pattern if n.step not in window or n.note in (KICK, CRASH)]
+    return _sorted(kept + gen_roll(rng, start, len(window)))
+
+
+def drum_layer(pattern: Pattern, level: int) -> Pattern:
+    """Build-up layers of a groove: 0 = kick/snare/crash, 1 = + 8th hats and clap, 2 = all."""
+    if level >= 2:
+        return list(pattern)
+    core = (KICK, SNARE, CRASH, SNAP, CROLL)
+    if level <= 0:
+        return [n for n in pattern if n.note in core]
+    return [n for n in pattern
+            if n.note in core or n.note == CLAP
+            or (n.note in (HAT_C, RIDE, TICK) and n.step % 2 == 0)]
+
+
+def gen_predrop(rng: np.random.Generator, pattern: Pattern, cut: int = 12) -> Pattern:
+    """Bar before a drop: kick on the 1, snare roll crescendo up to `cut`, then silence."""
+    head = [n for n in drum_layer(pattern, 0) if n.step < 4 and n.note == KICK]
+    return _sorted(head + gen_roll(rng, 4, cut - 4, (0.35, 1.0)) + [Note(0, CROLL, 0.9, 16)])
+
+
+def cut_after(pattern: Pattern, step: int) -> Pattern:
+    """Drop every note starting at or after `step` (the silence before a drop)."""
+    return [n for n in pattern if n.step < step]
 
 
 def gen_bass(rng: np.random.Generator, chord: Chord, style: str) -> Pattern:
@@ -155,6 +223,88 @@ def gen_lead(rng: np.random.Generator, chord: Chord, scale_notes: list[int],
         p.append(Note(s, note, 0.8, max(2, min(8, nxt - s))))   # long, legato phrases
         prev = note
     return p
+
+
+@dataclass(frozen=True)
+class Motif:
+    """A melodic idea as rhythm + contour: (step, scale-step offset from the chord root, length).
+
+    Offsets are diatonic (in scale steps), so rendering the same motif on another chord gives a
+    real sequence: same rhythm, same shape, transposed within the key."""
+    notes: tuple[tuple[int, int, int], ...]
+
+
+@dataclass(frozen=True)
+class Theme:
+    """The melodic material of one track: a question motif, its answer (same rhythm, contour
+    resolving to the root) and a counter-melody (inverted contour, longer notes)."""
+    question: Motif
+    answer: Motif
+    counter: Motif
+
+
+_CHORD_OFFSETS = (0, 2, 4)      # root, third, fifth as scale-step offsets
+
+
+def gen_theme(rng: np.random.Generator, density: float) -> Theme:
+    grid = [0, 2, 4, 6, 8, 10, 12, 14]
+    count = max(2, min(len(grid), int(round(2 + density * 3))))
+    steps = sorted(int(s) for s in rng.choice(grid, size=count, replace=False))
+    if steps[0] != 0:
+        steps[0] = 0                                     # motifs start on the downbeat
+    offsets: list[int] = []
+    cur = int(rng.choice(_CHORD_OFFSETS))
+    for s in steps:
+        if s % 8 == 0:                                    # strong beats: chord tones
+            cur = int(rng.choice([o for o in _CHORD_OFFSETS if abs(o - cur) <= 4] or [0]))
+        else:                                             # steps of at most a third
+            cur = int(np.clip(cur + int(rng.choice([-2, -1, -1, 1, 1, 2])), -4, 7))
+        offsets.append(cur)
+
+    def lengths(st: list[int]) -> list[int]:
+        return [max(2, min(8, (st[i + 1] if i + 1 < len(st) else STEPS) - st[i]))
+                for i in range(len(st))]
+
+    q = Motif(tuple(zip(steps, offsets, lengths(steps), strict=True)))
+    ans = list(offsets)
+    ans[-1] = 0                                           # the answer resolves to the root
+    for i in range(1, len(ans) - 1):
+        if rng.random() < 0.35:
+            ans[i] += int(rng.choice([-1, 1]))
+    a = Motif(tuple(zip(steps, ans, lengths(steps), strict=True)))
+    c_steps = [s for s in steps if s % 4 == 0] or [0]
+    c_offs = [int(np.clip(-o, -5, 5)) for o, s in zip(offsets, steps, strict=True) if s in c_steps]
+    c = Motif(tuple(zip(c_steps, c_offs, lengths(c_steps), strict=True)))
+    return Theme(q, a, c)
+
+
+def render_motif(rng: np.random.Generator, motif: Motif, chord: Chord, scale_notes: list[int],
+                 octave: int = 0, vary: float = 0.0, vel: float = 0.8) -> Pattern:
+    """Play a motif on a chord: offsets are counted in scale steps from the chord root's
+    position in `scale_notes`. `vary` = chance of an ornament (neighbour, dropped, added note)."""
+    if not scale_notes:
+        return []
+    root_pc = chord.root_pc
+    anchors = [i for i, n in enumerate(scale_notes) if n % 12 == root_pc]
+    mid = len(scale_notes) // 2
+    anchor = min(anchors, key=lambda i: abs(i - mid)) if anchors else mid
+    p: Pattern = []
+    for i, (step, off, length) in enumerate(motif.notes):
+        if vary and i > 0 and rng.random() < vary * 0.3:
+            continue                                      # dropped note
+        if vary and rng.random() < vary:
+            off += int(rng.choice([-1, 1]))               # neighbour tone
+        idx = int(np.clip(anchor + off, 0, len(scale_notes) - 1))
+        p.append(Note(step, scale_notes[idx] + octave, vel, length))
+    if vary and rng.random() < vary * 0.5:
+        taken = {n.step for n in p}
+        free = [s for s in (1, 3, 5, 7, 9, 11, 13, 15) if s not in taken]
+        if free and p:
+            s = int(rng.choice(free))
+            prev = max((n for n in p if n.step < s), key=lambda n: n.step, default=p[0])
+            near = [n for n in scale_notes if abs(n + octave - prev.note) <= 2] or scale_notes
+            p.append(Note(s, int(rng.choice(near)) + octave, vel * 0.8, 1))
+    return _sorted(p)
 
 
 def mutate(rng: np.random.Generator, pattern: Pattern, rate: float,

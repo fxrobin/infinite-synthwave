@@ -29,6 +29,33 @@ class Voice:
         self.glide_coef = float(np.exp(-1.0 / (patch.glide * sr))) if patch.glide > 0 else 0.0
         self.age = 0
 
+    def retune(self, patch: PatchModel) -> None:
+        """Update continuous parameters in place (same structure as the current patch)."""
+        self.patch = patch
+        sr = self.sr
+        for osc, o in zip(self.oscs, patch.oscillators, strict=True):
+            osc.level, osc.pwm = float(o.level), float(o.pwm)
+            osc.fm_ratio, osc.fm_index = float(o.fm_ratio), float(o.fm_index)
+            osc.norm = osc.level / np.sqrt(osc.unison)
+            if osc.unison > 1:
+                cents = np.linspace(-1.0, 1.0, osc.unison) * o.detune
+                pans = np.linspace(-1.0, 1.0, osc.unison) * o.spread
+                osc.ratios = 2.0 ** (cents / 1200.0)
+                angle = (pans + 1.0) * np.pi / 4.0
+                osc.gain_l, osc.gain_r = np.cos(angle), np.sin(angle)
+        e = patch.amp_env
+        self._set_env(self.amp_env, e.attack, e.decay, e.sustain, e.release)
+        if self.filt_env and patch.filter and patch.filter.env:
+            fe = patch.filter.env
+            self._set_env(self.filt_env, fe.attack, fe.decay, fe.sustain, fe.release)
+        if self.lfo and patch.lfo:
+            self.lfo.rate, self.lfo.wave = float(patch.lfo.rate), patch.lfo.wave
+        self.glide_coef = float(np.exp(-1.0 / (patch.glide * sr))) if patch.glide > 0 else 0.0
+
+    def _set_env(self, env: ADSR, a: float, d: float, sus: float, r: float) -> None:
+        env.a, env.d = max(1, int(a * self.sr)), max(1, int(d * self.sr))
+        env.s, env.r = float(np.clip(sus, 0.0, 1.0)), max(1, int(r * self.sr))
+
     @property
     def active(self) -> bool:
         return not self.amp_env.finished

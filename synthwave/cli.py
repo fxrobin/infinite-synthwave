@@ -57,6 +57,8 @@ def play(duration: str | None = typer.Option(None, help="ex: 5m, 90s, 1h. Absent
          bpm_range: str | None = typer.Option(None, help="Zone de tempo, ex. 85-100 "
                                                           "(défaut : zone du mood)"),
          seed: int | None = typer.Option(None),
+         track: str = typer.Option("3m30", help="Durée visée d'un morceau (intro → outro) "
+                                                 "avant transition, ex. 3m30, 4m"),
          mood: str | None = typer.Option(None, help="|".join(MOODS) + " ; absent = tiré au "
                                                        "hasard et changé à chaque transition"),
          export: str | None = typer.Option(None, help="Rendu hors-ligne vers un WAV"),
@@ -69,7 +71,7 @@ def play(duration: str | None = typer.Option(None, help="ex: 5m, 90s, 1h. Absent
         raise typer.BadParameter("--export requires --duration")
     rng = parse_bpm_range(bpm_range) if bpm_range else None
     renderer = Renderer(RenderConfig(bpm=bpm, mood=mood, seed=seed, duration_s=seconds,
-                                     bpm_range=rng))
+                                     bpm_range=rng, track_s=parse_duration(track)))
     for layer, spec in (parse_fx(f) for f in fx or []):
         renderer.set_layer_effects(layer, [spec])
     typer.echo(f"seed={renderer.seed} bpm={renderer.bpm:g} mood={renderer.mood.name}"
@@ -93,7 +95,9 @@ def play(duration: str | None = typer.Option(None, help="ex: 5m, 90s, 1h. Absent
     try:
         while player.running:
             st = renderer.status()
-            line = (f"[{st['section']:>10}] bar {st['bar']:>4} {st['mood']:<7} {st['bpm']:>5} "
+            line = (f"[{st['section']:>10}{'*' if st['drop'] else ' '}] "
+                    f"t{st['track']} {st['track_bar']:>3}/{st['track_bars']:<3} "
+                    f"{st['mood']:<7} {st['bpm']:>5} "
                     f"{st['key']:<16} {st['chord']:<6} underruns={player.underruns}")
             if line != last:
                 typer.echo(line)
@@ -120,6 +124,16 @@ def devices():
     """Liste les périphériques audio."""
     import sounddevice as sd
     typer.echo(str(sd.query_devices()))
+
+
+@app.command()
+def ui(port: int = typer.Option(8765, help="Port HTTP"),
+       host: str = typer.Option("127.0.0.1"),
+       no_browser: bool = typer.Option(False, help="Ne pas ouvrir le navigateur")):
+    """Lance l'interface web (visualisation + contrôle live)."""
+    from .web.server import serve
+    typer.echo(f"UI: http://{host}:{port}  (Ctrl+C pour quitter)")
+    serve(host=host, port=port, open_browser=not no_browser)
 
 
 @app.command()

@@ -1,0 +1,15 @@
+name: bass_808
+polyphony: 1
+glide: 0.06
+volume: 0.6
+oscillators:
+  - {wave: sine, level: 0.9}
+  - {wave: triangle, level: 0.25}
+  - {wave: sine, octave: -1, level: 0.4}
+amp_env: {attack: 0.005, decay: 0.6, sustain: 0.6, release: 0.4}
+filter:
+  type: lp
+  cutoff: 260
+  resonance: 0.05
+effects:
+  - {type: distortion, drive: 1.6, tone: 1500, mix: 0.35}

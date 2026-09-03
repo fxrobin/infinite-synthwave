@@ -81,3 +81,18 @@ def test_new_scale_key_names():
         mood = next(m for m in MOODS.values() if m.scale == scale)
         h = Harmony(np.random.default_rng(0), mood)
         assert h.key_name.endswith((scale.replace("_", " "), "major"))
+
+
+def test_change_key_keeps_common_tones_and_pivot_chord():
+    from synthwave.composer.moods import MOODS
+    for seed in range(6):
+        rng = np.random.default_rng(seed)
+        h = Harmony(rng, MOODS["outrun"])
+        old = h.pitch_classes()
+        last = h.chord_for_degree(0)
+        h.change_key(MOODS["dark"], last)
+        assert len(old & h.pitch_classes()) >= 5
+        piv = h.pivot_chord(last)
+        assert piv.root_pc == last.root_pc or len(
+            {(piv.root_pc + i) % 12 for i in piv.intervals}
+            & {(last.root_pc + i) % 12 for i in last.intervals}) >= 2

@@ -70,7 +70,8 @@ class KickSpec(BaseModel):
     click: float = 0.3
     sub: float = 0.6          # sub-sine layer level at pitch_end
     sub_decay: float = 0.45
-    drive: float = 2.0        # tanh saturation
+    drive: float = 2.0        # tanh saturation (1.0 = clean, acoustic-like)
+    beater: float = 0.0       # felt beater thump (lowpassed noise burst), 0..1
     gain: float = 1.4
 
 
@@ -105,6 +106,34 @@ class TomSpec(BaseModel):
     gain: float = 0.8
 
 
+class SnapSpec(BaseModel):
+    tone: float = 1900.0      # bandpass centre of the snap
+    decay: float = 0.07
+    body: float = 0.35        # low "knuckle" thump level
+    reverb_mix: float = 0.25
+    gain: float = 0.7
+
+
+class RideSpec(BaseModel):
+    decay: float = 0.9
+    cutoff: float = 5000.0
+    ping: float = 0.5         # metallic partials level
+    gain: float = 0.3
+
+
+class TickSpec(BaseModel):
+    """Dry, very short closed hat ("tic tic") on the 8ths."""
+    decay: float = 0.012
+    cutoff: float = 9000.0
+    gain: float = 0.3
+
+
+class ShakerSpec(BaseModel):
+    decay: float = 0.06
+    cutoff: float = 6500.0
+    gain: float = 0.3
+
+
 class DrumPatchModel(BaseModel):
     name: str
     kind: Literal["drums"]
@@ -114,7 +143,12 @@ class DrumPatchModel(BaseModel):
     hat: HatSpec = HatSpec()
     clap: ClapSpec = ClapSpec()
     tom: TomSpec = TomSpec()
+    snap: SnapSpec = SnapSpec()
+    ride: RideSpec = RideSpec()
+    shaker: ShakerSpec = ShakerSpec()
+    tick: TickSpec = TickSpec()
     crash_gain: float = 0.4
+    crash_roll_gain: float = 0.5    # one-bar mallet roll on the crash, swelling to the downbeat
     perc_effects: list[EffectSpec] = []   # applied to everything except the kick
 
 

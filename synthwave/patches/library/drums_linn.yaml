@@ -1,0 +1,9 @@
+name: drums_linn
+kind: drums
+volume: 0.5
+kick: {pitch_start: 130, pitch_end: 52, pitch_decay: 0.03, decay: 0.3, click: 0.3, sub: 0.5, sub_decay: 0.35, drive: 1.2, beater: 0.4, gain: 1.4}
+snare: {tone: 210, tone_decay: 0.07, noise_decay: 0.16, gate_hold: 0.18, reverb_size: 0.7, reverb_mix: 0.3, gain: 0.65}
+hat: {closed_decay: 0.035, open_decay: 0.22, cutoff: 9000, gain: 0.46}
+clap: {decay: 0.2, gate_hold: 0.18, reverb_mix: 0.4, gain: 0.6}
+tom: {pitch_low: 115, pitch_mid: 165, decay: 0.28, gain: 0.8}
+crash_gain: 0.35

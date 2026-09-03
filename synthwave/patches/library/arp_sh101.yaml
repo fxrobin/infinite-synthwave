@@ -1,0 +1,15 @@
+name: arp_sh101
+polyphony: 4
+volume: 0.85
+oscillators:
+  - {wave: saw, level: 0.6}
+  - {wave: square, pwm: 0.5, octave: -1, level: 0.35}
+amp_env: {attack: 0.002, decay: 0.25, sustain: 0.1, release: 0.12}
+filter:
+  type: lp
+  cutoff: 700
+  resonance: 0.4
+  env: {attack: 0.002, decay: 0.18, sustain: 0.1, release: 0.1, amount: 1500}
+effects:
+  - {type: delay, time: "1/8", feedback: 0.45, mix: 0.35, pingpong: true}
+  - {type: reverb, size: 0.8, damping: 0.6, mix: 0.2}

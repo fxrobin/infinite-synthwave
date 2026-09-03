@@ -1,0 +1,14 @@
+name: drums_breaks
+kind: drums
+volume: 0.48
+kick: {pitch_start: 110, pitch_end: 58, pitch_decay: 0.025, decay: 0.22, click: 0.08, sub: 0.3, sub_decay: 0.25, drive: 1.0, beater: 0.9, gain: 1.5}
+snare: {tone: 215, tone_decay: 0.1, noise_decay: 0.14, gate_hold: 0.12, reverb_size: 0.6, reverb_mix: 0.2, gain: 0.62}
+hat: {closed_decay: 0.035, open_decay: 0.25, cutoff: 7500, gain: 0.4}
+clap: {decay: 0.18, gate_hold: 0.12, reverb_mix: 0.25, gain: 0.45}
+tom: {pitch_low: 90, pitch_mid: 130, decay: 0.3, gain: 0.85}
+tick: {decay: 0.015, cutoff: 8000, gain: 0.3}
+crash_gain: 0.35
+crash_roll_gain: 0.45
+perc_effects:
+  - {type: lofi, bits: 10, downsample: 2, cutoff: 6000, wobble: 0.001, noise: 0.002, mix: 0.5}
+  - {type: reverb, size: 0.75, damping: 0.7, mix: 0.12}

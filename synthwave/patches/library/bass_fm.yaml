@@ -1,0 +1,15 @@
+name: bass_fm
+polyphony: 1
+glide: 0.015
+volume: 0.5
+oscillators:
+  - {wave: fm, fm_ratio: 1.0, fm_index: 2.2, level: 0.8}
+  - {wave: sine, octave: -1, level: 0.6}
+amp_env: {attack: 0.005, decay: 0.35, sustain: 0.6, release: 0.2}
+filter:
+  type: lp
+  cutoff: 700
+  resonance: 0.08
+  env: {attack: 0.005, decay: 0.25, sustain: 0.4, release: 0.2, amount: 400}
+effects:
+  - {type: distortion, drive: 1.8, tone: 2800, mix: 0.4}

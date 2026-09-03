@@ -1,0 +1,17 @@
+name: ambient_shimmer
+polyphony: 3
+volume: 1.1
+oscillators:
+  - {wave: saw, octave: 1, unison: 4, detune: 18, level: 0.5, spread: 1.0}
+  - {wave: sine, octave: 2, level: 0.2}
+  - {wave: triangle, level: 0.3}
+amp_env: {attack: 3.5, decay: 1.0, sustain: 0.9, release: 5.0}
+filter:
+  type: hp
+  cutoff: 700
+  resonance: 0.1
+lfo: {wave: sine, rate: 0.1, target: cutoff, amount: 300}
+effects:
+  - {type: chorus, rate: 0.2, depth: 0.007, mix: 0.6}
+  - {type: delay, time: "1/2", feedback: 0.55, mix: 0.4, pingpong: true}
+  - {type: reverb, size: 1.0, damping: 0.3, mix: 0.7, predelay: 0.06}

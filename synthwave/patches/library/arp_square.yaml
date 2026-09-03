@@ -1,0 +1,16 @@
+name: arp_square
+polyphony: 6
+volume: 0.7
+oscillators:
+  - {wave: square, pwm: 0.35, level: 0.6}
+  - {wave: square, pwm: 0.5, octave: 1, level: 0.2}
+amp_env: {attack: 0.003, decay: 0.35, sustain: 0.1, release: 0.2}
+filter:
+  type: lp
+  cutoff: 900
+  resonance: 0.25
+  env: {attack: 0.002, decay: 0.2, sustain: 0.2, release: 0.1, amount: 1400}
+lfo: {wave: triangle, rate: 0.5, target: pwm, amount: 0.25}
+effects:
+  - {type: delay, time: "1/16", feedback: 0.45, mix: 0.35, pingpong: true}
+  - {type: reverb, size: 0.85, damping: 0.5, mix: 0.25}

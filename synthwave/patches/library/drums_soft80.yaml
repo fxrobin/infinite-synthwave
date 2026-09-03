@@ -1,0 +1,11 @@
+name: drums_soft80
+kind: drums
+volume: 0.5
+kick: {pitch_start: 140, pitch_end: 50, pitch_decay: 0.035, decay: 0.32, click: 0.1, sub: 0.45, sub_decay: 0.35, drive: 1.1, beater: 0.5, gain: 1.45}
+snare: {tone: 190, tone_decay: 0.09, noise_decay: 0.22, gate_hold: 0.3, reverb_size: 0.88, reverb_mix: 0.45, gain: 0.55}
+hat: {closed_decay: 0.04, open_decay: 0.28, cutoff: 8500, gain: 0.42}
+clap: {decay: 0.22, gate_hold: 0.25, reverb_mix: 0.5, gain: 0.55}
+tom: {pitch_low: 100, pitch_mid: 150, decay: 0.3, gain: 0.8}
+tick: {decay: 0.012, cutoff: 9500, gain: 0.32}
+crash_gain: 0.4
+crash_roll_gain: 0.5

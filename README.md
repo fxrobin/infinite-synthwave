@@ -19,6 +19,9 @@ uv run synthwave play --duration 3m --seed 42 --export track.wav
 # 4. Lister les patches / périphériques
 uv run synthwave patches
 uv run synthwave devices
+
+# 5. Interface web (visualisation + tweak live) → http://127.0.0.1:8765
+uv run synthwave ui
 ```
 
 Prérequis : Python ≥ 3.13, PortAudio (PipeWire / Pulse / ALSA), `uv`.
@@ -46,6 +49,7 @@ uv run synthwave play --fx pad:gate:rate=1/16,depth=0.8 --fx master:lofi:bits=8
 uv run synthwave patches                       # patches disponibles
 uv run synthwave devices                       # périphériques audio
 uv run synthwave mcp                           # serveur MCP (stdio)
+uv run synthwave ui --port 8765 --no-browser   # interface web
 ```
 
 | Option | Description |
@@ -54,6 +58,7 @@ uv run synthwave mcp                           # serveur MCP (stdio)
 | `--mood <nom>` | `dark\|noir\|dreamy\|outrun\|cyberpunk\|horror\|desert\|chill\|retro\|drive`. Sans → tiré au hasard au démarrage et changé à chaque transition. Avec → figé (sauf `set_mood("random")` MCP). |
 | `--bpm 118` | Tempo fixe (60–180). Sans → tiré dans la zone du mood. |
 | `--bpm-range 80-95` | Zone de tempo (40–200). Redessiné à chaque transition. Prime sur la zone du mood. |
+| `--track 3m30` | Durée visée d'un morceau (intro → outro) avant la transition vers le suivant. Défaut `3m30` (±8 %). |
 | `--seed 42` | Seed RNG. Même seed + mêmes options ⇒ même musique bit-identique. |
 | `--export track.wav` | Rendu hors-ligne. Extension → format : `.wav` PCM16, `.flac` PCM16, `.ogg` Vorbis, `.mp3` MP3. Requiert `--duration`. |
 | `--device 2` / `hw:0,0` | Index ou nom sounddevice. |
@@ -82,8 +87,9 @@ Sans `--mood`, le mood est tiré au hasard au démarrage et retiré à chaque tr
 Le tempo est tiré dans la zone du mood au démarrage et redessiné à chaque transition
 (`--bpm-range 80-95` ou `bpm_range` dans l'outil MCP `start` pour imposer une zone,
 `--bpm` pour un tempo fixe). Le jeu de patches suit le mood (changé lors des transitions)
-sauf pour les couches chargées à la main via `load_patch`. La basse et le lead changent
-d'instrument à chaque section, tirés dans leur pool ; la basse tire aussi un style pondéré par mood (voir colonnes). Styles : `eighths`, `octaves`, `syncopated`, `sixteenths`, `walk`, `riff` (chromatique b2/triton), chorus → `eighths/sixteenths/octaves` forcé.
+sauf pour les couches chargées à la main via `load_patch`. Toutes les couches (basse, lead, pad,
+arp, ambient, batterie) changent d'instrument à chaque section, tirées dans les pools du mood
+(`DARK_POOLS`, `BRIGHT_POOLS`, `CYBER_POOLS`, `DRIVE_POOLS` dans `moods.py`) ; la basse tire aussi un style pondéré par mood (voir colonnes). Styles : `eighths`, `octaves`, `syncopated`, `sixteenths`, `walk`, `riff` (chromatique b2/triton), chorus → `eighths/sixteenths/octaves` forcé.
 
 Même seed + mêmes options ⇒ même musique.
 
@@ -96,15 +102,38 @@ synthwave/
   composer/   moods, harmonie (Markov), générateurs de patterns, arrangeur par sections
   sequencer/  transport (BPM, pas) et tracker (patterns → événements note-on/off)
   audio/      renderer (mix, sidechain, limiteur), sortie sounddevice, export WAV
+  session.py  player partagé (MCP + web)
+  web/        serveur Starlette + page HTML (synthwave ui)
   cli.py      typer
   mcp_server.py
 ```
 
 Couches : `drums`, `bass`, `arp`, `pad`, `lead`, `ambient`, `riser` (annonces de chorus
-synthétisées : uplifter 2 mesures, cymbale reverse, cri FM, impact). Sections : intro → verse →
-chorus → break → **transition** … avec fills en fin de section et, en mode durée, un outro
-avec fondu. Les transitions (4 mesures, ambient + pad seuls) portent les changements de
-tonalité, de tempo et de mood ; un `set_mood` MCP est appliqué via une transition.
+synthétisées : uplifter 2 mesures, cymbale reverse, cri FM, impact).
+
+Le flux infini est une suite de **morceaux** d'environ 3 min 30 (`--track`, `track_s` en MCP) :
+`intro → verse / chorus / break … → outro → transition → intro` du morceau suivant. L'outro
+(8 mesures) retire les couches une à une (arp à 2, kick seul à 4, basse et batterie à 6) ; la
+transition (4 mesures, ambient + pad seuls) porte le changement de tonalité, de tempo et de mood ;
+en mode durée, le dernier outro fond jusqu'au silence. Un `set_mood` MCP déclenche outro puis
+transition (directement la transition pendant l'intro).
+
+**Build-up** : dans chaque section les couches entrent toutes les 2 mesures. Intro : pad+ambient,
+arp à 2, kick à 4, basse à 6. Verse : kick/snare + hats en croches, arp à 2, groove complet et lead
+à 4. Chorus : tout d'un coup (le drop), lead à 2. Break : pad+ambient, arp à 2, basse à 4, kick à 6.
+
+**Drops** : la dernière mesure avant un chorus est un *pre-drop* (`BarPlan.drop`) : kick sur le
+1, roulement de caisse claire / toms crescendo en doubles sur les temps 2–3, puis silence sur le
+temps 4 (batterie et basse coupées, lead muet), cymbale reverse + cri ; le chorus tombe avec un
+impact, une batterie 4/4 pleine et un crash. Un chorus sur ~2,5 a aussi un drop au milieu
+(pre-drop mesure 8, impact mesure 9).
+
+**Transitions douces** : le mood suivant est tiré avec un poids favorisant les tempos voisins,
+le même feel (half-time) et la même gamme ; le tempo reste au plus près du tempo courant dans la
+zone du nouveau mood (±4 BPM) ; la tonalité est choisie parmi les tonics qui partagent le plus
+de notes avec la tonalité courante (relatif, parallèle, même tonique) avec bonus si le dernier
+accord du morceau est un accord pivot de la nouvelle tonalité ; la transition tient cet accord
+pivot (`Harmony.pivot_chord`) avant la nouvelle progression.
 
 Le chorus est annoncé sur ses deux dernières mesures d'approche (uplifter, cymbale reverse,
 cri) et frappe avec un impact, une batterie 4/4 pleine (kick, snare + clap, hats) même en
@@ -115,6 +144,23 @@ pad/arp en chorus, `lofi` master en intro/break, `bitcrush` sur l'arp, et pour l
 chorus : `autopan`, gate + autopan, distortion + autopan, bitcrush, `phaser` ou flanger +
 distortion) ; réglables à la main
 avec `--fx` ou l'outil MCP `set_layer_effects`.
+
+## Compositeur live — gestes sur les patches
+
+L'arrangeur module les patches en direct (`BarPlan.tweaks`, multiplicateurs appliqués par
+`apply_tweaks` sur le patch de base, sans couper les voix grâce à `Synth.update_patch`) :
+
+- **Gestes de section** (`_GESTURES` dans `arranger.py`, tirés par couche avec une probabilité
+  par section : break 0.7, chorus 0.55, intro 0.5, verse 0.45, outro 0.4) : cutoff ×0.6–1.5,
+  résonance ×1.8–2.5, LFO rate/amount, attaque/decay d'enveloppe, détune ×1.5–1.6, glide,
+  mix du premier effet, PWM…
+- **Build-up** : sur les 4 mesures avant un chorus, le cutoff de pad et arp s'ouvre de ×0.55 à
+  ×1.6 et la résonance du pad monte (×1 → ×2.2) ; pre-drop : basse ×0.5.
+- **Break** : pad et basse assombris (×0.7). **Intro** : pad qui s'ouvre de ×0.5 à ×1.
+- Les réglages manuels (`set_patch_param`, panneau Tweak de l'UI) vivent sous les gestes et
+  sont conservés. `set_auto_tweaks(false)` (MCP), `POST /api/auto_tweaks`, bouton
+  « gestes auto » dans l'UI : coupe les gestes. L'UI affiche les gestes actifs par couche
+  (chips ambre « cutoff ×0.7 ») et `status()["tweaks"]` les expose.
 
 ## Synthétiseur interne — tout ce qui est paramétrable
 
@@ -199,7 +245,7 @@ Notes :
 
 ## Patches YAML
 
-Bibliothèque : `synthwave/patches/library/` (21 patches). Les fichiers placés dans
+Bibliothèque : `synthwave/patches/library/` (74 patches). Les fichiers placés dans
 `~/.config/synthwave/patches/` sont aussi listés et priment sur la bibliothèque.
 
 ```yaml
@@ -235,12 +281,23 @@ Patch batterie (`kind: drums`) : `kick` (pitch, `sub`, `drive` saturation, `gain
 d'effets appliquée à toutes les percussions sauf le kick (écho ping‑pong + reverb dans
 `drums_dark.yaml`). Voir `drums_808.yaml`.
 
-### Bibliothèque livrée (21 patches)
+### Bibliothèque livrée (74 patches)
 
 | Catégorie | Patch | Caractère |
 |---|---|---|
 | **Pad** | `pad_juno` | Juno saw 3×14 cts, chorus+reverb |
 | | `pad_dark` | Saw 4×10 cts + FM, cutoff 520 Hz sombre |
+| | `pad_strings` | Saw 5×12 cts + octave, attaque lente, chorus |
+| | `pad_glass` | FM 2.0×0.6 + triangle, tremolo, delay 1/4 |
+| | `pad_choir` | Square PWM LFO + triangle, chorus large |
+| | `pad_warm` | Triangle unison + sine sub, LP 900 Hz, LFO lent |
+| | `pad_shimmer` | Saw + octave sup., HP 400 Hz, phaser 6 stages, reverb 1.0 |
+| | `pad_prophet` | Prophet-5 : saw + pulse PWM, filtre résonant enveloppé, sans chorus |
+| | `pad_jupiter` | Jupiter-8 : saw unison + pulse, chorus, sine sub |
+| | `pad_obx` | OB-Xa : 2 saws désaccordées larges, attaque courte, brass |
+| | `pad_cs80` | CS-80 : saw + square, attaque lente, env filtre 2.5 s, delay |
+| | `pad_polysix` | Polysix : saw seule, double chorus ensemble |
+| | `pad_piano_atmos` | Piano « atmos » feutré : sine + FM 2.0 index 0.18 + triangle octave, LP 1300 Hz key-track, dérive 0.015 st, delay 1/4d, reverb 0.96 |
 | **Bass** | `bass_moog` | Saw + square sub, moog ladder-style |
 | | `bass_dark` | Saw + FM 0.5×0.6 + sine sub, LFO cutoff 0.5 Hz |
 | | `bass_acid` | Saw résonante, env 1200 Hz, overdrive |
@@ -249,17 +306,59 @@ d'effets appliquée à toutes les percussions sauf le kick (écho ping‑pong + 
 | | `bass_reese` | Saw 3×22 cts, LFO cutoff 0.3 Hz |
 | | `bass_growl` | FM 1.0×1.6 + LFO amp 3.5 Hz, disto 3.5 |
 | | `bass_industrial` | Saw unison + FM 2.0×1.2, env 400 Hz, disto 6.0 |
+| | `bass_fm` | FM 1.0×2.2 percussif + sine sub |
+| | `bass_square` | Square + square sub, LP 520 Hz, classique |
+| | `bass_pluck` | Saw decay court, env 900 Hz, delay 1/8 |
+| | `bass_wobble` | Saw + square, LFO cutoff 2 Hz triangle |
+| | `bass_808` | Sine longue, glide 0.06, saturation douce |
+| | `bass_prophet` | Prophet : saw + pulse sub, LP 380 Hz |
+| | `bass_sh101` | SH-101 : saw + sub square, résonance 0.3, decay court |
+| | `bass_ms20` | MS-20 : résonance 0.45, disto 3.5 |
+| | `bass_dx7` | DX7 « Lately Bass » : FM 1.0×3.0 + 0.5×1.0, sans glide |
 | **Arp** | `arp_pluck` | Saw 2×8 cts env 2200 Hz, delay 1/8d |
 | | `arp_dark` | Square PWM 0.25 + saw, disto+phaser+delay |
+| | `arp_saw` | Saw 3×12 cts, env 1800 Hz, delay 1/8d |
+| | `arp_square` | Square PWM LFO + octave, delay 1/16 |
+| | `arp_fm` | FM 2.0×1.2 court, phaser, delay 1/8 |
+| | `arp_glass` | Triangle + sine octave, HP 500 Hz, chorus |
+| | `arp_stab` | Saw 4×15 cts, disto + flanger, stab court |
+| | `arp_jupiter` | Jupiter : pulse + saw, chorus, delay 1/8d |
+| | `arp_sh101` | SH-101 séquencé : saw + sub, résonance 0.4 |
+| | `arp_dx7` | DX7 : FM 1.0×1.8 + 3.0×0.5, chorus |
+| | `arp_piano_atmos` | Piano « atmos » arpégé, delay 1/8d |
 | **Lead** | `lead_saw` | Saw 4×18 cts, LFO vibrato 5.5 Hz, chorus+phaser |
 | | `lead_dark` | Saw 3×16 cts + FM, vibrato 4.8 Hz, disto+phaser |
 | | `lead_industrial` | FM 2.0×2.5 + saw, env 1800 Hz, disto 5.0 |
 | | `lead_pulse` | Square PWM LFO, flanger+delay |
 | | `lead_scream` | Saw 5×25 cts, vibrato 6 Hz, disto 7.0 + phaser 6 stages |
+| | `lead_brass` | Saw 3×10 cts + sub, attaque 80 ms, env 1600 Hz |
+| | `lead_hollow` | Square + triangle, chorus + phaser |
+| | `lead_growl` | FM 1.5×3.0 + saw, LFO cutoff 3.5 Hz, disto 6.0 + flanger |
+| | `lead_glide` | Glide 0.14, saw + square, autopan 1/1, delay 1/4 |
+| | `lead_organ` | Sines harmoniques (8', 4', 2'2/3), tremolo 6 Hz, phaser |
+| | `lead_prophet` | Prophet-5 : saw + pulse + sub, résonance 0.35, env 2400 Hz |
+| | `lead_obx` | OB-Xa : saws larges + square, chorus, delay 1/4 |
+| | `lead_cs80` | CS-80 « Blade Runner » : glide 0.1, vibrato 0.25, delay + reverb |
+| | `lead_ms20` | MS-20 : résonance 0.55, disto 4.5 |
+| | `lead_minimoog` | Minimoog : 3 osc (2 saw + square -1), glide 0.07, disto légère |
+| | `lead_piano_atmos` | Piano « atmos » mélodique, polyphonie 4, longue queue |
 | **Ambient** | `ambient_drone` | Sine+triangle+noise, LFO cutoff, chorus+reverb |
 | | `ambient_dark` | Noise+FM+sine, LFO triangle 0.05 Hz, reverb 1.0 |
+| | `ambient_wind` | Bruit BP 600 Hz résonant, LFO cutoff, autopan lent |
+| | `ambient_shimmer` | Saw octave sup. unison, delay 1/2, reverb 1.0 |
+| | `ambient_deep` | Sine -2 oct. + FM 0.25, LP 300 Hz |
+| | `ambient_rain` | Bruit HP 2500 Hz, tremolo, bitcrush + lofi |
+| | `ambient_choir` | Triangle 4×10 cts + square, flanger + chorus |
 | **Drums** | `drums_808` | 808 sec, hats 8500 Hz |
 | | `drums_dark` | Kick grave 140→40 Hz, hats feutrés, delay 1/8d + reverb perc |
+| | `drums_linn` | LinnDrum : kick court, snare 210 Hz sèche, hats 9 kHz |
+| | `drums_lofi` | Hats 5.5 kHz, `lofi` 8 bits ×4 sur les percussions |
+| | `drums_industrial` | Kick drive 5.0, disto + bitcrush + delay 1/16 perc |
+| | `drums_tight` | Decays courts, reverb quasi nulle, punchy |
+| | `drums_hall` | Gated reverb longue (hold 0.5), delay 1/4 perc |
+| | `drums_acoustic` | Kick propre (drive 1.0, battant 0.8, 120→55 Hz), snare tonique, reverb légère |
+| | `drums_soft80` | Kick doux 80s (drive 1.1, battant 0.5), gated reverb moyenne |
+| | `drums_breaks` | Kick vintage court (drive 1.0, battant 0.9), lofi 10 bits sur les percussions |
 
 ---
 
@@ -269,15 +368,22 @@ Chaque hit est rendu une fois à l'init en buffer stéréo, puis mixé à la dem
 
 | Pièce | Synthèse | Paramètres patch |
 |---|---|---|
-| `kick` | Sine pitch-drop exponentiel `pitch_start→pitch_end` + sub sine + click noise 2 ms + `tanh(drive)` | `pitch_start/end/decay`, `click`, `sub/sub_decay`, `drive`, `gain` |
+| `kick` | Sine pitch-drop exponentiel `pitch_start→pitch_end` + sub sine + click noise 2 ms + battant feutré (`beater`, bruit LP 900 Hz 20 ms) + `tanh(drive)` (`drive: 1.0` = propre, acoustique ; 2+ = techno) | `pitch_start/end/decay`, `click`, `sub/sub_decay`, `drive`, `beater`, `gain` |
 | `snare` | Sine `tone` + bruit HP 1800 Hz, enveloppes séparées, `GatedReverb` | `tone/tone_decay/noise_decay`, `gate_hold`, `reverb_size/mix`, `gain` |
 | `clap` | Bruit BP 1500 Hz + 4 bursts 11 ms + tail, `GatedReverb` | `decay`, `gate_hold`, `reverb_mix`, `gain` |
 | `hat` closed/open | Bruit HP `cutoff`, decays exponentiels | `closed_decay/open_decay`, `cutoff`, `gain` |
 | `tom` low/mid | Sine pitch-bend `1+0.6*exp(-t/0.04)` | `pitch_low/mid`, `decay`, `gain` |
 | `crash` | Bruit BP 6000 Hz, decay 0.7 s | `crash_gain` |
+| `snap` | Claquement de doigts : 2 bursts BP `tone` à 6 ms + thump 320 Hz, gated reverb courte | `tone`, `decay`, `body`, `reverb_mix`, `gain` |
+| `ride` | Bruit HP + 4 partiels inharmoniques (3.15/4.72/6.39/7.81 kHz), decay long | `decay`, `cutoff`, `ping`, `gain` |
+| `shaker` | Bruit BP attaque 4 ms, decay court | `decay`, `cutoff`, `gain` |
+| `tick` | Charley fermé sec « tic tic » : bruit HP `cutoff`, decay 12 ms | `decay`, `cutoff`, `gain` |
+| `crash_roll` | Roulement de cymbale aux mailloches : bruit BP 5.5 kHz, coups ~14/s, crescendo `t^2.2` sur **une mesure** (resynthétisé à chaque BPM) puis queue de crash | `crash_roll_gain` |
 | `perc_effects` | Chaîne post-mix hors kick | `perc_effects: [delay, reverb, …]` |
 
-Notes MIDI : `kick 36`, `snare 38`, `clap 39`, `hat_closed 42`, `hat_open 46`, `tom_low 45`, `tom_mid 47`, `crash 49`.
+Notes MIDI : `kick 36`, `snare 38`, `clap 39`, `snap 40`, `hat_closed 42`, `hat_open 46`, `tom_low 45`, `tom_mid 47`, `tick 44`, `crash 49`, `ride 51`, `crash_roll 57`, `shaker 70`.
+
+Couleurs de percussion par mood (tirées par section) : `snap_prob` (claquements de doigts sur le backbeat, remplacent la snare hors chorus, s'y superposent en chorus), `ride_prob` (ride à la place des charleys sur les croches), `shaker_prob` (shaker en doubles). chill 0.8/0.4/0.6, dreamy 0.4/0.3/0.3, retro 0.35/0.5/0.2, noir 0.5/0.3/0, desert 0.2/0/0.5, outrun ride 0.3, drive ride 0.35. `tick_prob` (défaut 0.5, chill/retro 0.8) : charley fermé sec sur toutes les croches à la place des hats bruités. Charleys : croches accentuées + off-beats selon la densité, open hat sur 6/10/14, gains ×1.45 sur tous les kits. Cymbales : crash au début de verse/chorus/break, 60 % aux mesures 9 et 13 du chorus ; **roulement de cymbale** systématique sur la mesure de pre-drop (monte jusqu'au drop) et 40 % sur les fills de fin de section.
 
 ## Risers & transitions (`synthwave/engine/risers.py:32`)
 
@@ -288,10 +394,10 @@ One-shots resynthétisés à chaque changement de BPM (durées en bars) :
 | 60 | `reverse_cymbal` | Bruit LP sweep 800→9000 Hz, enveloppe `exp((t-1)*5)` | 1 bar |
 | 64 | `reverse_short` | Moitié du reverse, fade `0.3→1.0` | 0.5 bar |
 | 61 | `uplifter` | Saw montante 1 octave + bruit, LP sweep 300→12000 Hz, `t^1.5` | 2 bars |
-| 62 | `scream` | FM 300 Hz→1.36 kHz, `idx 1→8`, `tanh(3)` | 1 bar |
+| 62 | `scream` | Sirène additive band-limited : 6 harmoniques 1/k, 220→880 Hz + vibrato 6 Hz, LP 900→6000 Hz, `tanh(1.4)` | 1 bar |
 | 63 | `impact` | Sub 45→105 Hz + burst LP 6000→200 Hz, `tanh(2)` | 1.2 s |
 
-Annonces arrangeur (`synthwave/composer/arranger.py:219`) : `uplifter` à J-2 du chorus, `reverse` + `scream` 60% à J-1, `reverse_short` 50% en fin de section non-chorus, `impact` au downbeat du chorus.
+Annonces arrangeur (`synthwave/composer/arranger.py:219`) : `uplifter` à J-2 du chorus, `reverse` + `scream` 35% à J-1, `reverse_short` 50% en fin de section non-chorus, `impact` au downbeat du chorus.
 
 ## Mix, sidechain & master (`synthwave/audio/renderer.py:25`)
 
@@ -317,7 +423,7 @@ Annonces arrangeur (`synthwave/composer/arranger.py:219`) : `uplifter` à J-2 du
 | `locrian` | 0 1 3 5 6 8 10 | horror |
 | `phrygian_dominant` | 0 1 4 5 7 8 10 | desert |
 
-Tonalité `tonic` 0–11 tirée au hasard, `modulate()` saute de ±3/5/7 demi-tons à chaque transition (70% de chances). `set_mood` applique `SCALES[mood.scale]` (ou `MAJOR` si `rng < major_prob`).
+Tonalité `tonic` 0–11 tirée au hasard au démarrage. À chaque transition `change_key()` choisit le nouveau tonic parmi ceux qui partagent le plus de notes avec la gamme courante (+3 si le dernier accord est un pivot, +1 même tonique) puis `pivot_chord()` fournit l'accord tenu pendant la transition. `set_mood` applique `SCALES[mood.scale]` (ou `MAJOR` si `rng < major_prob`).
 
 ### Progressions — 37 progressions (`harmony.py:11`)
 
@@ -373,12 +479,12 @@ Markov : poids par mood, anti-répétition `×0.25` si même progression que pr�
 
 | Couche | Générateur | Variations |
 |---|---|---|
-| `drums` | `gen_drums` | `strong` (chorus 4/4 dense, kick extra, hats 1/8), `halftime` (kick syncopé, snare beat 3 seul), `fill` (4 hits 12–15, rolls toms), `density` (hats off-beat, open hat 14), `crash` downbeat verse/chorus |
+| `drums` | `gen_drums` + `add_roll` | Groove tiré **une fois par section** puis figé (`strong` chorus 4/4 dense, `halftime` kick syncopé / snare beat 3, `density` hats off-beat, open hat 14, `crash` downbeat verse/chorus). Ornements superposés sans toucher le kick : **roll sur le 3** (4e mesure de chaque phrase, 30 %+densité×50 % : 4 doubles snare/toms crescendo sur 8–11, ou pickup 6–7 en half-time), **fill** en fin de section = groove + roll 12–15 (voix `snare`, `toms_down`, `toms_up`, `alternate`) |
 | `bass` | `gen_bass` | 6 styles : `eighths` (croches), `octaves` (alterné), `sixteenths` (doubles + oct. aléat.), `walk` (root-5th-oct), `riff` (b2/triton chromatique), `syncopated` (0 3 6 8 11 14). + mutation 20% une mesure sur deux, octave pop fin de pattern 30% |
 | `arp` | `gen_arp` | 3 modes : `up`, `updown`, `random` ; 2 octaves ; 16 doubles par bar |
 | `pad` | `gen_pad` | Tenue `STEPS` sur notes de l'accord, voicing grave si root≥6, octave ajoutée si triade |
 | `ambient` | `gen_ambient` | Tenue root + 5th (octave 3) |
-| `lead` | `gen_lead` | Grille 0 2 4 6 8 10 12 14 (8 pos. paires, sans 3/11), `2+density*3` notes, marche ≤5 demi-tons, tonique d'accord favorisée sur temps fort, legato `length 2–8` ; tessiture `scale_notes(lo, lo+19)` avec `lo=55` (dark/noir) sinon `60` |
+| `lead` | `gen_theme` + `render_motif` | **Thème par morceau** : motif *question* (2–5 notes sur la grille des croches, note d'accord sur les temps forts, pas ≤ tierce) + *réponse* (même rythme, contour retouché, résout sur la tonique) + *contre-mélodie* (contour inversé, notes longues). Rendu par accord en **séquence diatonique** (offsets en degrés depuis la fondamentale) avec ornements (`vary`) : question/réponse alternées par mesure en verse/chorus, octave sup. en 2e moitié de chorus, contre-mélodie dans les breaks (80 %) et en 2e moitié de verse (30 %). Tessiture `lo=55` (dark/noir) sinon `60` |
 | `riser` | `_risers` | Voir ci-dessus |
 | `mutate` | `mutate` | Drop 30%, nudge ±1 step 30%, substitution note 40%, insertion libre 50% ; utilisé basse/drums/ambient |
 
@@ -386,14 +492,32 @@ Markov : poids par mood, anti-répétition `×0.25` si même progression que pr�
 
 | Section | Bars | Gains particuliers | FX auto possibles |
 |---|---|---|---|
-| `intro` | 8 | drums 0.6 lead 0.0 | `master lofi` 50% |
-| `verse` | 16 | arp 0.85 pad 0.9 lead 0.35 | `arp gate 1/32` 25% |
-| `chorus` | 16 | full + lead 1.0 | `pad gate 1/16-1/32` 35–55%, `arp bitcrush`, `lead` 6 pools (autopan / gate+autopan / disto+autopan / bitcrush / phaser 6 stages / flanger+disto) |
-| `break` | 8 | drums 0.0 lead 0.0 | `master lofi` 60% sinon `pad gate 1/8` |
-| `transition` | 4 | drums/bass/arp/lead 0.0 pad 0.5 ambient 1.0 | — (porte modulation) |
-| `outro` | 8 | fade linéaire 1→0 | — |
+| `intro` | 8 | build-up : arp 2, kick 4, basse 6 | `master lofi` 50% |
+| `verse` | 16 | arp 0.85 pad 0.9 lead 0.35 ; arp à 2, groove complet + lead à 4 ; pre-drop en dernière mesure si chorus suit | `arp gate 1/32` 25% |
+| `chorus` | 16 | full + lead 1.0 (lead à 2) ; drop au milieu 40 % | `pad gate 1/16-1/32` 35–55%, `arp bitcrush`, `lead` 6 pools (autopan / gate+autopan / disto+autopan / bitcrush / phaser 6 stages / flanger+disto) |
+| `break` | 8 | pad+ambient, arp à 2, basse à 4, kick à 6, pre-drop si chorus suit | `master lofi` 60% sinon `pad gate 1/8` |
+| `transition` | 4 | drums/bass/arp/lead 0.0 pad 0.5 ambient 1.0, accord pivot | — (porte tonalité/tempo/mood) |
+| `outro` | 8 | arp off à 2, kick seul à 4, basse+batterie off à 6 ; fade 1→0 en mode durée seulement | — |
 
-Enchaînement : `intro→verse→(chorus 2×/break pondéré)→…` ; transition tous les 6 sections ou 25% dès 3 sections, + sur `set_mood`; `outro` quand `bar ≥ total_bars-8` en mode durée. Basse/lead pool resélectionnés chaque section ; `arp_on` selon `arp_prob` (0.45 dark → 0.95 outrun) ; `lead` proba `0.2–0.55` (≥0.7 en chorus) ; batterie mutée un pattern sur ~4 par `mutate`.
+Enchaînement : `intro→verse→(chorus 2×/break pondéré)→…→outro→transition→intro` ; l'outro arrive quand le morceau atteint sa durée (`--track`, sections raccourcies à un multiple de 4 pour tenir), après 8 sections, ou sur `set_mood`. Mode durée : outro final avec fondu quand `bar ≥ total_bars-8`. Basse/lead pool resélectionnés chaque section ; `arp_on` selon `arp_prob` (0.45 dark → 0.95 outrun) ; `lead` proba `0.2–0.55` (≥0.7 en chorus) ; batterie figée par section, rolls en fin de phrase (voir `drums`).
+
+## Interface web
+
+`uv run synthwave ui` sert une page unique (Starlette + WebSocket, aucun build) sur
+http://127.0.0.1:8765 et ouvre le navigateur. Elle affiche en direct : section (avec DROP),
+morceau et progression (mesures de la section / du morceau), tonalité, accord, tempo, mood et
+mood en attente, oscilloscope du master, VU-mètre par couche et gain courant de l'arrangeur.
+Contrôles live : Start (mood/BPM/seed/durée de morceau), Stop, section suivante, tempo,
+changement de mood (via outro + transition), mute / solo / volume par couche, patch par couche
+(liste filtrée par famille), panneau **Tweak** (sliders générés depuis le patch : filtre,
+enveloppes, LFO, oscillateurs, kick/snare/hats…) et chaîne d'effets par couche ou master
+(chips : clic = retirer, `+ effet` = ajouter avec des valeurs par défaut, `↺ auto` = rendre la
+main à l'arrangeur).
+
+API JSON (`synthwave/web/server.py`) : `GET /api/meta`, `GET /api/status`,
+`GET /api/patch/{layer}`, `POST /api/start|stop|tempo|mood|layer|patch|patch_param|effects|next_section`,
+flux `WS /ws` (statut + niveaux + oscilloscope, 12 Hz). Le player est partagé avec le serveur MCP
+(`synthwave/session.py`).
 
 ## MCP
 
@@ -402,15 +526,16 @@ projet ; pour un autre dossier, ajouter `--directory <chemin>` aux arguments). O
 
 | Outil | Rôle |
 |---|---|
-| `start(mood, bpm, seed, duration_s)` | démarre la lecture |
+| `start(mood, bpm, seed, duration_s, bpm_range, track_s)` | démarre la lecture (`track_s` ≈ durée d'un morceau, 210 s) |
 | `stop()` | arrête |
-| `status()` | tempo, tonalité, accord, section, couches |
+| `status()` | tempo, tonalité, accord, section, morceau (`track`, `track_bar`/`track_bars`), `drop`, couches |
 | `set_tempo(bpm)` | 60–180 |
 | `set_mood(mood)` | dark / dreamy / outrun |
 | `set_layer(layer, mute, solo, volume)` | mixage par couche |
 | `list_patches()` / `load_patch(layer, name)` | patches |
 | `set_patch_param(layer, path, value)` | ex. `filter.cutoff` 800 |
 | `set_layer_effects(layer, effects)` | inserts manuels, `layer` ou `master`, `None` = auto |
+| `set_auto_tweaks(enabled)` | active / coupe les gestes du compositeur live |
 | `next_section()` | passe à la section suivante |
 | `export_wav(path, seconds, mood, bpm, seed)` | rendu hors-ligne |
 

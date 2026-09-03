@@ -1,0 +1,12 @@
+name: drums_hall
+kind: drums
+volume: 0.4
+kick: {pitch_start: 165, pitch_end: 46, pitch_decay: 0.05, decay: 0.45, click: 0.2, sub: 0.6, sub_decay: 0.45, drive: 1.3, beater: 0.3, gain: 1.4}
+snare: {tone: 180, tone_decay: 0.1, noise_decay: 0.3, gate_hold: 0.5, reverb_size: 0.98, reverb_mix: 0.65, gain: 0.55}
+hat: {closed_decay: 0.045, open_decay: 0.4, cutoff: 8000, gain: 0.43}
+clap: {decay: 0.3, gate_hold: 0.45, reverb_mix: 0.7, gain: 0.55}
+tom: {pitch_low: 100, pitch_mid: 150, decay: 0.4, gain: 0.85}
+crash_gain: 0.45
+perc_effects:
+  - {type: delay, time: "1/4", feedback: 0.3, mix: 0.2, pingpong: true}
+  - {type: reverb, size: 0.98, damping: 0.4, mix: 0.4, predelay: 0.02}

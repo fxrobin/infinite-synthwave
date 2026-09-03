@@ -1,0 +1,17 @@
+name: arp_dx7
+polyphony: 6
+volume: 1.6
+oscillators:
+  - {wave: fm, fm_ratio: 1.0, fm_index: 1.8, level: 0.6}
+  - {wave: fm, fm_ratio: 3.0, fm_index: 0.5, level: 0.2}
+  - {wave: sine, octave: -1, level: 0.3}
+amp_env: {attack: 0.002, decay: 0.35, sustain: 0.05, release: 0.25}
+filter:
+  type: lp
+  cutoff: 2200
+  resonance: 0.05
+  env: {attack: 0.002, decay: 0.2, sustain: 0.1, release: 0.1, amount: 900}
+effects:
+  - {type: chorus, rate: 0.9, depth: 0.003, mix: 0.4}
+  - {type: delay, time: "1/8d", feedback: 0.45, mix: 0.35, pingpong: true}
+  - {type: reverb, size: 0.88, damping: 0.5, mix: 0.3}

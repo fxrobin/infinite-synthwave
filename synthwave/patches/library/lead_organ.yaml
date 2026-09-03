@@ -1,0 +1,19 @@
+name: lead_organ
+polyphony: 1
+glide: 0.03
+volume: 1.1
+oscillators:
+  - {wave: sine, level: 0.6}
+  - {wave: sine, octave: 1, level: 0.4}
+  - {wave: sine, octave: 1, semi: 7, level: 0.25}
+  - {wave: triangle, octave: -1, level: 0.35}
+amp_env: {attack: 0.02, decay: 0.2, sustain: 0.9, release: 0.3}
+filter:
+  type: lp
+  cutoff: 3000
+  resonance: 0.05
+lfo: {wave: sine, rate: 6.0, target: amp, amount: 0.25}
+effects:
+  - {type: phaser, rate: 0.8, depth: 0.9, stages: 4, mix: 0.5, feedback: 0.4}
+  - {type: distortion, drive: 2.0, tone: 3500, mix: 0.4}
+  - {type: reverb, size: 0.85, damping: 0.5, mix: 0.3}

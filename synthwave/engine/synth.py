@@ -20,6 +20,35 @@ class Synth:
         self.voices = [Voice(patch, self.sr, self.rng) for _ in range(patch.polyphony)]
         self.effects = build_effects([e.model_dump() for e in patch.effects], self.sr, self.bpm)
 
+    def update_patch(self, patch: PatchModel) -> None:
+        """Apply parameter changes without resetting voices (no click, held notes survive).
+
+        Falls back to a full reset when the structure changed (oscillator count, waves,
+        unison, polyphony, filter type or effect chain layout)."""
+        old = self.patch
+        structural = (
+            patch.polyphony != old.polyphony
+            or len(patch.oscillators) != len(old.oscillators)
+            or any(a.wave != b.wave or a.unison != b.unison or a.octave != b.octave
+                   or a.semi != b.semi for a, b in zip(patch.oscillators, old.oscillators,
+                                                        strict=True))
+            or (patch.filter is None) != (old.filter is None)
+            or (patch.filter and old.filter and (patch.filter.type != old.filter.type
+                                                 or (patch.filter.env is None)
+                                                 != (old.filter.env is None)))
+            or (patch.lfo is None) != (old.lfo is None)
+            or [e.type for e in patch.effects] != [e.type for e in old.effects]
+        )
+        if structural:
+            self.set_patch(patch)
+            return
+        self.patch = patch
+        for v in self.voices:
+            v.retune(patch)
+        if [e.model_dump() for e in patch.effects] != [e.model_dump() for e in old.effects]:
+            self.effects = build_effects([e.model_dump() for e in patch.effects], self.sr,
+                                         self.bpm)
+
     def set_bpm(self, bpm: float) -> None:
         self.bpm = bpm
         self.effects = build_effects([e.model_dump() for e in self.patch.effects], self.sr, bpm)

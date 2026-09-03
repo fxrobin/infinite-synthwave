@@ -1,0 +1,18 @@
+name: lead_prophet
+polyphony: 1
+glide: 0.04
+volume: 0.5
+oscillators:
+  - {wave: saw, level: 0.6}
+  - {wave: square, pwm: 0.3, semi: 0, level: 0.5}
+  - {wave: saw, octave: -1, level: 0.3}
+amp_env: {attack: 0.02, decay: 0.3, sustain: 0.8, release: 0.35}
+filter:
+  type: lp
+  cutoff: 800
+  resonance: 0.35
+  env: {attack: 0.01, decay: 0.5, sustain: 0.4, release: 0.3, amount: 2400}
+lfo: {wave: sine, rate: 5.2, target: pitch, amount: 0.1}
+effects:
+  - {type: delay, time: "1/8d", feedback: 0.4, mix: 0.3, pingpong: true}
+  - {type: reverb, size: 0.85, damping: 0.5, mix: 0.25}

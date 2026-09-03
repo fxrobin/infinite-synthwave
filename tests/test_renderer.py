@@ -101,8 +101,9 @@ def test_mood_patches_swap_on_transition():
     for _ in range(9 * bars // 4096 + 2):
         r.render(4096)
     st = r.status()
-    assert st["mood"] == "dark" and st["layers"]["pad"]["patch"] == "pad_dark"
-    assert st["layers"]["drums"]["patch"] == "drums_dark"
+    from synthwave.composer.moods import DARK_POOLS
+    assert st["mood"] == "dark" and st["layers"]["pad"]["patch"] in DARK_POOLS["pad"]
+    assert st["layers"]["drums"]["patch"] in DARK_POOLS["drums"]
     assert st["layers"]["lead"]["patch"] == "lead_saw"   # manual choice kept
 
 
@@ -161,7 +162,7 @@ def test_random_mood_at_start_and_at_transitions():
     assert not r.status()["mood_locked"]
     seen = {r.mood.name}
     bars = int(16 * r.transport.samples_per_step)
-    for _ in range(6):
+    for _ in range(12):
         r.next_section()
         for _ in range(3 * bars // 4096 + 1):
             r.render(4096)
@@ -180,3 +181,22 @@ def test_every_mood_renders_finite_audio():
         r.arranger.force_next_section()
         out = render_seconds(r, 1.5)
         assert np.isfinite(out).all() and np.abs(out).max() > 0.02, name
+
+
+def test_auto_tweaks_apply_and_can_be_disabled():
+    r = Renderer(RenderConfig(seed=5, mood="outrun", bpm=120))
+    r.set_patch_param("pad", "filter.cutoff", 1000)
+    r.render(1024)
+    bar = int(16 * r.transport.samples_per_step)
+    seen = False
+    for _ in range(12 * bar // 4096):
+        r.render(4096)
+        st = r.status()
+        if "pad" in st["tweaks"] and "filter.cutoff" in st["tweaks"]["pad"]:
+            factor = st["tweaks"]["pad"]["filter.cutoff"]
+            assert abs(r.instruments["pad"].patch.filter.cutoff - 1000 * factor) < 1e-3
+            seen = True
+            break
+    assert seen and r.base_patch["pad"].filter.cutoff == 1000    # manual edit kept underneath
+    r.set_auto_tweaks(False)
+    assert r.instruments["pad"].patch.filter.cutoff == 1000 and not r.status()["auto_tweaks"]

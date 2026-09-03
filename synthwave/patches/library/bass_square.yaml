@@ -1,0 +1,14 @@
+name: bass_square
+polyphony: 1
+glide: 0.02
+volume: 0.55
+oscillators:
+  - {wave: square, pwm: 0.5, level: 0.7}
+  - {wave: square, pwm: 0.5, octave: -1, level: 0.5}
+  - {wave: sine, octave: -1, level: 0.4}
+amp_env: {attack: 0.005, decay: 0.3, sustain: 0.7, release: 0.2}
+filter:
+  type: lp
+  cutoff: 520
+  resonance: 0.12
+  env: {attack: 0.005, decay: 0.3, sustain: 0.5, release: 0.2, amount: 300}

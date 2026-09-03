@@ -1,0 +1,19 @@
+name: lead_minimoog
+polyphony: 1
+glide: 0.07
+volume: 1.0
+oscillators:
+  - {wave: saw, level: 0.55}
+  - {wave: saw, semi: 0, level: 0.45}
+  - {wave: square, pwm: 0.5, octave: -1, level: 0.4}
+amp_env: {attack: 0.02, decay: 0.4, sustain: 0.8, release: 0.4}
+filter:
+  type: lp
+  cutoff: 1000
+  resonance: 0.3
+  env: {attack: 0.02, decay: 0.6, sustain: 0.5, release: 0.4, amount: 2000}
+lfo: {wave: sine, rate: 5.8, target: pitch, amount: 0.15}
+effects:
+  - {type: distortion, drive: 1.8, tone: 4000, mix: 0.3}
+  - {type: delay, time: "1/4", feedback: 0.35, mix: 0.3, pingpong: true}
+  - {type: reverb, size: 0.85, damping: 0.5, mix: 0.25}

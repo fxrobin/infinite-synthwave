@@ -1,0 +1,19 @@
+name: lead_piano_atmos
+polyphony: 4
+glide: 0.0
+volume: 0.8
+oscillators:
+  - {wave: sine, level: 1.1}
+  - {wave: fm, fm_ratio: 2.0, fm_index: 0.2, level: 0.6}
+  - {wave: triangle, octave: 1, level: 0.12}
+amp_env: {attack: 0.03, decay: 1.8, sustain: 0.25, release: 1.6}
+filter:
+  type: lp
+  cutoff: 1600
+  resonance: 0.0
+  key_track: 0.5
+  env: {attack: 0.005, decay: 0.5, sustain: 0.25, release: 0.6, amount: 900}
+lfo: {wave: sine, rate: 0.25, target: pitch, amount: 0.015}
+effects:
+  - {type: delay, time: "1/4d", feedback: 0.3, mix: 0.25, pingpong: true}
+  - {type: reverb, size: 0.95, damping: 0.6, mix: 0.4, predelay: 0.03}

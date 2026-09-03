@@ -1,0 +1,17 @@
+name: arp_stab
+polyphony: 6
+volume: 0.6
+oscillators:
+  - {wave: saw, unison: 4, detune: 15, level: 0.55, spread: 0.9}
+  - {wave: square, pwm: 0.2, octave: -1, level: 0.3}
+amp_env: {attack: 0.003, decay: 0.2, sustain: 0.1, release: 0.15}
+filter:
+  type: lp
+  cutoff: 800
+  resonance: 0.3
+  env: {attack: 0.002, decay: 0.15, sustain: 0.1, release: 0.1, amount: 2000}
+effects:
+  - {type: distortion, drive: 3.0, tone: 3000, mix: 0.5}
+  - {type: flanger, rate: 0.3, depth: 0.002, base: 0.003, feedback: 0.5, mix: 0.4}
+  - {type: delay, time: "1/8", feedback: 0.4, mix: 0.3, pingpong: true}
+  - {type: reverb, size: 0.8, damping: 0.6, mix: 0.2}

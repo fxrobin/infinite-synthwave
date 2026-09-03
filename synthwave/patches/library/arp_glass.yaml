@@ -1,0 +1,15 @@
+name: arp_glass
+polyphony: 6
+volume: 1.4
+oscillators:
+  - {wave: triangle, unison: 2, detune: 7, level: 0.6}
+  - {wave: sine, octave: 1, level: 0.3}
+amp_env: {attack: 0.003, decay: 0.4, sustain: 0.1, release: 0.3}
+filter:
+  type: hp
+  cutoff: 500
+  resonance: 0.1
+effects:
+  - {type: chorus, rate: 0.8, depth: 0.003, mix: 0.4}
+  - {type: delay, time: "1/8d", feedback: 0.5, mix: 0.4, pingpong: true}
+  - {type: reverb, size: 0.9, damping: 0.4, mix: 0.35}

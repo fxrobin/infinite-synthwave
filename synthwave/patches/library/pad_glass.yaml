@@ -1,0 +1,17 @@
+name: pad_glass
+polyphony: 6
+volume: 0.55
+oscillators:
+  - {wave: fm, fm_ratio: 2.0, fm_index: 0.6, unison: 2, detune: 6, level: 0.5}
+  - {wave: triangle, octave: 1, level: 0.3}
+  - {wave: sine, level: 0.4}
+amp_env: {attack: 0.8, decay: 1.0, sustain: 0.8, release: 2.5}
+filter:
+  type: lp
+  cutoff: 2600
+  resonance: 0.05
+lfo: {wave: sine, rate: 0.3, target: amp, amount: 0.15}
+effects:
+  - {type: chorus, rate: 0.7, depth: 0.003, mix: 0.4}
+  - {type: delay, time: "1/4", feedback: 0.35, mix: 0.25, pingpong: true}
+  - {type: reverb, size: 0.95, damping: 0.4, mix: 0.45, predelay: 0.04}

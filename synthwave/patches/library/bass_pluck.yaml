@@ -1,0 +1,15 @@
+name: bass_pluck
+polyphony: 1
+glide: 0.01
+volume: 0.8
+oscillators:
+  - {wave: saw, level: 0.7}
+  - {wave: triangle, octave: -1, level: 0.6}
+amp_env: {attack: 0.003, decay: 0.25, sustain: 0.25, release: 0.15}
+filter:
+  type: lp
+  cutoff: 400
+  resonance: 0.15
+  env: {attack: 0.002, decay: 0.18, sustain: 0.2, release: 0.1, amount: 900}
+effects:
+  - {type: delay, time: "1/8", feedback: 0.25, mix: 0.15, pingpong: false}
