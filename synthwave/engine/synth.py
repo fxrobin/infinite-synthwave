@@ -9,6 +9,32 @@ from .events import NoteEvent
 from .voice import Voice
 
 
+def _has_structural_change(new: PatchModel, old: PatchModel) -> bool:
+    if new.polyphony != old.polyphony:
+        return True
+    if len(new.oscillators) != len(old.oscillators):
+        return True
+    if any(
+        a.wave != b.wave or a.unison != b.unison or a.octave != b.octave or a.semi != b.semi
+        for a, b in zip(new.oscillators, old.oscillators, strict=True)
+    ):
+        return True
+    if (new.filter is None) != (old.filter is None):
+        return True
+    if new.filter and old.filter:
+        if new.filter.type != old.filter.type:
+            return True
+        if (new.filter.env is None) != (old.filter.env is None):
+            return True
+    if (new.lfo is None) != (old.lfo is None):
+        return True
+    return [e.type for e in new.effects] != [e.type for e in old.effects]
+
+
+def _effects_differ(new: PatchModel, old: PatchModel) -> bool:
+    return [e.model_dump() for e in new.effects] != [e.model_dump() for e in old.effects]
+
+
 class Synth:
     def __init__(self, patch: PatchModel, sr: int, rng: np.random.Generator, bpm: float):
         self.sr, self.rng, self.bpm = sr, rng, bpm
@@ -26,28 +52,14 @@ class Synth:
         Falls back to a full reset when the structure changed (oscillator count, waves,
         unison, polyphony, filter type or effect chain layout)."""
         old = self.patch
-        structural = (
-            patch.polyphony != old.polyphony
-            or len(patch.oscillators) != len(old.oscillators)
-            or any(a.wave != b.wave or a.unison != b.unison or a.octave != b.octave
-                   or a.semi != b.semi for a, b in zip(patch.oscillators, old.oscillators,
-                                                        strict=True))
-            or (patch.filter is None) != (old.filter is None)
-            or (patch.filter and old.filter and (patch.filter.type != old.filter.type
-                                                 or (patch.filter.env is None)
-                                                 != (old.filter.env is None)))
-            or (patch.lfo is None) != (old.lfo is None)
-            or [e.type for e in patch.effects] != [e.type for e in old.effects]
-        )
-        if structural:
+        if _has_structural_change(patch, old):
             self.set_patch(patch)
             return
         self.patch = patch
         for v in self.voices:
             v.retune(patch)
-        if [e.model_dump() for e in patch.effects] != [e.model_dump() for e in old.effects]:
-            self.effects = build_effects([e.model_dump() for e in patch.effects], self.sr,
-                                         self.bpm)
+        if _effects_differ(patch, old):
+            self.effects = build_effects([e.model_dump() for e in patch.effects], self.sr, self.bpm)
 
     def set_bpm(self, bpm: float) -> None:
         self.bpm = bpm

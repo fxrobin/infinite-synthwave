@@ -31,8 +31,14 @@ class FakeArranger:
         pats = {layer: [] for layer in LAYERS}
         pats["bass"] = [Note(0, 45, 1.0, 2), Note(2, 45, 0.8, 1)]
         pats["pad"] = [Note(0, 57, 0.7, 16)]
-        return BarPlan(self.calls - 1, Section.VERSE, 0, Chord(9, 0, (0, 3, 7, 10)), pats,
-                       {layer: 1.0 for layer in LAYERS})
+        return BarPlan(
+            self.calls - 1,
+            Section.VERSE,
+            0,
+            Chord(9, 0, (0, 3, 7, 10)),
+            pats,
+            {layer: 1.0 for layer in LAYERS},
+        )
 
 
 def test_tracker_emits_ons_and_offs():

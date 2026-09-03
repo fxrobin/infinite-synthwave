@@ -1,4 +1,5 @@
 """Band-limited oscillators (polyBLEP) with unison, detune and stereo spread."""
+
 from __future__ import annotations
 
 import numpy as np
@@ -17,8 +18,15 @@ def _polyblep(t: np.ndarray, dt: float) -> np.ndarray:
     return out
 
 
-def render_wave(wave: str, phase: np.ndarray, dt: float, pwm: float = 0.5, rng=None,
-                fm_ratio: float = 2.0, fm_index: float = 0.0) -> np.ndarray:
+def render_wave(
+    wave: str,
+    phase: np.ndarray,
+    dt: float,
+    pwm: float = 0.5,
+    rng=None,
+    fm_ratio: float = 2.0,
+    fm_index: float = 0.0,
+) -> np.ndarray:
     """Render one waveform from phase in [0,1). dt = phase increment per sample."""
     if wave == "fm":  # 2-operator phase modulation
         mod = np.sin(2.0 * np.pi * phase * fm_ratio)
@@ -42,10 +50,21 @@ def render_wave(wave: str, phase: np.ndarray, dt: float, pwm: float = 0.5, rng=N
 
 
 class Oscillator:
-    def __init__(self, wave: str, sr: int, rng: np.random.Generator, unison: int = 1,
-                 detune: float = 0.0, octave: int = 0, semi: int = 0, level: float = 1.0,
-                 pwm: float = 0.5, spread: float = 1.0, fm_ratio: float = 2.0,
-                 fm_index: float = 0.0):
+    def __init__(
+        self,
+        wave: str,
+        sr: int,
+        rng: np.random.Generator,
+        unison: int = 1,
+        detune: float = 0.0,
+        octave: int = 0,
+        semi: int = 0,
+        level: float = 1.0,
+        pwm: float = 0.5,
+        spread: float = 1.0,
+        fm_ratio: float = 2.0,
+        fm_index: float = 0.0,
+    ):
         if wave not in WAVES:
             raise ValueError(f"unknown wave {wave!r}")
         self.wave, self.sr, self.rng = wave, sr, rng

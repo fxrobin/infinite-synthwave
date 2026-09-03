@@ -103,14 +103,17 @@ from synthwave.engine.oscillator import Oscillator, render_wave
 
 SR = 44100
 
+
 def dominant_freq(sig, sr):
     spec = np.abs(np.fft.rfft(sig * np.hanning(len(sig))))
     return np.fft.rfftfreq(len(sig), 1 / sr)[np.argmax(spec)]
+
 
 def test_saw_fundamental_frequency():
     osc = Oscillator("saw", SR, np.random.default_rng(0))
     sig = osc.render(440.0, SR)[:, 0]
     assert abs(dominant_freq(sig, SR) - 440.0) < 2.0
+
 
 def test_square_has_no_even_harmonics():
     osc = Oscillator("square", SR, np.random.default_rng(0))
@@ -121,6 +124,7 @@ def test_square_has_no_even_harmonics():
     h2 = spec[np.argmin(abs(freqs - 400))]
     assert h2 < h1 * 0.05
 
+
 def test_unison_is_stereo_and_bounded():
     osc = Oscillator("saw", SR, np.random.default_rng(0), unison=5, detune=15, spread=1.0)
     out = osc.render(110.0, 4096)
@@ -128,12 +132,14 @@ def test_unison_is_stereo_and_bounded():
     assert np.abs(out).max() <= 1.5
     assert not np.allclose(out[:, 0], out[:, 1])
 
+
 def test_phase_continuity_between_blocks():
     osc = Oscillator("sine", SR, np.random.default_rng(0))
     a = osc.render(1000.0, 512)[:, 0]
     b = osc.render(1000.0, 512)[:, 0]
     joined = np.concatenate([a, b])
     assert np.abs(np.diff(joined)).max() < 0.2
+
 
 def test_noise_uses_rng():
     phase = np.zeros(100)
@@ -149,6 +155,7 @@ def test_noise_uses_rng():
 ```python
 # synthwave/engine/oscillator.py
 """Band-limited oscillators (polyBLEP) with unison, detune and stereo spread."""
+
 from __future__ import annotations
 import numpy as np
 
@@ -187,9 +194,19 @@ def render_wave(wave: str, phase: np.ndarray, dt: float, pwm: float = 0.5, rng=N
 
 
 class Oscillator:
-    def __init__(self, wave: str, sr: int, rng: np.random.Generator, unison: int = 1,
-                 detune: float = 0.0, octave: int = 0, semi: int = 0, level: float = 1.0,
-                 pwm: float = 0.5, spread: float = 1.0):
+    def __init__(
+        self,
+        wave: str,
+        sr: int,
+        rng: np.random.Generator,
+        unison: int = 1,
+        detune: float = 0.0,
+        octave: int = 0,
+        semi: int = 0,
+        level: float = 1.0,
+        pwm: float = 0.5,
+        spread: float = 1.0,
+    ):
         if wave not in WAVES:
             raise ValueError(f"unknown wave {wave!r}")
         self.wave, self.sr, self.rng = wave, sr, rng
@@ -243,6 +260,7 @@ from synthwave.engine.lfo import LFO
 
 SR = 1000
 
+
 def test_attack_reaches_one_then_decays_to_sustain():
     env = ADSR(0.1, 0.2, 0.5, 0.1, SR)
     env.gate_on()
@@ -251,22 +269,27 @@ def test_attack_reaches_one_then_decays_to_sustain():
     d = env.render(400)
     assert np.isclose(d[-1], 0.5, atol=0.02)
 
+
 def test_release_goes_to_zero_and_finishes():
     env = ADSR(0.0, 0.0, 1.0, 0.1, SR)
-    env.gate_on(); env.render(10)
+    env.gate_on()
+    env.render(10)
     env.gate_off()
     r = env.render(200)
     assert r[0] < 1.0 and r[-1] < 0.01 and env.finished
 
+
 def test_idle_renders_zeros():
     env = ADSR(0.1, 0.1, 0.5, 0.1, SR)
     assert np.all(env.render(50) == 0) and env.finished
+
 
 def test_segment_spans_blocks():
     env = ADSR(0.05, 0.0, 1.0, 0.1, SR)
     env.gate_on()
     a = np.concatenate([env.render(20), env.render(20), env.render(20)])
     assert np.isclose(a[49], 1.0, atol=0.03) and a[10] < a[30]
+
 
 def test_lfo_range_and_rate():
     lfo = LFO("sine", 2.0, SR)
@@ -282,6 +305,7 @@ def test_lfo_range_and_rate():
 ```python
 # synthwave/engine/envelope.py
 """ADSR envelope rendered per block, segment by segment (no per-sample Python loop)."""
+
 from __future__ import annotations
 import numpy as np
 
@@ -329,7 +353,7 @@ class ADSR:
                 seg = self.s + (1.0 - self.s) * np.exp(-5.0 * ts / length)
             else:
                 seg = self.start * np.exp(-6.0 * ts / length)
-            out[filled:filled + k] = seg
+            out[filled : filled + k] = seg
             self.level = float(seg[-1])
             self.t += k
             filled += k
@@ -390,12 +414,15 @@ from synthwave.engine.filter import Filter
 
 SR = 44100
 
+
 def tone(f, n=SR):
     t = np.arange(n) / SR
     return np.stack([np.sin(2 * np.pi * f * t)] * 2, axis=1).astype(np.float32)
 
+
 def rms(x):
-    return float(np.sqrt(np.mean(x[SR // 2:, 0] ** 2)))
+    return float(np.sqrt(np.mean(x[SR // 2 :, 0] ** 2)))
+
 
 def test_lowpass_attenuates_above_cutoff():
     f = Filter("lp", SR)
@@ -404,6 +431,7 @@ def test_lowpass_attenuates_above_cutoff():
     high = rms(f.process(tone(8000), 1000, 0.0))
     assert high < low * 0.05
 
+
 def test_highpass_attenuates_below_cutoff():
     f = Filter("hp", SR)
     low = rms(f.process(tone(100), 2000, 0.0))
@@ -411,12 +439,14 @@ def test_highpass_attenuates_below_cutoff():
     high = rms(f.process(tone(8000), 2000, 0.0))
     assert low < high * 0.05
 
+
 def test_state_persists_across_blocks():
     f1, f2 = Filter("lp", SR), Filter("lp", SR)
     x = tone(300, 2048)
     whole = f1.process(x, 500, 0.5)
     parts = np.concatenate([f2.process(x[:1024], 500, 0.5), f2.process(x[1024:], 500, 0.5)])
     assert np.allclose(whole, parts, atol=1e-5)
+
 
 def test_extreme_cutoff_is_clamped_and_stable():
     f = Filter("lp", SR)
@@ -431,6 +461,7 @@ def test_extreme_cutoff_is_clamped_and_stable():
 ```python
 # synthwave/engine/filter.py
 """RBJ biquad filter, coefficients per block, state carried by scipy lfilter."""
+
 from __future__ import annotations
 import numpy as np
 from scipy.signal import lfilter
@@ -486,23 +517,37 @@ class Filter:
 ```python
 # tests/test_effects.py
 import numpy as np
-from synthwave.engine.effects import (Chorus, Delay, GatedReverb, Limiter, Reverb, Sidechain,
-                                      build_effects, note_to_seconds)
+from synthwave.engine.effects import (
+    Chorus,
+    Delay,
+    GatedReverb,
+    Limiter,
+    Reverb,
+    Sidechain,
+    build_effects,
+    note_to_seconds,
+)
 
 SR = 44100
 
+
 def impulse(n=SR, at=0, amp=1.0):
-    x = np.zeros((n, 2), np.float32); x[at] = amp; return x
+    x = np.zeros((n, 2), np.float32)
+    x[at] = amp
+    return x
+
 
 def test_note_to_seconds():
     assert np.isclose(note_to_seconds("1/8", 120), 0.25)
     assert np.isclose(note_to_seconds("1/8d", 120), 0.375)
     assert np.isclose(note_to_seconds(0.3, 120), 0.3)
 
+
 def test_delay_echo_position():
     d = Delay(SR, 120, time="1/8", feedback=0.0, mix=1.0, pingpong=False)
     y = d.process(impulse())
     assert np.argmax(y[:, 0]) == int(0.25 * SR)
+
 
 def test_delay_handles_blocks_longer_than_delay_time():
     d = Delay(SR, 120, time=0.005, feedback=0.5, mix=1.0, pingpong=False)
@@ -510,11 +555,14 @@ def test_delay_handles_blocks_longer_than_delay_time():
     peaks = np.flatnonzero(y[:, 0] > 0.1)
     assert peaks[0] == int(0.005 * SR) and len(peaks) >= 2
 
+
 def test_reverb_has_decaying_tail():
     r = Reverb(SR, 120, size=0.8, damping=0.5, mix=1.0, predelay=0.0)
     y = r.process(impulse(2 * SR))
-    e1 = np.sum(y[SR // 10:SR // 2] ** 2); e2 = np.sum(y[SR:SR + SR // 2] ** 2)
+    e1 = np.sum(y[SR // 10 : SR // 2] ** 2)
+    e2 = np.sum(y[SR : SR + SR // 2] ** 2)
     assert e1 > 1e-6 and e2 < e1 and np.isfinite(y).all()
+
 
 def test_reverb_block_and_whole_equivalent():
     x = np.random.default_rng(0).normal(size=(4096, 2)).astype(np.float32) * 0.1
@@ -523,11 +571,13 @@ def test_reverb_block_and_whole_equivalent():
     b = np.concatenate([r.process(x[:1000]), r.process(x[1000:])])
     assert np.allclose(a, b, atol=1e-5)
 
+
 def test_gated_reverb_cuts_after_hold():
     g = GatedReverb(SR, 120, size=0.9, hold=0.1, threshold=0.5, mix=1.0)
     y = g.process(impulse(SR))
-    assert np.abs(y[int(0.02 * SR):int(0.09 * SR)]).max() > 0
-    assert np.abs(y[int(0.15 * SR):]).max() == 0
+    assert np.abs(y[int(0.02 * SR) : int(0.09 * SR)]).max() > 0
+    assert np.abs(y[int(0.15 * SR) :]).max() == 0
+
 
 def test_chorus_shape_and_stereo():
     c = Chorus(SR, 120)
@@ -535,15 +585,18 @@ def test_chorus_shape_and_stereo():
     y = c.process(x)
     assert y.shape == x.shape and y.dtype == np.float32 and not np.allclose(y[:, 0], y[:, 1])
 
+
 def test_sidechain_dips_on_trigger():
     sc = Sidechain(SR, depth=0.6, release=0.1)
     g = sc.gain(1000, [500])
     assert np.isclose(g[0], 1.0, atol=1e-3) and g[500] < 0.45 and g[999] > g[500]
 
+
 def test_limiter_bounds_output():
     lim = Limiter(SR, 120, threshold=0.9)
     y = lim.process(impulse(2048, at=100, amp=3.0))
     assert np.abs(y).max() <= 1.0
+
 
 def test_build_effects_registry():
     fx = build_effects([{"type": "chorus"}, {"type": "delay", "time": "1/4"}], SR, 110)
@@ -557,6 +610,7 @@ def test_build_effects_registry():
 ```python
 # synthwave/engine/effects.py
 """Block-vectorised effects. Delay lines are processed in chunks no longer than their delay."""
+
 from __future__ import annotations
 import numpy as np
 from scipy.signal import lfilter
@@ -582,8 +636,9 @@ class Effect:
 
 
 class Chorus(Effect):
-    def __init__(self, sr: int, bpm: float, rate: float = 0.5, depth: float = 0.003,
-                 mix: float = 0.4):
+    def __init__(
+        self, sr: int, bpm: float, rate: float = 0.5, depth: float = 0.003, mix: float = 0.4
+    ):
         self.size = int(sr * 0.2)
         self.buf = np.zeros((self.size, 2))
         self.pos = 0
@@ -607,8 +662,15 @@ class Chorus(Effect):
 
 
 class Delay(Effect):
-    def __init__(self, sr: int, bpm: float, time: float | str = "1/8", feedback: float = 0.4,
-                 mix: float = 0.3, pingpong: bool = True):
+    def __init__(
+        self,
+        sr: int,
+        bpm: float,
+        time: float | str = "1/8",
+        feedback: float = 0.4,
+        mix: float = 0.3,
+        pingpong: bool = True,
+    ):
         self.d = max(1, int(note_to_seconds(time, bpm) * sr))
         self.size = self.d * 2 + 8192
         self.buf = np.zeros((self.size, 2))
@@ -621,7 +683,7 @@ class Delay(Effect):
         start = 0
         while start < n:
             k = min(self.d, n - start)
-            xs = x[start:start + k]
+            xs = x[start : start + k]
             ridx = (self.pos + np.arange(k) - self.d) % self.size
             y = self.buf[ridx]
             widx = (self.pos + np.arange(k)) % self.size
@@ -631,7 +693,7 @@ class Delay(Effect):
                 self.buf[widx, 1] = y[:, 0] * self.feedback
             else:
                 self.buf[widx] = xs + y * self.feedback
-            out[start:start + k] = xs * (1 - self.mix) + y * self.mix
+            out[start : start + k] = xs * (1 - self.mix) + y * self.mix
             self.pos = (self.pos + k) % self.size
             start += k
         return out.astype(np.float32)
@@ -650,8 +712,15 @@ class _Line:
 class Reverb(Effect):
     """Freeverb-style Schroeder reverb: 8 lowpass-feedback combs + 4 allpasses per channel."""
 
-    def __init__(self, sr: int, bpm: float, size: float = 0.8, damping: float = 0.5,
-                 mix: float = 0.3, predelay: float = 0.02):
+    def __init__(
+        self,
+        sr: int,
+        bpm: float,
+        size: float = 0.8,
+        damping: float = 0.5,
+        mix: float = 0.3,
+        predelay: float = 0.02,
+    ):
         scale = sr / 44100.0
         self.fb = 0.7 + 0.28 * float(np.clip(size, 0, 1))
         self.damp = float(np.clip(damping, 0, 0.95))
@@ -669,8 +738,8 @@ class Reverb(Effect):
             idx = (c.pos + np.arange(k)) % c.len
             y = c.buf[idx]
             lp, c.zi = lfilter([1 - self.damp], [1, -self.damp], y, zi=c.zi)
-            c.buf[idx] = x[start:start + k] + lp * self.fb
-            out[start:start + k] = y
+            c.buf[idx] = x[start : start + k] + lp * self.fb
+            out[start : start + k] = y
             c.pos = (c.pos + k) % c.len
             start += k
         return out
@@ -683,9 +752,9 @@ class Reverb(Effect):
             k = min(a.len, len(x) - start)
             idx = (a.pos + np.arange(k)) % a.len
             z = a.buf[idx]
-            xs = x[start:start + k]
+            xs = x[start : start + k]
             a.buf[idx] = xs + z * 0.5
-            out[start:start + k] = z - xs
+            out[start : start + k] = z - xs
             a.pos = (a.pos + k) % a.len
             start += k
         return out
@@ -701,8 +770,8 @@ class Reverb(Effect):
             k = min(self.pre, n - start)
             widx = (p.pos + np.arange(k)) % p.len
             ridx = (p.pos + np.arange(k) - self.pre) % p.len
-            out[start:start + k] = p.buf[ridx]
-            p.buf[widx] = x[start:start + k]
+            out[start : start + k] = p.buf[ridx]
+            p.buf[widx] = x[start : start + k]
             p.pos = (p.pos + k) % p.len
             start += k
         return out
@@ -719,8 +788,15 @@ class Reverb(Effect):
 
 
 class GatedReverb(Effect):
-    def __init__(self, sr: int, bpm: float, size: float = 0.85, hold: float = 0.25,
-                 threshold: float = 0.1, mix: float = 0.5):
+    def __init__(
+        self,
+        sr: int,
+        bpm: float,
+        size: float = 0.85,
+        hold: float = 0.25,
+        threshold: float = 0.1,
+        mix: float = 0.5,
+    ):
         self.rev = Reverb(sr, bpm, size=size, damping=0.3, mix=1.0, predelay=0.0)
         self.hold, self.thr, self.mix = int(hold * sr), threshold, mix
         self.open_left = 0
@@ -730,14 +806,14 @@ class GatedReverb(Effect):
         wet = self.rev.process(x)
         gate = np.zeros(n)
         if self.open_left > 0:
-            gate[:min(n, self.open_left)] = 1.0
+            gate[: min(n, self.open_left)] = 1.0
         hits = np.flatnonzero(np.abs(x).max(axis=1) > self.thr)
         end = -1
         for h in hits:
             if h < end:
                 continue
             end = h + self.hold
-            gate[h:min(n, end)] = 1.0
+            gate[h : min(n, end)] = 1.0
         self.open_left = max(self.open_left - n, end - n, 0)
         return (x * (1 - self.mix) + wet * gate[:, None] * self.mix).astype(np.float32)
 
@@ -750,7 +826,7 @@ class Limiter(Effect):
         n = len(x)
         peak = float(np.abs(x).max()) if n else 0.0
         target = min(1.0, self.thr / peak) if peak > 0 else 1.0
-        new = target if target < self.gain else target + (self.gain - target) * self.coef ** n
+        new = target if target < self.gain else target + (self.gain - target) * self.coef**n
         ramp = np.linspace(self.gain, new, n, endpoint=False)
         self.gain = new
         return np.clip(x * ramp[:, None], -1.0, 1.0).astype(np.float32)
@@ -760,7 +836,7 @@ class Sidechain:
     """Ducking envelope triggered at sample offsets; gain = 1 - depth * exp(-t/release)."""
 
     def __init__(self, sr: int, depth: float = 0.5, release: float = 0.25):
-        self.depth, self.rel, self.t = depth, max(1.0, release * sr), 10 ** 9
+        self.depth, self.rel, self.t = depth, max(1.0, release * sr), 10**9
 
     def gain(self, n: int, triggers: list[int]) -> np.ndarray:
         g = np.empty(n)
@@ -777,8 +853,13 @@ class Sidechain:
         return g
 
 
-_REGISTRY = {"chorus": Chorus, "delay": Delay, "reverb": Reverb,
-             "gated_reverb": GatedReverb, "limiter": Limiter}
+_REGISTRY = {
+    "chorus": Chorus,
+    "delay": Delay,
+    "reverb": Reverb,
+    "gated_reverb": GatedReverb,
+    "limiter": Limiter,
+}
 
 
 def build_effects(specs: list[dict], sr: int, bpm: float) -> list[Effect]:
@@ -807,25 +888,37 @@ def build_effects(specs: list[dict], sr: int, bpm: float) -> list[Effect]:
 ```python
 # tests/test_patches.py
 import pytest
-from synthwave.patches.loader import PatchError, list_patches, load_patch, patch_from_dict, set_param
+from synthwave.patches.loader import (
+    PatchError,
+    list_patches,
+    load_patch,
+    patch_from_dict,
+    set_param,
+)
 from synthwave.patches.model import DrumPatchModel, PatchModel
+
 
 def test_library_lists_and_loads_all():
     names = list_patches()
-    assert {"bass_moog", "pad_juno", "arp_pluck", "lead_saw", "ambient_drone", "drums_808"} <= set(names)
+    assert {"bass_moog", "pad_juno", "arp_pluck", "lead_saw", "ambient_drone", "drums_808"} <= set(
+        names
+    )
     for n in names:
         p = load_patch(n)
         assert isinstance(p, (PatchModel, DrumPatchModel))
 
+
 def test_drum_patch_discriminated():
     assert isinstance(load_patch("drums_808"), DrumPatchModel)
     assert isinstance(load_patch("pad_juno"), PatchModel)
+
 
 def test_invalid_patch_raises_patch_error():
     with pytest.raises(PatchError):
         patch_from_dict({"name": "bad", "oscillators": [{"wave": "laser"}]})
     with pytest.raises(PatchError):
         load_patch("does_not_exist")
+
 
 def test_set_param_returns_new_validated_patch():
     p = load_patch("pad_juno")
@@ -836,9 +929,12 @@ def test_set_param_returns_new_validated_patch():
     with pytest.raises(PatchError):
         set_param(p, "oscillators.0.wave", "laser")
 
+
 def test_load_from_path(tmp_path):
     f = tmp_path / "x.yaml"
-    f.write_text("name: x\noscillators:\n  - wave: sine\namp_env: {attack: 0.01, decay: 0.1, sustain: 0.5, release: 0.2}\n")
+    f.write_text(
+        "name: x\noscillators:\n  - wave: sine\namp_env: {attack: 0.01, decay: 0.1, sustain: 0.5, release: 0.2}\n"
+    )
     assert load_patch(str(f)).name == "x"
 ```
 
@@ -1165,11 +1261,17 @@ from synthwave.patches.loader import load_patch, patch_from_dict
 
 SR = 44100
 
+
 def simple_patch(**kw):
-    d = {"name": "t", "polyphony": 2, "oscillators": [{"wave": "sine"}],
-         "amp_env": {"attack": 0.001, "decay": 0.01, "sustain": 1.0, "release": 0.01}}
+    d = {
+        "name": "t",
+        "polyphony": 2,
+        "oscillators": [{"wave": "sine"}],
+        "amp_env": {"attack": 0.001, "decay": 0.01, "sustain": 1.0, "release": 0.01},
+    }
     d.update(kw)
     return patch_from_dict(d)
+
 
 def test_voice_pitch():
     v = Voice(simple_patch(), SR, np.random.default_rng(0))
@@ -1178,15 +1280,21 @@ def test_voice_pitch():
     spec = np.abs(np.fft.rfft(sig * np.hanning(SR)))
     assert abs(np.fft.rfftfreq(SR, 1 / SR)[np.argmax(spec)] - 440) < 2
 
+
 def test_voice_release_then_inactive():
     v = Voice(simple_patch(), SR, np.random.default_rng(0))
-    v.note_on(60, 1.0); v.render(100); v.note_off(); v.render(SR // 10)
+    v.note_on(60, 1.0)
+    v.render(100)
+    v.note_off()
+    v.render(SR // 10)
     assert not v.active
+
 
 def test_synth_events_timing():
     s = Synth(simple_patch(), SR, np.random.default_rng(0), 110)
     out = s.render(2000, [NoteEvent(1000, 60, 1.0, True)])
     assert np.abs(out[:1000]).max() == 0 and np.abs(out[1000:]).max() > 0.1
+
 
 def test_synth_voice_stealing_keeps_polyphony():
     s = Synth(simple_patch(polyphony=2), SR, np.random.default_rng(0), 110)
@@ -1194,10 +1302,12 @@ def test_synth_voice_stealing_keeps_polyphony():
     s.render(512, evs)
     assert sum(v.active for v in s.voices) == 2
 
+
 def test_synth_with_library_patch_is_finite_and_stereo():
     s = Synth(load_patch("pad_juno"), SR, np.random.default_rng(1), 110)
     out = s.render(4096, [NoteEvent(0, 57, 0.8, True), NoteEvent(0, 60, 0.8, True)])
     assert out.shape == (4096, 2) and np.isfinite(out).all() and np.abs(out).max() > 0.01
+
 
 def test_set_patch_replaces_voices():
     s = Synth(simple_patch(), SR, np.random.default_rng(0), 110)
@@ -1217,10 +1327,10 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True, order=True)
 class NoteEvent:
-    offset: int          # sample offset inside the block
-    note: int            # MIDI note
+    offset: int  # sample offset inside the block
+    note: int  # MIDI note
     velocity: float
-    on: bool             # False = note-off
+    on: bool  # False = note-off
 ```
 
 ```python
@@ -1241,8 +1351,12 @@ def midi_to_hz(note: float) -> float:
 class Voice:
     def __init__(self, patch: PatchModel, sr: int, rng: np.random.Generator):
         self.patch, self.sr = patch, sr
-        self.oscs = [Oscillator(o.wave, sr, rng, o.unison, o.detune, o.octave, o.semi, o.level,
-                                o.pwm, o.spread) for o in patch.oscillators]
+        self.oscs = [
+            Oscillator(
+                o.wave, sr, rng, o.unison, o.detune, o.octave, o.semi, o.level, o.pwm, o.spread
+            )
+            for o in patch.oscillators
+        ]
         e = patch.amp_env
         self.amp_env = ADSR(e.attack, e.decay, e.sustain, e.release, sr)
         self.filter = Filter(patch.filter.type, sr) if patch.filter else None
@@ -1277,7 +1391,7 @@ class Voice:
         lfo = self.lfo.render(n) if self.lfo else None
         lfo_mean = float(lfo.mean()) if lfo is not None else 0.0
         if self.glide_coef:
-            self.freq = self.target_freq + (self.freq - self.target_freq) * self.glide_coef ** n
+            self.freq = self.target_freq + (self.freq - self.target_freq) * self.glide_coef**n
         freq = self.freq
         pwm = None
         if p.lfo and p.lfo.target == "pitch":
@@ -1396,8 +1510,10 @@ from synthwave.patches.loader import load_patch
 
 SR = 44100
 
+
 def kit():
     return DrumKit(load_patch("drums_808"), SR, np.random.default_rng(0))
+
 
 def test_all_samples_exist_finite_and_normalised():
     k = kit()
@@ -1406,17 +1522,20 @@ def test_all_samples_exist_finite_and_normalised():
         assert s.ndim == 2 and s.shape[1] == 2 and np.isfinite(s).all()
         assert 0.5 < np.abs(s).max() <= 1.0
 
+
 def test_kick_is_low_frequency():
     s = kit().samples["kick"][:, 0]
     spec = np.abs(np.fft.rfft(s))
     f = np.fft.rfftfreq(len(s), 1 / SR)[np.argmax(spec)]
     assert 30 < f < 120
 
+
 def test_render_places_hit_at_offset_and_spans_blocks():
     k = kit()
     a = k.render(1024, [NoteEvent(1000, 36, 1.0, True)])
     b = k.render(1024, [])
     assert np.abs(a[:1000]).max() == 0 and np.abs(a[1000:]).max() > 0 and np.abs(b).max() > 0
+
 
 def test_note_off_is_ignored():
     k = kit()
@@ -1431,6 +1550,7 @@ def test_note_off_is_ignored():
 ```python
 # synthwave/engine/drums.py
 """Drum kit: every hit is synthesised once at init into a stereo buffer, then mixed on demand."""
+
 from __future__ import annotations
 import numpy as np
 from scipy.signal import lfilter
@@ -1439,8 +1559,16 @@ from .effects import GatedReverb
 from .events import NoteEvent
 from .filter import biquad_coeffs
 
-DRUM_NOTES = {"kick": 36, "snare": 38, "clap": 39, "hat_closed": 42, "tom_low": 45,
-              "hat_open": 46, "tom_mid": 47, "crash": 49}
+DRUM_NOTES = {
+    "kick": 36,
+    "snare": 38,
+    "clap": 39,
+    "hat_closed": 42,
+    "tom_low": 45,
+    "hat_open": 46,
+    "tom_mid": 47,
+    "crash": 49,
+}
 NOTE_TO_DRUM = {v: k for k, v in DRUM_NOTES.items()}
 
 
@@ -1481,8 +1609,9 @@ class DrumKit:
         tone = np.sin(2 * np.pi * s.tone * t) * np.exp(-t / s.tone_decay)
         noise = _filt("hp", rng.uniform(-1, 1, len(t)), 1800, 0.2, sr) * np.exp(-t / s.noise_decay)
         snare = 0.6 * tone + noise
-        snare = GatedReverb(sr, 120, size=s.reverb_size, hold=s.gate_hold, threshold=0.2,
-                            mix=s.reverb_mix).process(_stereo(snare))[:, 0]
+        snare = GatedReverb(
+            sr, 120, size=s.reverb_size, hold=s.gate_hold, threshold=0.2, mix=s.reverb_mix
+        ).process(_stereo(snare))[:, 0]
         # clap
         t = _t(sr, 1.0)
         noise = _filt("bp", rng.uniform(-1, 1, len(t)), 1500, 0.3, sr)
@@ -1491,8 +1620,9 @@ class DrumKit:
             start = int(i * 0.011 * sr)
             env[start:] = np.maximum(env[start:], np.exp(-(t[: len(t) - start]) / 0.012))
         env = np.maximum(env, 0.7 * np.exp(-t / c.decay) * (t > 0.03))
-        clap = GatedReverb(sr, 120, size=0.85, hold=c.gate_hold, threshold=0.2,
-                           mix=c.reverb_mix).process(_stereo(noise * env))[:, 0]
+        clap = GatedReverb(
+            sr, 120, size=0.85, hold=c.gate_hold, threshold=0.2, mix=c.reverb_mix
+        ).process(_stereo(noise * env))[:, 0]
         # hats
         t = _t(sr, h.open_decay * 3)
         base = _filt("hp", rng.uniform(-1, 1, len(t)), h.cutoff, 0.3, sr)
@@ -1508,9 +1638,13 @@ class DrumKit:
         t = _t(sr, 2.0)
         crash = _filt("bp", rng.uniform(-1, 1, len(t)), 6000, 0.1, sr) * np.exp(-t / 0.7)
         self.samples = {
-            "kick": _stereo(kick), "snare": _stereo(snare), "clap": _stereo(clap),
-            "hat_closed": _stereo(hat_c), "hat_open": _stereo(hat_o),
-            "tom_low": _stereo(toms["tom_low"]), "tom_mid": _stereo(toms["tom_mid"]),
+            "kick": _stereo(kick),
+            "snare": _stereo(snare),
+            "clap": _stereo(clap),
+            "hat_closed": _stereo(hat_c),
+            "hat_open": _stereo(hat_o),
+            "tom_low": _stereo(toms["tom_low"]),
+            "tom_mid": _stereo(toms["tom_mid"]),
             "crash": _stereo(crash),
         }
         self.samples["hat_closed"] *= 0.6
@@ -1527,11 +1661,11 @@ class DrumKit:
                 self.active.append((self.samples[name], -int(ev.offset), float(ev.velocity)))
         still = []
         for sample, pos, gain in self.active:
-            start = max(0, -pos)          # first output index for this hit inside the block
-            src = max(0, pos)             # first sample index
+            start = max(0, -pos)  # first output index for this hit inside the block
+            src = max(0, pos)  # first sample index
             k = min(n - start, len(sample) - src)
             if k > 0:
-                out[start:start + k] += sample[src:src + k] * gain
+                out[start : start + k] += sample[src : src + k] * gain
             pos += n
             if pos < len(sample):
                 still.append((sample, pos, gain))
@@ -1559,11 +1693,13 @@ import numpy as np
 from synthwave.composer.harmony import Chord, Harmony, PROGRESSIONS
 from synthwave.composer.moods import MOODS
 
+
 def test_chord_names_and_notes():
     assert Chord(9, 0, (0, 3, 7, 10)).name == "Am7"
     assert Chord(5, 5, (0, 4, 7, 11)).name == "Fmaj7"
     n = Chord(9, 0, (0, 3, 7, 10)).notes(4)
     assert n == [57, 60, 64, 67] and Chord(9, 0, (0, 3, 7, 10)).bass_note() == 33
+
 
 def test_minor_key_degrees():
     h = Harmony(np.random.default_rng(0), MOODS["dark"])
@@ -1573,6 +1709,7 @@ def test_minor_key_degrees():
     assert h.chord_for_degree(2).name == "Cmaj7"
     assert h.chord_for_degree(6).name == "G7"
 
+
 def test_progression_is_four_chords_in_key():
     h = Harmony(np.random.default_rng(3), MOODS["outrun"])
     prog = h.next_progression()
@@ -1581,13 +1718,17 @@ def test_progression_is_four_chords_in_key():
     for c in prog:
         assert c.root_pc in scale and all((c.root_pc + i) % 12 in scale for i in c.intervals)
 
+
 def test_progressions_avoid_immediate_repeat_mostly_and_are_seeded():
     a = Harmony(np.random.default_rng(7), MOODS["dreamy"])
     b = Harmony(np.random.default_rng(7), MOODS["dreamy"])
     seq_a = [tuple(c.degree for c in a.next_progression()) for _ in range(20)]
     seq_b = [tuple(c.degree for c in b.next_progression()) for _ in range(20)]
     assert seq_a == seq_b
-    assert len(set(seq_a)) > 2 and all(p in [tuple(v) for v in PROGRESSIONS.values()] for p in seq_a)
+    assert len(set(seq_a)) > 2 and all(
+        p in [tuple(v) for v in PROGRESSIONS.values()] for p in seq_a
+    )
+
 
 def test_modulate_changes_tonic_and_scale_notes_in_range():
     h = Harmony(np.random.default_rng(0), MOODS["dark"])
@@ -1612,30 +1753,76 @@ from dataclasses import dataclass, field
 class Mood:
     name: str
     bpm: float
-    drum_density: float     # 0..1 hats/kick extras
-    arp_prob: float         # probability the arp layer plays in verse
-    lead_prob: float        # probability of a lead phrase per chorus bar
-    brightness: float       # multiplier applied to filter cutoffs
-    major_prob: float       # probability of a major key
+    drum_density: float  # 0..1 hats/kick extras
+    arp_prob: float  # probability the arp layer plays in verse
+    lead_prob: float  # probability of a lead phrase per chorus bar
+    brightness: float  # multiplier applied to filter cutoffs
+    major_prob: float  # probability of a major key
     progressions: dict[str, float] = field(default_factory=dict)
 
 
 MOODS: dict[str, Mood] = {
-    "dark": Mood("dark", 100, 0.5, 0.55, 0.25, 0.7, 0.0,
-                 {"i-VI-III-VII": 2, "i-VII-VI-VII": 3, "i-iv-VI-V": 2, "i-VI-VII-i": 2,
-                  "VI-VII-i-i": 1, "i-III-VII-VI": 1, "iv-VI-i-VII": 2}),
-    "dreamy": Mood("dreamy", 108, 0.5, 0.75, 0.4, 1.0, 0.35,
-                   {"i-VI-III-VII": 3, "i-VII-VI-VII": 2, "i-iv-VI-V": 1, "i-VI-VII-i": 2,
-                    "VI-VII-i-i": 2, "i-III-VII-VI": 2, "iv-VI-i-VII": 1}),
-    "outrun": Mood("outrun", 118, 0.85, 0.95, 0.55, 1.2, 0.1,
-                   {"i-VI-III-VII": 3, "i-VII-VI-VII": 3, "i-iv-VI-V": 2, "i-VI-VII-i": 2,
-                    "VI-VII-i-i": 2, "i-III-VII-VI": 1, "iv-VI-i-VII": 1}),
+    "dark": Mood(
+        "dark",
+        100,
+        0.5,
+        0.55,
+        0.25,
+        0.7,
+        0.0,
+        {
+            "i-VI-III-VII": 2,
+            "i-VII-VI-VII": 3,
+            "i-iv-VI-V": 2,
+            "i-VI-VII-i": 2,
+            "VI-VII-i-i": 1,
+            "i-III-VII-VI": 1,
+            "iv-VI-i-VII": 2,
+        },
+    ),
+    "dreamy": Mood(
+        "dreamy",
+        108,
+        0.5,
+        0.75,
+        0.4,
+        1.0,
+        0.35,
+        {
+            "i-VI-III-VII": 3,
+            "i-VII-VI-VII": 2,
+            "i-iv-VI-V": 1,
+            "i-VI-VII-i": 2,
+            "VI-VII-i-i": 2,
+            "i-III-VII-VI": 2,
+            "iv-VI-i-VII": 1,
+        },
+    ),
+    "outrun": Mood(
+        "outrun",
+        118,
+        0.85,
+        0.95,
+        0.55,
+        1.2,
+        0.1,
+        {
+            "i-VI-III-VII": 3,
+            "i-VII-VI-VII": 3,
+            "i-iv-VI-V": 2,
+            "i-VI-VII-i": 2,
+            "VI-VII-i-i": 2,
+            "i-III-VII-VI": 1,
+            "iv-VI-i-VII": 1,
+        },
+    ),
 }
 ```
 
 ```python
 # synthwave/composer/harmony.py
 """Key, chords with sevenths, and a Markov chain over synthwave progressions."""
+
 from __future__ import annotations
 from dataclasses import dataclass
 import numpy as np
@@ -1643,12 +1830,21 @@ from .moods import Mood
 
 NOTE_NAMES = ("C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B")
 PROGRESSIONS: dict[str, tuple[int, ...]] = {
-    "i-VI-III-VII": (0, 5, 2, 6), "i-VII-VI-VII": (0, 6, 5, 6), "i-iv-VI-V": (0, 3, 5, 4),
-    "i-VI-VII-i": (0, 5, 6, 0), "VI-VII-i-i": (5, 6, 0, 0), "i-III-VII-VI": (0, 2, 6, 5),
+    "i-VI-III-VII": (0, 5, 2, 6),
+    "i-VII-VI-VII": (0, 6, 5, 6),
+    "i-iv-VI-V": (0, 3, 5, 4),
+    "i-VI-VII-i": (0, 5, 6, 0),
+    "VI-VII-i-i": (5, 6, 0, 0),
+    "i-III-VII-VI": (0, 2, 6, 5),
     "iv-VI-i-VII": (3, 5, 0, 6),
 }
-_QUALITY = {(0, 3, 7, 10): "m7", (0, 4, 7, 11): "maj7", (0, 4, 7, 10): "7",
-            (0, 3, 6, 10): "m7b5", (0, 4, 8, 11): "maj7#5"}
+_QUALITY = {
+    (0, 3, 7, 10): "m7",
+    (0, 4, 7, 11): "maj7",
+    (0, 4, 7, 10): "7",
+    (0, 3, 6, 10): "m7b5",
+    (0, 4, 8, 11): "maj7#5",
+}
 
 
 @dataclass(frozen=True)
@@ -1694,8 +1890,10 @@ class Harmony:
 
     def next_progression(self) -> list[Chord]:
         names = [n for n in PROGRESSIONS if self.mood.progressions.get(n, 0) > 0]
-        w = np.array([self.mood.progressions[n] * (0.25 if n == self.current else 1.0)
-                      for n in names], dtype=float)
+        w = np.array(
+            [self.mood.progressions[n] * (0.25 if n == self.current else 1.0) for n in names],
+            dtype=float,
+        )
         self.current = names[int(self.rng.choice(len(names), p=w / w.sum()))]
         return [self.chord_for_degree(d) for d in PROGRESSIONS[self.current]]
 
@@ -1726,13 +1924,23 @@ class Harmony:
 # tests/test_patterns.py
 import numpy as np
 from synthwave.composer.harmony import Chord
-from synthwave.composer.patterns import (STEPS, gen_ambient, gen_arp, gen_bass, gen_drums, gen_lead,
-                                         gen_pad, mutate)
+from synthwave.composer.patterns import (
+    STEPS,
+    gen_ambient,
+    gen_arp,
+    gen_bass,
+    gen_drums,
+    gen_lead,
+    gen_pad,
+    mutate,
+)
 
 AM7 = Chord(9, 0, (0, 3, 7, 10))
 
+
 def in_range(p):
     return all(0 <= n.step < STEPS and 0 < n.length <= STEPS and 0 < n.vel <= 1 for n in p)
+
 
 def test_drums_basic_grid():
     p = gen_drums(np.random.default_rng(0), 0.5)
@@ -1740,20 +1948,26 @@ def test_drums_basic_grid():
     snares = {n.step for n in p if n.note in (38, 39)}
     assert {0, 4, 8, 12} <= kicks and snares == {4, 12} and in_range(p)
 
+
 def test_drums_fill_adds_hits_at_end():
     p = gen_drums(np.random.default_rng(0), 0.5, fill=True)
     assert any(n.step >= 12 and n.note in (38, 45, 47) for n in p)
-    assert any(n.note == 49 and n.step == 0 for n in gen_drums(np.random.default_rng(0), 0.5, crash=True))
+    assert any(
+        n.note == 49 and n.step == 0 for n in gen_drums(np.random.default_rng(0), 0.5, crash=True)
+    )
+
 
 def test_bass_styles_use_chord_root():
     for style in ("eighths", "octaves", "syncopated"):
         p = gen_bass(np.random.default_rng(1), AM7, style)
         assert p and in_range(p) and all(n.note % 12 == 9 or n.note % 12 == 4 for n in p)
 
+
 def test_arp_uses_chord_tones_every_step():
     p = gen_arp(np.random.default_rng(2), AM7, "updown")
     assert len(p) == STEPS and all(n.note % 12 in {9, 0, 4, 7} for n in p)
     assert [n.note for n in gen_arp(np.random.default_rng(0), AM7, "up")][:4] == [57, 60, 64, 67]
+
 
 def test_pad_and_ambient_hold_whole_bar():
     pad = gen_pad(AM7)
@@ -1761,11 +1975,13 @@ def test_pad_and_ambient_hold_whole_bar():
     amb = gen_ambient(AM7)
     assert len(amb) == 2 and all(n.note < 60 for n in amb)
 
+
 def test_lead_notes_in_scale_and_sorted():
     scale = [n for n in range(72, 85) if n % 12 in {9, 11, 0, 2, 4, 5, 7}]
     p = gen_lead(np.random.default_rng(4), AM7, scale, 0.8)
     assert p and in_range(p) and all(n.note in scale for n in p)
     assert [n.step for n in p] == sorted(n.step for n in p)
+
 
 def test_mutate_is_bounded_and_keeps_allowed_notes():
     base = gen_arp(np.random.default_rng(0), AM7, "up")
@@ -1783,6 +1999,7 @@ def test_mutate_is_bounded_and_keeps_allowed_notes():
 ```python
 # synthwave/composer/patterns.py
 """Per-layer 16-step pattern generators and a bounded mutation operator."""
+
 from __future__ import annotations
 from dataclasses import dataclass
 import numpy as np
@@ -1807,8 +2024,13 @@ def _sorted(p: Pattern) -> Pattern:
     return sorted(p, key=lambda n: (n.step, n.note))
 
 
-def gen_drums(rng: np.random.Generator, density: float, fill: bool = False,
-              snare: bool = True, crash: bool = False) -> Pattern:
+def gen_drums(
+    rng: np.random.Generator,
+    density: float,
+    fill: bool = False,
+    snare: bool = True,
+    crash: bool = False,
+) -> Pattern:
     p: Pattern = [Note(s, KICK, 1.0) for s in (0, 4, 8, 12)]
     if rng.random() < density * 0.5:
         p.append(Note(int(rng.choice([10, 14, 7])), KICK, 0.8))
@@ -1875,8 +2097,9 @@ def gen_ambient(chord: Chord) -> Pattern:
     return [Note(0, root, 0.6, STEPS), Note(0, root + 7, 0.4, STEPS)]
 
 
-def gen_lead(rng: np.random.Generator, chord: Chord, scale_notes: list[int],
-             density: float) -> Pattern:
+def gen_lead(
+    rng: np.random.Generator, chord: Chord, scale_notes: list[int], density: float
+) -> Pattern:
     if not scale_notes:
         return []
     chord_pcs = {(chord.root_pc + i) % 12 for i in chord.intervals}
@@ -1895,8 +2118,9 @@ def gen_lead(rng: np.random.Generator, chord: Chord, scale_notes: list[int],
     return p
 
 
-def mutate(rng: np.random.Generator, pattern: Pattern, rate: float,
-           allowed_notes: list[int]) -> Pattern:
+def mutate(
+    rng: np.random.Generator, pattern: Pattern, rate: float, allowed_notes: list[int]
+) -> Pattern:
     out: Pattern = []
     taken = {n.step for n in pattern}
     for n in pattern:
@@ -1942,10 +2166,12 @@ from synthwave.composer.arranger import LAYERS, Arranger, Section
 from synthwave.composer.harmony import Harmony
 from synthwave.composer.moods import MOODS
 
+
 def make(seed=0, total_bars=None, mood="outrun"):
     rng = np.random.default_rng(seed)
     m = MOODS[mood]
     return Arranger(rng, Harmony(rng, m), m, total_bars)
+
 
 def test_starts_with_intro_then_verse():
     a = make()
@@ -1953,10 +2179,12 @@ def test_starts_with_intro_then_verse():
     assert plans[0].section == Section.INTRO and plans[7].section == Section.INTRO
     assert plans[8].section == Section.VERSE and plans[8].section_bar == 0
 
+
 def test_plan_has_all_layers_and_gains():
     p = make().next_bar()
     assert set(p.patterns) == set(LAYERS) and set(p.gains) == set(LAYERS)
     assert p.gains["pad"] > 0 and p.gains["lead"] == 0
+
 
 def test_fill_on_last_bar_and_no_identical_consecutive_drums():
     a = make(seed=2)
@@ -1964,19 +2192,29 @@ def test_fill_on_last_bar_and_no_identical_consecutive_drums():
     assert plans[7].fill and not plans[6].fill
     for x, y in zip(plans, plans[1:]):
         if x.section == y.section and x.gains["drums"] > 0 and y.gains["drums"] > 0:
-            assert x.patterns["drums"] != y.patterns["drums"] or x.patterns["bass"] != y.patterns["bass"] or x.chord != y.chord
+            assert (
+                x.patterns["drums"] != y.patterns["drums"]
+                or x.patterns["bass"] != y.patterns["bass"]
+                or x.chord != y.chord
+            )
+
 
 def test_duration_mode_ends_with_outro_and_finished():
     a = make(seed=1, total_bars=20)
     plans = [a.next_bar() for _ in range(22)]
     assert plans[12].section == Section.OUTRO and plans[19].section == Section.OUTRO
     assert plans[19].fade < plans[12].fade
-    assert plans[20].finished and plans[21].finished and all(g == 0 for g in plans[20].gains.values())
+    assert (
+        plans[20].finished and plans[21].finished and all(g == 0 for g in plans[20].gains.values())
+    )
+
 
 def test_force_next_section():
     a = make()
-    a.next_bar(); a.force_next_section()
+    a.next_bar()
+    a.force_next_section()
     assert a.next_bar().section == Section.VERSE
+
 
 def test_deterministic_by_seed():
     a, b = make(seed=9), make(seed=9)
@@ -1992,14 +2230,14 @@ def test_deterministic_by_seed():
 ```python
 # synthwave/composer/arranger.py
 """Section state machine turning harmony + generators into one BarPlan per bar."""
+
 from __future__ import annotations
 from dataclasses import dataclass, field
 from enum import Enum
 import numpy as np
 from .harmony import Chord, Harmony
 from .moods import Mood
-from .patterns import (Pattern, gen_ambient, gen_arp, gen_bass, gen_drums, gen_lead, gen_pad,
-                       mutate)
+from .patterns import Pattern, gen_ambient, gen_arp, gen_bass, gen_drums, gen_lead, gen_pad, mutate
 
 LAYERS = ("drums", "bass", "arp", "pad", "lead", "ambient")
 
@@ -2012,11 +2250,19 @@ class Section(str, Enum):
     OUTRO = "outro"
 
 
-SECTION_BARS = {Section.INTRO: 8, Section.VERSE: 16, Section.CHORUS: 16, Section.BREAK: 8,
-                Section.OUTRO: 8}
-_NEXT = {Section.INTRO: [Section.VERSE], Section.VERSE: [Section.CHORUS, Section.CHORUS, Section.BREAK],
-         Section.CHORUS: [Section.VERSE, Section.BREAK, Section.CHORUS],
-         Section.BREAK: [Section.CHORUS, Section.CHORUS, Section.VERSE]}
+SECTION_BARS = {
+    Section.INTRO: 8,
+    Section.VERSE: 16,
+    Section.CHORUS: 16,
+    Section.BREAK: 8,
+    Section.OUTRO: 8,
+}
+_NEXT = {
+    Section.INTRO: [Section.VERSE],
+    Section.VERSE: [Section.CHORUS, Section.CHORUS, Section.BREAK],
+    Section.CHORUS: [Section.VERSE, Section.BREAK, Section.CHORUS],
+    Section.BREAK: [Section.CHORUS, Section.CHORUS, Section.VERSE],
+}
 _GAINS = {
     Section.INTRO: dict(drums=0.6, bass=0.8, arp=0.6, pad=1.0, lead=0.0, ambient=1.0),
     Section.VERSE: dict(drums=1.0, bass=1.0, arp=0.85, pad=0.9, lead=0.35, ambient=0.7),
@@ -2041,8 +2287,9 @@ class BarPlan:
 
 
 class Arranger:
-    def __init__(self, rng: np.random.Generator, harmony: Harmony, mood: Mood,
-                 total_bars: int | None = None):
+    def __init__(
+        self, rng: np.random.Generator, harmony: Harmony, mood: Mood, total_bars: int | None = None
+    ):
         self.rng, self.harmony, self.mood, self.total_bars = rng, harmony, mood, total_bars
         self.bar, self.sections_done = 0, 0
         self.section = Section.INTRO
@@ -2068,7 +2315,10 @@ class Arranger:
 
     def _start_section(self) -> None:
         self.sections_done += 1
-        if self.total_bars is not None and self.bar >= self.total_bars - SECTION_BARS[Section.OUTRO]:
+        if (
+            self.total_bars is not None
+            and self.bar >= self.total_bars - SECTION_BARS[Section.OUTRO]
+        ):
             self.section = Section.OUTRO
         else:
             self.section = Section(self.rng.choice([s.value for s in _NEXT[self.section]]))
@@ -2083,14 +2333,26 @@ class Arranger:
         if self.finished or (self.total_bars is not None and self.bar >= self.total_bars):
             self.finished = True
             chord = self.progression[0]
-            plan = BarPlan(self.bar, Section.OUTRO, 0, chord, {l: [] for l in LAYERS},
-                           {l: 0.0 for l in LAYERS}, fade=0.0, finished=True, key=self.harmony.key_name)
+            plan = BarPlan(
+                self.bar,
+                Section.OUTRO,
+                0,
+                chord,
+                {l: [] for l in LAYERS},
+                {l: 0.0 for l in LAYERS},
+                fade=0.0,
+                finished=True,
+                key=self.harmony.key_name,
+            )
             self.bar += 1
             return plan
         if self.section_bar >= self.section_len:
             self._start_section()
-        elif (self.total_bars is not None and self.section != Section.OUTRO
-              and self.bar >= self.total_bars - SECTION_BARS[Section.OUTRO]):
+        elif (
+            self.total_bars is not None
+            and self.section != Section.OUTRO
+            and self.bar >= self.total_bars - SECTION_BARS[Section.OUTRO]
+        ):
             self.section_bar = self.section_len
             self._start_section()
         r = self.rng
@@ -2123,8 +2385,17 @@ class Arranger:
             "ambient": gen_ambient(chord),
         }
         fade = 1.0 - self.section_bar / self.section_len if self.section == Section.OUTRO else 1.0
-        plan = BarPlan(self.bar, self.section, self.section_bar, chord, patterns, gains,
-                       fill=last, fade=fade, key=self.harmony.key_name)
+        plan = BarPlan(
+            self.bar,
+            self.section,
+            self.section_bar,
+            chord,
+            patterns,
+            gains,
+            fill=last,
+            fade=fade,
+            key=self.harmony.key_name,
+        )
         self.bar += 1
         self.section_bar += 1
         return plan
@@ -2156,28 +2427,40 @@ from synthwave.sequencer.transport import Transport
 
 SR = 44100
 
+
 def test_transport_ticks_at_expected_offsets():
     t = Transport(SR, 120)  # step = 0.125 s = 5512.5 samples
     ticks = t.advance(12000)
     assert [(k.step, k.offset) for k in ticks] == [(0, 0), (1, 5512), (2, 11025)]
     assert t.advance(5000)[0].step == 3 and t.clock == 17000
 
+
 def test_transport_bpm_change_keeps_phase():
     t = Transport(SR, 120)
-    t.advance(1000); t.set_bpm(60)
+    t.advance(1000)
+    t.set_bpm(60)
     ticks = t.advance(20000)
     assert [k.offset for k in ticks] == [4512, 15537]
+
 
 class FakeArranger:
     def __init__(self):
         self.calls = 0
+
     def next_bar(self):
         self.calls += 1
         pats = {l: [] for l in LAYERS}
         pats["bass"] = [Note(0, 45, 1.0, 2), Note(2, 45, 0.8, 1)]
         pats["pad"] = [Note(0, 57, 0.7, 16)]
-        return BarPlan(self.calls - 1, Section.VERSE, 0, Chord(9, 0, (0, 3, 7, 10)), pats,
-                       {l: 1.0 for l in LAYERS})
+        return BarPlan(
+            self.calls - 1,
+            Section.VERSE,
+            0,
+            Chord(9, 0, (0, 3, 7, 10)),
+            pats,
+            {l: 1.0 for l in LAYERS},
+        )
+
 
 def test_tracker_emits_ons_and_offs():
     t = Transport(SR, 120)
@@ -2189,7 +2472,10 @@ def test_tracker_emits_ons_and_offs():
     ev2, plan2 = tr.advance(6000)
     assert plan2 is None
     offs = [e for e in ev2["bass"] if not e.on]
-    assert [e.offset for e in offs] == [11025 - 6000] and any(e.on and e.offset == 11025 - 6000 for e in ev2["bass"])
+    assert [e.offset for e in offs] == [11025 - 6000] and any(
+        e.on and e.offset == 11025 - 6000 for e in ev2["bass"]
+    )
+
 
 def test_tracker_pad_off_before_next_on_same_offset():
     t = Transport(SR, 120)
@@ -2245,8 +2531,13 @@ class Transport:
         ticks = []
         end = self.clock + n
         while self.next_step_time < end:
-            ticks.append(StepTick(self.step_index // STEPS_PER_BAR, self.step_index % STEPS_PER_BAR,
-                                  int(self.next_step_time - self.clock)))
+            ticks.append(
+                StepTick(
+                    self.step_index // STEPS_PER_BAR,
+                    self.step_index % STEPS_PER_BAR,
+                    int(self.next_step_time - self.clock),
+                )
+            )
             self.step_index += 1
             self.next_step_time += self.samples_per_step
         self.clock = end
@@ -2316,15 +2607,18 @@ from synthwave.audio.renderer import RenderConfig, Renderer
 from synthwave.patches.loader import PatchError
 import pytest
 
+
 def render_seconds(r, s, block=1024):
     n = int(s * r.sr)
     return np.concatenate([r.render(block) for _ in range(n // block)])
+
 
 def test_render_shape_finite_and_bounded():
     r = Renderer(RenderConfig(seed=1, mood="outrun"))
     out = render_seconds(r, 3)
     assert out.dtype == np.float32 and out.shape[1] == 2
     assert np.isfinite(out).all() and np.abs(out).max() <= 1.0 and np.abs(out).max() > 0.05
+
 
 def test_deterministic_by_seed():
     a = render_seconds(Renderer(RenderConfig(seed=42)), 2)
@@ -2333,12 +2627,15 @@ def test_deterministic_by_seed():
     c = render_seconds(Renderer(RenderConfig(seed=43)), 2)
     assert not np.array_equal(a, c)
 
+
 def test_duration_mode_finishes():
     r = Renderer(RenderConfig(seed=3, bpm=140, duration_s=12))
     total = 0
     while not r.finished and total < 60 * r.sr:
-        r.render(4096); total += 4096
+        r.render(4096)
+        total += 4096
     assert r.finished and 10 * r.sr <= total <= 30 * r.sr
+
 
 def test_commands_and_status():
     r = Renderer(RenderConfig(seed=5))
@@ -2348,10 +2645,17 @@ def test_commands_and_status():
     r.submit(lambda: r.load_patch("bass", "lead_saw"))
     r.render(1024)
     st = r.status()
-    assert st["bpm"] == 125 and st["layers"]["lead"]["muted"] and st["layers"]["pad"]["volume"] == 0.5
-    assert st["layers"]["bass"]["patch"] == "lead_saw" and st["section"] == "intro" and st["seed"] == 5
-    r.set_mood("dreamy"); r.next_section(); r.render(1024)
+    assert (
+        st["bpm"] == 125 and st["layers"]["lead"]["muted"] and st["layers"]["pad"]["volume"] == 0.5
+    )
+    assert (
+        st["layers"]["bass"]["patch"] == "lead_saw" and st["section"] == "intro" and st["seed"] == 5
+    )
+    r.set_mood("dreamy")
+    r.next_section()
+    r.render(1024)
     assert r.status()["mood"] == "dreamy"
+
 
 def test_bad_patch_keeps_state():
     r = Renderer(RenderConfig(seed=5))
@@ -2362,6 +2666,7 @@ def test_bad_patch_keeps_state():
     assert r.status()["layers"]["drums"]["patch"] == "drums_808"
     r.set_patch_param("pad", "filter.cutoff", 700)
     assert r.instruments["pad"].patch.filter.cutoff == 700
+
 
 def test_export_wav(tmp_path):
     r = Renderer(RenderConfig(seed=2, duration_s=4))
@@ -2378,6 +2683,7 @@ def test_export_wav(tmp_path):
 ```python
 # synthwave/audio/renderer.py
 """Mixes all layers into a stereo block; owns the command queue used by CLI/MCP threads."""
+
 from __future__ import annotations
 import math
 import queue
@@ -2394,8 +2700,14 @@ from ..patches.model import DrumPatchModel, PatchModel
 from ..sequencer.tracker import Tracker
 from ..sequencer.transport import Transport
 
-DEFAULT_PATCHES = {"drums": "drums_808", "bass": "bass_moog", "arp": "arp_pluck",
-                   "pad": "pad_juno", "lead": "lead_saw", "ambient": "ambient_drone"}
+DEFAULT_PATCHES = {
+    "drums": "drums_808",
+    "bass": "bass_moog",
+    "arp": "arp_pluck",
+    "pad": "pad_juno",
+    "lead": "lead_saw",
+    "ambient": "ambient_drone",
+}
 DUCKED = {"pad": 1.0, "bass": 1.0, "ambient": 0.6, "arp": 0.5}
 
 
@@ -2414,13 +2726,16 @@ class Renderer:
         if cfg.mood not in MOODS:
             raise ValueError(f"unknown mood {cfg.mood!r}, choose from {list(MOODS)}")
         self.cfg, self.sr = cfg, cfg.sr
-        self.seed = int(cfg.seed) if cfg.seed is not None else int(np.random.SeedSequence().entropy % 2**31)
+        self.seed = (
+            int(cfg.seed) if cfg.seed is not None else int(np.random.SeedSequence().entropy % 2**31)
+        )
         self.rng = np.random.default_rng(self.seed)
         self.mood = MOODS[cfg.mood]
         self.bpm = float(cfg.bpm or self.mood.bpm)
         self.transport = Transport(self.sr, self.bpm)
-        total_bars = (math.ceil(cfg.duration_s / self.transport.bar_seconds)
-                      if cfg.duration_s else None)
+        total_bars = (
+            math.ceil(cfg.duration_s / self.transport.bar_seconds) if cfg.duration_s else None
+        )
         self.arranger = Arranger(self.rng, Harmony(self.rng, self.mood), self.mood, total_bars)
         self.tracker = Tracker(self.transport, self.arranger)
         self.instruments: dict[str, Synth | DrumKit] = {}
@@ -2490,8 +2805,13 @@ class Renderer:
         self.mood = MOODS[name]
         self.arranger.set_mood(self.mood)
 
-    def set_layer(self, layer: str, mute: bool | None = None, solo: bool | None = None,
-                  volume: float | None = None) -> None:
+    def set_layer(
+        self,
+        layer: str,
+        mute: bool | None = None,
+        solo: bool | None = None,
+        volume: float | None = None,
+    ) -> None:
         if layer not in LAYERS:
             raise ValueError(f"unknown layer {layer!r}, choose from {LAYERS}")
         if mute is not None:
@@ -2516,13 +2836,25 @@ class Renderer:
     def status(self) -> dict:
         p = self.plan
         return {
-            "bpm": self.bpm, "mood": self.mood.name, "seed": self.seed,
-            "bar": p.bar if p else 0, "section": p.section.value if p else "intro",
-            "chord": p.chord.name if p else "", "key": p.key if p else self.arranger.harmony.key_name,
-            "elapsed_s": round(self.rendered / self.sr, 1), "finished": self.finished,
-            "layers": {l: {"gain": round(self._effective_gain(l), 3), "muted": l in self.muted,
-                           "solo": l in self.solo, "volume": self.layer_volume[l],
-                           "patch": self.patch_names[l]} for l in LAYERS},
+            "bpm": self.bpm,
+            "mood": self.mood.name,
+            "seed": self.seed,
+            "bar": p.bar if p else 0,
+            "section": p.section.value if p else "intro",
+            "chord": p.chord.name if p else "",
+            "key": p.key if p else self.arranger.harmony.key_name,
+            "elapsed_s": round(self.rendered / self.sr, 1),
+            "finished": self.finished,
+            "layers": {
+                l: {
+                    "gain": round(self._effective_gain(l), 3),
+                    "muted": l in self.muted,
+                    "solo": l in self.solo,
+                    "volume": self.layer_volume[l],
+                    "patch": self.patch_names[l],
+                }
+                for l in LAYERS
+            },
         }
 
     # ----- rendering -----
@@ -2602,15 +2934,18 @@ import pytest
 from typer.testing import CliRunner
 from synthwave.cli import app, parse_duration
 
+
 def test_parse_duration():
     assert parse_duration("90") == 90 and parse_duration("90s") == 90
     assert parse_duration("5m") == 300 and parse_duration("1h30m") == 5400
     with pytest.raises(ValueError):
         parse_duration("abc")
 
+
 def test_patches_command_lists_library():
     r = CliRunner().invoke(app, ["patches"])
     assert r.exit_code == 0 and "pad_juno" in r.output and "drums_808" in r.output
+
 
 def test_play_export_offline(tmp_path):
     out = tmp_path / "o.wav"
@@ -2626,6 +2961,7 @@ def test_play_export_offline(tmp_path):
 ```python
 # synthwave/audio/output.py
 """Producer thread renders ahead into a queue; the sounddevice callback only copies blocks."""
+
 from __future__ import annotations
 import queue
 import threading
@@ -2636,7 +2972,12 @@ from .renderer import Renderer
 
 class Player:
     def __init__(self, renderer: Renderer, blocksize: int = 1024, prefill: int = 6, device=None):
-        self.renderer, self.blocksize, self.prefill, self.device = renderer, blocksize, prefill, device
+        self.renderer, self.blocksize, self.prefill, self.device = (
+            renderer,
+            blocksize,
+            prefill,
+            device,
+        )
         self.queue: queue.Queue = queue.Queue(maxsize=prefill)
         self.stop_event = threading.Event()
         self.done_event = threading.Event()
@@ -2663,6 +3004,7 @@ class Player:
 
     def _callback(self, outdata, frames, time_info, status) -> None:
         import sounddevice as sd
+
         if status and status.output_underflow:
             self.underruns += 1
         try:
@@ -2675,16 +3017,25 @@ class Player:
 
     def start(self) -> None:
         import sounddevice as sd
+
         self.thread = threading.Thread(target=self._produce, daemon=True, name="synthwave-render")
         self.thread.start()
         deadline = time.time() + 5
-        while self.queue.qsize() < min(self.prefill, 2) and time.time() < deadline and not self.error:
+        while (
+            self.queue.qsize() < min(self.prefill, 2) and time.time() < deadline and not self.error
+        ):
             time.sleep(0.01)
         if self.error:
             raise self.error
-        self.stream = sd.OutputStream(samplerate=self.renderer.sr, channels=2, dtype="float32",
-                                      blocksize=self.blocksize, device=self.device,
-                                      callback=self._callback, finished_callback=self.done_event.set)
+        self.stream = sd.OutputStream(
+            samplerate=self.renderer.sr,
+            channels=2,
+            dtype="float32",
+            blocksize=self.blocksize,
+            device=self.device,
+            callback=self._callback,
+            finished_callback=self.done_event.set,
+        )
         self.stream.start()
 
     @property
@@ -2728,31 +3079,40 @@ def parse_duration(text: str) -> float:
 
 
 @app.command()
-def play(duration: str | None = typer.Option(None, help="ex: 5m, 90s, 1h. Absent = infini"),
-         bpm: float | None = typer.Option(None, min=60, max=180),
-         seed: int | None = typer.Option(None),
-         mood: str = typer.Option("dark", help=f"{'|'.join(MOODS)}"),
-         export: str | None = typer.Option(None, help="Rendu hors-ligne vers un WAV"),
-         blocksize: int = typer.Option(1024),
-         device: str | None = typer.Option(None, help="Nom ou index du périphérique")):
+def play(
+    duration: str | None = typer.Option(None, help="ex: 5m, 90s, 1h. Absent = infini"),
+    bpm: float | None = typer.Option(None, min=60, max=180),
+    seed: int | None = typer.Option(None),
+    mood: str = typer.Option("dark", help=f"{'|'.join(MOODS)}"),
+    export: str | None = typer.Option(None, help="Rendu hors-ligne vers un WAV"),
+    blocksize: int = typer.Option(1024),
+    device: str | None = typer.Option(None, help="Nom ou index du périphérique"),
+):
     """Joue de la synthwave sur la sortie audio (ou exporte en WAV)."""
     seconds = parse_duration(duration) if duration else None
     if export and seconds is None:
         raise typer.BadParameter("--export requires --duration")
     renderer = Renderer(RenderConfig(bpm=bpm, mood=mood, seed=seed, duration_s=seconds))
-    typer.echo(f"seed={renderer.seed} bpm={renderer.bpm:g} mood={mood} key={renderer.arranger.harmony.key_name}")
+    typer.echo(
+        f"seed={renderer.seed} bpm={renderer.bpm:g} mood={mood} key={renderer.arranger.harmony.key_name}"
+    )
     if export:
         from .audio.export import export_wav
+
         n = export_wav(renderer, seconds, export, blocksize)
         typer.echo(f"wrote {export} ({n / renderer.sr:.1f}s)")
         return
     from .audio.output import Player
+
     dev = int(device) if device and device.isdigit() else device
     player = Player(renderer, blocksize=blocksize, device=dev)
     try:
         player.start()
     except Exception as e:
-        typer.echo(f"audio output unavailable: {e}\nTry: synthwave play --duration 2m --export out.wav", err=True)
+        typer.echo(
+            f"audio output unavailable: {e}\nTry: synthwave play --duration 2m --export out.wav",
+            err=True,
+        )
         raise typer.Exit(1)
     typer.echo("playing... Ctrl+C to stop")
     last = None
@@ -2784,6 +3144,7 @@ def patches():
 def devices():
     """Liste les périphériques audio."""
     import sounddevice as sd
+
     typer.echo(str(sd.query_devices()))
 
 
@@ -2791,6 +3152,7 @@ def devices():
 def mcp():
     """Lance le serveur MCP (stdio)."""
     from .mcp_server import main
+
     main()
 
 
@@ -2819,21 +3181,26 @@ import asyncio
 import json
 from synthwave import mcp_server
 
+
 def call(name, **args):
     res = asyncio.run(mcp_server.mcp.call_tool(name, args))
     content = res[0] if isinstance(res, tuple) else res
     return json.loads(content[0].text)
 
+
 def test_list_patches_tool():
     assert "pad_juno" in call("list_patches")["patches"]
 
+
 def test_status_when_stopped():
     assert call("status")["running"] is False
+
 
 def test_export_tool(tmp_path):
     out = tmp_path / "e.wav"
     r = call("export_wav", path=str(out), seconds=2, seed=1, mood="outrun")
     assert r["ok"] and out.exists() and r["seconds"] >= 2
+
 
 def test_commands_without_player_return_error():
     r = call("set_tempo", bpm=120)
@@ -2847,6 +3214,7 @@ def test_commands_without_player_return_error():
 ```python
 # synthwave/mcp_server.py
 """MCP server (stdio) piloting a live Player. Run with: synthwave mcp"""
+
 from __future__ import annotations
 import threading
 from mcp.server.fastmcp import FastMCP
@@ -2889,11 +3257,16 @@ def _command(fn) -> dict:
 
 
 @mcp.tool()
-def start(mood: str = "dark", bpm: float | None = None, seed: int | None = None,
-          duration_s: float | None = None) -> dict:
+def start(
+    mood: str = "dark",
+    bpm: float | None = None,
+    seed: int | None = None,
+    duration_s: float | None = None,
+) -> dict:
     """Start infinite synthwave on the audio output. mood: dark|dreamy|outrun."""
     global _player, _renderer
     from .audio.output import Player
+
     with _lock:
         if _player is not None and _player.running:
             return {"ok": False, "error": "already running; call stop first"}
@@ -2940,8 +3313,9 @@ def set_mood(mood: str) -> dict:
 
 
 @mcp.tool()
-def set_layer(layer: str, mute: bool | None = None, solo: bool | None = None,
-              volume: float | None = None) -> dict:
+def set_layer(
+    layer: str, mute: bool | None = None, solo: bool | None = None, volume: float | None = None
+) -> dict:
     """Mute/solo/volume (0-2) for a layer: drums|bass|arp|pad|lead|ambient."""
     return _command(lambda r: r.set_layer(layer, mute=mute, solo=solo, volume=volume))
 
@@ -2971,10 +3345,12 @@ def next_section() -> dict:
 
 
 @mcp.tool()
-def export_wav(path: str, seconds: float, mood: str = "dark", bpm: float | None = None,
-               seed: int | None = None) -> dict:
+def export_wav(
+    path: str, seconds: float, mood: str = "dark", bpm: float | None = None, seed: int | None = None
+) -> dict:
     """Render a standalone track offline to a WAV file (does not disturb live playback)."""
     from .audio.export import export_wav as _export
+
     try:
         r = Renderer(RenderConfig(mood=mood, bpm=bpm, seed=seed, duration_s=seconds))
         n = _export(r, seconds, path)

@@ -42,8 +42,8 @@ def test_delay_handles_blocks_longer_than_delay_time():
 def test_reverb_has_decaying_tail():
     r = Reverb(SR, 120, size=0.8, damping=0.5, mix=1.0, predelay=0.0)
     y = r.process(impulse(2 * SR))
-    e1 = np.sum(y[SR // 10:SR // 2] ** 2)
-    e2 = np.sum(y[SR:SR + SR // 2] ** 2)
+    e1 = np.sum(y[SR // 10 : SR // 2] ** 2)
+    e2 = np.sum(y[SR : SR + SR // 2] ** 2)
     assert e1 > 1e-6 and e2 < e1 and np.isfinite(y).all()
 
 
@@ -58,8 +58,8 @@ def test_reverb_block_and_whole_equivalent():
 def test_gated_reverb_cuts_after_hold():
     g = GatedReverb(SR, 120, size=0.9, hold=0.1, threshold=0.5, mix=1.0)
     y = g.process(impulse(SR))
-    assert np.abs(y[int(0.02 * SR):int(0.09 * SR)]).max() > 0
-    assert np.abs(y[int(0.15 * SR):]).max() == 0
+    assert np.abs(y[int(0.02 * SR) : int(0.09 * SR)]).max() > 0
+    assert np.abs(y[int(0.15 * SR) :]).max() == 0
 
 
 def test_chorus_shape_and_stereo():
@@ -88,16 +88,18 @@ def test_build_effects_registry():
 
 def test_gate_chops_at_tempo():
     from synthwave.engine.effects import Gate
+
     g = Gate(SR, 120, rate="1/16", depth=1.0, duty=0.5, smooth=0.0001)
     x = np.ones((SR // 2, 2), np.float32)
     y = g.process(x)[:, 0]
-    period = int(0.125 * SR)          # 1/16 at 120 BPM
+    period = int(0.125 * SR)  # 1/16 at 120 BPM
     assert y[period // 4] > 0.9 and y[3 * period // 4] < 0.1
     assert y[period + period // 4] > 0.9 and y[period + 3 * period // 4] < 0.1
 
 
 def test_bitcrush_quantises_and_holds():
     from synthwave.engine.effects import Bitcrush
+
     b = Bitcrush(SR, 120, bits=3, downsample=4)
     x = np.linspace(-1, 1, 64, dtype=np.float32)[:, None].repeat(2, axis=1)
     y = b.process(x)[:, 0]
@@ -109,35 +111,39 @@ def test_bitcrush_quantises_and_holds():
 
 def test_lofi_is_finite_and_darker():
     from synthwave.engine.effects import LoFi
+
     x = np.random.default_rng(0).normal(size=(SR, 2)).astype(np.float32) * 0.2
     y = LoFi(SR, 120, cutoff=2000, noise=0.0).process(x)
     assert np.isfinite(y).all()
-    hf = lambda s: np.abs(np.fft.rfft(s[:, 0]))[int(len(s) * 8000 / SR):].sum()  # noqa: E731
+    hf = lambda s: np.abs(np.fft.rfft(s[:, 0]))[int(len(s) * 8000 / SR) :].sum()  # noqa: E731
     assert hf(y) < hf(x) * 0.2
 
 
 def test_distortion_saturates_and_is_bounded():
     from synthwave.engine.effects import Distortion
+
     d = Distortion(SR, 120, drive=8.0, tone=6000, mix=1.0)
     x = np.stack([np.sin(np.arange(4096) * 0.03)] * 2, axis=1).astype(np.float32)
     y = d.process(x)
     assert np.abs(y).max() <= 1.0
-    peak_ratio = np.abs(y).max() / np.sqrt((y ** 2).mean())
-    assert peak_ratio < np.sqrt(2) * 0.95    # flatter than a sine: clipped
+    peak_ratio = np.abs(y).max() / np.sqrt((y**2).mean())
+    assert peak_ratio < np.sqrt(2) * 0.95  # flatter than a sine: clipped
 
 
 def test_autopan_moves_between_channels():
     from synthwave.engine.effects import AutoPan
+
     ap = AutoPan(SR, 120, rate=2.0, depth=1.0)
     x = np.ones((SR, 2), np.float32) * 0.5
     y = ap.process(x)
     q = SR // 8
-    assert y[q, 0] < 0.05 and y[q, 1] > 0.6      # hard right at the LFO peak
+    assert y[q, 0] < 0.05 and y[q, 1] > 0.6  # hard right at the LFO peak
     assert y[3 * q, 1] < 0.05 and y[3 * q, 0] > 0.6
 
 
 def test_phaser_notches_and_is_stable():
     from synthwave.engine.effects import Phaser
+
     ph = Phaser(SR, 120, rate=0.5, depth=1.0, stages=4, mix=1.0)
     x = np.random.default_rng(1).normal(size=(SR, 2)).astype(np.float32) * 0.1
     y = np.concatenate([ph.process(x[:20000]), ph.process(x[20000:])])
@@ -147,10 +153,13 @@ def test_phaser_notches_and_is_stable():
 
 def test_flanger_adds_comb_and_survives_blocks():
     from synthwave.engine.effects import Flanger
+
     fl = Flanger(SR, 120, rate=0.1, depth=0.001, base=0.003, feedback=0.5, mix=1.0)
     x = np.zeros((8192, 2), np.float32)
     x[0] = 1.0
     y = fl.process(x)
-    lo, hi = int(0.003 * SR), int(0.005 * SR)          # delay sweeps base .. base + 2*depth
-    assert np.abs(y[lo - 5:hi + 5]).max() > 0.2 and np.abs(y[2 * lo - 5:2 * hi + 5]).max() > 0.05
+    lo, hi = int(0.003 * SR), int(0.005 * SR)  # delay sweeps base .. base + 2*depth
+    assert (
+        np.abs(y[lo - 5 : hi + 5]).max() > 0.2 and np.abs(y[2 * lo - 5 : 2 * hi + 5]).max() > 0.05
+    )
     assert np.isfinite(y).all()

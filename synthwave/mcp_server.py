@@ -1,4 +1,5 @@
 """MCP server (stdio) piloting a live Player. Run with: synthwave mcp"""
+
 from __future__ import annotations
 
 from mcp.server.mcpserver import MCPServer
@@ -15,9 +16,14 @@ def _command(fn) -> dict:
 
 
 @mcp.tool()
-def start(mood: str | None = None, bpm: float | None = None, seed: int | None = None,
-          duration_s: float | None = None, bpm_range: list[float] | None = None,
-          track_s: float = 210.0) -> dict:
+def start(
+    mood: str | None = None,
+    bpm: float | None = None,
+    seed: int | None = None,
+    duration_s: float | None = None,
+    bpm_range: list[float] | None = None,
+    track_s: float = 210.0,
+) -> dict:
     """Start synthwave on the audio output (infinite unless duration_s given).
 
     mood None: drawn at random and redrawn at every transition; a given mood is kept.
@@ -25,8 +31,11 @@ def start(mood: str | None = None, bpm: float | None = None, seed: int | None = 
     and at each transition (default: the mood's own range). track_s is the target length of
     one track (intro -> outro, then a transition to the next track)."""
     rng = (float(bpm_range[0]), float(bpm_range[1])) if bpm_range else None
-    return SESSION.start(RenderConfig(mood=mood, bpm=bpm, seed=seed, duration_s=duration_s,
-                                      bpm_range=rng, track_s=track_s))
+    return SESSION.start(
+        RenderConfig(
+            mood=mood, bpm=bpm, seed=seed, duration_s=duration_s, bpm_range=rng, track_s=track_s
+        )
+    )
 
 
 @mcp.tool()
@@ -55,8 +64,9 @@ def set_mood(mood: str) -> dict:
 
 
 @mcp.tool()
-def set_layer(layer: str, mute: bool | None = None, solo: bool | None = None,
-              volume: float | None = None) -> dict:
+def set_layer(
+    layer: str, mute: bool | None = None, solo: bool | None = None, volume: float | None = None
+) -> dict:
     """Mute/solo/volume (0-2) for a layer: drums|bass|arp|pad|lead|ambient."""
     return _command(lambda r: r.set_layer(layer, mute=mute, solo=solo, volume=volume))
 
@@ -100,10 +110,12 @@ def next_section() -> dict:
 
 
 @mcp.tool()
-def export_wav(path: str, seconds: float, mood: str = "dark", bpm: float | None = None,
-               seed: int | None = None) -> dict:
+def export_wav(
+    path: str, seconds: float, mood: str = "dark", bpm: float | None = None, seed: int | None = None
+) -> dict:
     """Render a standalone track offline to a WAV file (does not disturb live playback)."""
     from .audio.export import export_wav as _export
+
     try:
         r = Renderer(RenderConfig(mood=mood, bpm=bpm, seed=seed, duration_s=seconds))
         n = _export(r, seconds, path)

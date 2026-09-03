@@ -50,40 +50,45 @@ def _is_within_allowed_export_roots(resolved: Path) -> bool:
     return False
 
 
-def _validate_export_path(path: str) -> Path:
-    if not isinstance(path, str) or not path or "\x00" in path:
-        raise ValueError(f"invalid export path {path!r}")
-    raw = Path(path)
-    # extension obligatoire et whitelistée
+def _check_export_extension(raw: Path, path: str) -> None:
     if raw.suffix.lower() not in _ALLOWED_EXPORT_SUFFIXES:
         raise ValueError(
-            f"export path must end with one of "
-            f"{sorted(_ALLOWED_EXPORT_SUFFIXES)}, got {raw.suffix!r}"
+            f"export path must end with one of {sorted(_ALLOWED_EXPORT_SUFFIXES)}, "
+            f"got {raw.suffix!r}"
         )
+
+
+def _resolve_export_paths(raw: Path) -> tuple[Path, Path]:
     try:
         expanded = raw.expanduser()
-        # parent doit exister — on résout le parent, pas le fichier final (peut ne pas exister)
         parent = expanded.parent if str(expanded.parent) not in ("", ".") else Path.cwd()
-        # si parent relatif, on l'ancre au cwd avant resolve
         if not parent.is_absolute():
             parent = (Path.cwd() / parent).resolve()
         else:
             parent = parent.resolve()
         resolved = (parent / expanded.name).resolve()
     except Exception as e:
-        raise ValueError(f"invalid export path {path!r}: {e}") from e
+        raise ValueError(f"invalid export path {raw}: {e}") from e
     if not parent.is_dir():
         raise ValueError(f"export directory does not exist: {parent}")
-    # blocklist système même si dans allowlist
-    # (défense en profondeur : /home inside / mais /etc non)
+    return parent, resolved
+
+
+def _check_export_sensitive(parent: Path, resolved: Path, path: str) -> None:
     for sensitive in _SENSITIVE_EXPORT_ROOTS:
         try:
             s_res = sensitive.resolve()
             if resolved.is_relative_to(s_res) or parent.is_relative_to(s_res):
                 raise ValueError(f"export path {path!r} is inside sensitive directory {sensitive}")
+        except ValueError as e:
+            if "sensitive directory" in str(e):
+                raise
+            continue
         except Exception:
             continue
-    # bloque l'écriture dans les chemins cachés du home (ex: ~/.ssh, ~/.gnupg)
+
+
+def _check_export_hidden(resolved: Path, path: str) -> None:
     try:
         home_res = Path.home().resolve()
         if resolved.is_relative_to(home_res):
@@ -91,10 +96,19 @@ def _validate_export_path(path: str) -> Path:
             if any(part.startswith(".") for part in rel.parts):
                 raise ValueError(f"export to hidden path not allowed: {path!r}")
     except ValueError as e:
-        # ne pas masquer l'erreur hidden précédente
         if "hidden path" in str(e):
             raise
         pass
+
+
+def _validate_export_path(path: str) -> Path:
+    if not isinstance(path, str) or not path or "\x00" in path:
+        raise ValueError(f"invalid export path {path!r}")
+    raw = Path(path)
+    _check_export_extension(raw, path)
+    parent, resolved = _resolve_export_paths(raw)
+    _check_export_sensitive(parent, resolved, path)
+    _check_export_hidden(resolved, path)
     allowed = _is_within_allowed_export_roots
     if not allowed(resolved) and not allowed(parent):
         raise ValueError(

@@ -93,8 +93,12 @@ def test_bass_instrument_rotates_between_sections():
     assert len(firsts) >= 5 and len(basses) >= 2
     assert all(b.startswith("bass_") for b in basses)
     first_track = [p for p in firsts if p.track == 1 and p.section != Section.TRANSITION]
-    assert {p.patches["drums"] for p in first_track} <= {"drums_dark", "drums_industrial",
-                                                          "drums_hall", "drums_lofi"}
+    assert {p.patches["drums"] for p in first_track} <= {
+        "drums_dark",
+        "drums_industrial",
+        "drums_hall",
+        "drums_lofi",
+    }
     assert len({p.patches["pad"] for p in firsts} | {p.patches["arp"] for p in firsts}) >= 3
     b0, b1 = plans[0].patterns["bass"], plans[1].patterns["bass"]
     assert b0 != b1 or plans[0].chord != plans[1].chord
@@ -103,13 +107,14 @@ def test_bass_instrument_rotates_between_sections():
 def test_risers_announce_chorus_and_chorus_is_strong():
     a = make(seed=5, mood="dark")
     plans = [a.next_bar() for _ in range(120)]
-    chorus_starts = [i for i, p in enumerate(plans)
-                     if p.section == Section.CHORUS and p.section_bar == 0]
+    chorus_starts = [
+        i for i, p in enumerate(plans) if p.section == Section.CHORUS and p.section_bar == 0
+    ]
     assert chorus_starts
     i = chorus_starts[0]
-    assert any(n.note == 63 for n in plans[i].patterns["riser"])          # impact
-    assert any(n.note == 60 for n in plans[i - 1].patterns["riser"])      # reverse cymbal
-    assert any(n.note == 61 for n in plans[i - 2].patterns["riser"])      # uplifter
+    assert any(n.note == 63 for n in plans[i].patterns["riser"])  # impact
+    assert any(n.note == 60 for n in plans[i - 1].patterns["riser"])  # reverse cymbal
+    assert any(n.note == 61 for n in plans[i - 2].patterns["riser"])  # uplifter
     drums = plans[i].patterns["drums"]
     assert {n.step for n in drums if n.note == 36} >= {0, 4, 8, 12}
     assert {n.step for n in drums if n.note == 38} == {4, 12}
@@ -153,16 +158,22 @@ def test_fill_bar_keeps_section_groove():
     plans = [a.next_bar() for _ in range(60)]
     for prev, p in zip(plans, plans[1:], strict=False):
         if p.fill and not p.drop and p.section == prev.section == Section.VERSE:
+
             def head(plan):
-                return {(n.step, n.note) for n in plan.patterns["drums"]
-                        if n.step < 12 and n.note != 49}
+                return {
+                    (n.step, n.note) for n in plan.patterns["drums"] if n.step < 12 and n.note != 49
+                }
+
             assert head(prev) == head(p)
             assert {n.step for n in p.patterns["drums"] if n.step >= 12 and n.note in (38, 45, 47)}
 
 
 def _active(p):
-    return {layer for layer in LAYERS if p.gains[layer] > 0 and p.patterns[layer]
-            and layer not in ("riser", "lead")}     # lead phrases are drawn per bar
+    return {
+        layer
+        for layer in LAYERS
+        if p.gains[layer] > 0 and p.patterns[layer] and layer not in ("riser", "lead")
+    }  # lead phrases are drawn per bar
 
 
 def test_layers_build_up_every_two_bars_in_verse():
@@ -172,32 +183,33 @@ def test_layers_build_up_every_two_bars_in_verse():
     assert verse and verse[0].section_bar == 0
     counts = [len(_active(p)) for p in verse]
     assert counts == sorted(counts) and counts[-1] > counts[0]
-    assert "arp" not in _active(verse[0]) and "arp" in _active(verse[2])       # arp at bar 2
-    assert verse[0].gains["lead"] == 0 and verse[4].gains["lead"] > 0            # lead at bar 4
+    assert "arp" not in _active(verse[0]) and "arp" in _active(verse[2])  # arp at bar 2
+    assert verse[0].gains["lead"] == 0 and verse[4].gains["lead"] > 0  # lead at bar 4
 
     def offbeat_hats(p):
-        return [n for n in p.patterns["drums"] if n.note in (42, 46) and n.step % 2 == 1
-                or n.note == 46]
-    assert not any(offbeat_hats(p) for p in verse[:4])                          # 8th hats only
-    assert any(offbeat_hats(p) for p in verse[4:])                              # full groove
+        return [
+            n for n in p.patterns["drums"] if n.note in (42, 46) and n.step % 2 == 1 or n.note == 46
+        ]
+
+    assert not any(offbeat_hats(p) for p in verse[:4])  # 8th hats only
+    assert any(offbeat_hats(p) for p in verse[4:])  # full groove
 
 
 def test_predrop_cuts_percussion_before_chorus_and_chorus_hits():
     a = make(seed=5, mood="outrun")
     plans = [a.next_bar() for _ in range(200)]
-    starts = [i for i, p in enumerate(plans)
-              if p.section == Section.CHORUS and p.section_bar == 0]
+    starts = [i for i, p in enumerate(plans) if p.section == Section.CHORUS and p.section_bar == 0]
     assert starts
     for i in starts:
         pre = plans[i - 1]
         assert pre.drop and pre.fill
         drums = pre.patterns["drums"]
-        assert not any(n.step >= 12 for n in drums)                       # silence on beat 4
-        assert not any(n.note == 42 for n in drums)                       # no hats
-        assert len([n for n in drums if n.note in (38, 45, 47)]) == 8     # snare roll 4..11
+        assert not any(n.step >= 12 for n in drums)  # silence on beat 4
+        assert not any(n.note == 42 for n in drums)  # no hats
+        assert len([n for n in drums if n.note in (38, 45, 47)]) == 8  # snare roll 4..11
         assert not any(n.step >= 12 for n in pre.patterns["bass"])
         assert pre.gains["lead"] == 0
-        assert any(n.note == 63 for n in plans[i].patterns["riser"])       # impact = drop
+        assert any(n.note == 63 for n in plans[i].patterns["riser"])  # impact = drop
         assert plans[i].gains["drums"] == 1.0 and plans[i].gains["bass"] == 1.0
 
 
@@ -217,7 +229,7 @@ def test_tracks_last_about_three_and_a_half_minutes_and_end_with_outro():
             if p.bpm:
                 bpm = p.bpm
         assert {p.track for p in plans} >= {1, 2, 3}
-        assert not any(p.fade < 1.0 for p in plans)     # infinite mode: no fade-out
+        assert not any(p.fade < 1.0 for p in plans)  # infinite mode: no fade-out
 
 
 def test_transition_is_harmonically_smooth():
@@ -243,15 +255,21 @@ def test_theme_is_kept_for_the_whole_track_and_breaks_get_a_counter_melody():
         if p.section == Section.BREAK and p.gains["lead"] > 0 and p.patterns["lead"]:
             breaks.append(p)
     assert all(len(v) == 1 for v in themes.values()) and len(themes) >= 2
-    assert len({next(iter(v)) for v in themes.values()}) == len(themes)   # new theme per track
+    assert len({next(iter(v)) for v in themes.values()}) == len(themes)  # new theme per track
     notes = [n for p in breaks for n in p.patterns["lead"]]
     assert breaks and sum(1 for n in notes if n.step % 4 == 0) >= 0.8 * len(notes)
     # chorus bars replay the theme: same rhythm on even bars
     a = make(seed=6, mood="outrun")
     plans = [a.next_bar() for _ in range(80)]
     q = [n[0] for n in a.theme.question.notes]
-    chorus = [p for p in plans if p.section == Section.CHORUS and p.patterns["lead"]
-              and p.section_bar % 2 == 0 and p.section_bar < 8]
+    chorus = [
+        p
+        for p in plans
+        if p.section == Section.CHORUS
+        and p.patterns["lead"]
+        and p.section_bar % 2 == 0
+        and p.section_bar < 8
+    ]
     assert chorus
     same = sum(1 for p in chorus if [n.step for n in p.patterns["lead"]] == q)
     assert same >= len(chorus) // 2
@@ -263,12 +281,15 @@ def test_live_composer_gestures_and_build_up_sweep():
     assert any(p.tweaks for p in plans)
     layers = {layer for p in plans if p.tweaks for layer in p.tweaks}
     assert {"pad", "arp"} <= layers
-    starts = [i for i, p in enumerate(plans)
-              if p.section == Section.CHORUS and p.section_bar == 0 and i >= 4]
+    starts = [
+        i
+        for i, p in enumerate(plans)
+        if p.section == Section.CHORUS and p.section_bar == 0 and i >= 4
+    ]
     assert starts
     i = starts[0]
     cut = [plans[j].tweaks["pad"]["filter.cutoff"] for j in range(i - 4, i)]
-    assert cut == sorted(cut) and cut[-1] > cut[0] * 1.8   # filter opens towards the drop
+    assert cut == sorted(cut) and cut[-1] > cut[0] * 1.8  # filter opens towards the drop
     for p in plans:
         if p.section == Section.TRANSITION:
             assert not p.tweaks

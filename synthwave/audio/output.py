@@ -1,9 +1,15 @@
 """Producer thread renders ahead into a queue; the sounddevice callback only copies blocks."""
+
 from __future__ import annotations
 
 import queue
 import threading
 import time
+
+try:
+    import sounddevice as sd
+except ImportError:  # pragma: no cover - audio non requis pour les tests
+    sd = None  # type: ignore[assignment]
 
 from .renderer import Renderer
 
@@ -29,13 +35,12 @@ class Player:
                         self.queue.put(block, timeout=0.2)
                         break
                     except queue.Full:
-                        continue
+                        pass
         except Exception as e:  # surface, then let the callback stop
             self.error = e
             self.stop_event.set()
 
     def _callback(self, outdata, frames, time_info, status) -> None:
-        import sounddevice as sd
         if status and status.output_underflow:
             self.underruns += 1
         try:
@@ -47,19 +52,26 @@ class Player:
             self.underruns += 1
 
     def start(self) -> None:
-        import sounddevice as sd
+        if sd is None:
+            raise RuntimeError("sounddevice not available")
         self.thread = threading.Thread(target=self._produce, daemon=True, name="synthwave-render")
         self.thread.start()
         deadline = time.time() + 5
-        while (self.queue.qsize() < min(self.prefill, 2) and time.time() < deadline
-               and not self.error):
+        while (
+            self.queue.qsize() < min(self.prefill, 2) and time.time() < deadline and not self.error
+        ):
             time.sleep(0.01)
         if self.error:
             raise self.error
-        self.stream = sd.OutputStream(samplerate=self.renderer.sr, channels=2, dtype="float32",
-                                      blocksize=self.blocksize, device=self.device,
-                                      callback=self._callback,
-                                      finished_callback=self.done_event.set)
+        self.stream = sd.OutputStream(
+            samplerate=self.renderer.sr,
+            channels=2,
+            dtype="float32",
+            blocksize=self.blocksize,
+            device=self.device,
+            callback=self._callback,
+            finished_callback=self.done_event.set,
+        )
         self.stream.start()
 
     @property

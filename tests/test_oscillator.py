@@ -56,5 +56,5 @@ def test_fm_adds_sidebands_and_stays_continuous():
     spec = np.abs(np.fft.rfft(sig * np.hanning(len(sig))))
     f = np.fft.rfftfreq(len(sig), 1 / SR)
     fund = spec[np.argmin(abs(f - 220))]
-    side = spec[np.argmin(abs(f - 770))]     # 220 + 550
+    side = spec[np.argmin(abs(f - 770))]  # 220 + 550
     assert side > fund * 0.1

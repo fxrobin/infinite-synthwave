@@ -2,12 +2,17 @@
 
 Run with: synthwave ui  (http://127.0.0.1:8765)
 """
+
 from __future__ import annotations
 
 import asyncio
 import json
+import sys
+import threading
+import webbrowser
 from pathlib import Path
 
+import uvicorn
 from starlette.applications import Starlette
 from starlette.middleware import Middleware
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -71,6 +76,7 @@ def _validate_layer(name: str, allow_master: bool = False) -> None:
     if name not in allowed:
         raise ValueError(f"unknown layer {name!r}")
 
+
 STATIC = Path(__file__).parent / "static"
 FX_DEFAULTS = {
     "chorus": {"rate": 0.5, "depth": 0.003, "mix": 0.4},
@@ -91,13 +97,17 @@ async def index(_: Request) -> HTMLResponse:
 
 
 async def meta(_: Request) -> JSONResponse:
-    return JSONResponse({
-        "moods": {name: {"bpm_range": list(m.bpm_range), "scale": m.scale,
-                         "halftime": m.halftime} for name, m in MOODS.items()},
-        "patches": loader.list_patches(),
-        "layers": list(LAYERS),
-        "effects": {k: FX_DEFAULTS.get(k, {}) for k in _REGISTRY if k != "limiter"},
-    })
+    return JSONResponse(
+        {
+            "moods": {
+                name: {"bpm_range": list(m.bpm_range), "scale": m.scale, "halftime": m.halftime}
+                for name, m in MOODS.items()
+            },
+            "patches": loader.list_patches(),
+            "layers": list(LAYERS),
+            "effects": {k: FX_DEFAULTS.get(k, {}) for k in _REGISTRY if k != "limiter"},
+        }
+    )
 
 
 async def status(_: Request) -> JSONResponse:
@@ -112,9 +122,7 @@ async def _body(request: Request) -> dict:
     if not body:
         return {}
     try:
-        import json as _json
-
-        data = _json.loads(body)
+        data = json.loads(body)
     except Exception:
         return {}
     return data if isinstance(data, dict) else {}
@@ -161,9 +169,7 @@ async def start(request: Request) -> JSONResponse:
             device = str(device)
         else:
             device = None
-        cfg = RenderConfig(
-            mood=mood, bpm=bpm, seed=seed, track_s=track_s, bpm_range=bpm_range
-        )
+        cfg = RenderConfig(mood=mood, bpm=bpm, seed=seed, track_s=track_s, bpm_range=bpm_range)
     except (TypeError, ValueError) as e:
         return JSONResponse({"ok": False, "error": str(e)}, status_code=400)
     res = await asyncio.to_thread(SESSION.start, cfg, blocksize, device)
@@ -255,8 +261,14 @@ async def patch_state(request: Request) -> JSONResponse:
     name = request.path_params["layer"]
     if r is None or name not in r.instruments or name == "riser":
         return JSONResponse({"ok": False, "error": "no patch"}, status_code=404)
-    return JSONResponse({"ok": True, "layer": name, "name": r.patch_names[name],
-                         "patch": r.instruments[name].patch.model_dump()})
+    return JSONResponse(
+        {
+            "ok": True,
+            "layer": name,
+            "name": r.patch_names[name],
+            "patch": r.instruments[name].patch.model_dump(),
+        }
+    )
 
 
 async def effects(request: Request) -> JSONResponse:
@@ -332,19 +344,13 @@ app = Starlette(
 
 
 def serve(host: str = "127.0.0.1", port: int = 8765, open_browser: bool = True) -> None:
-    import uvicorn
     # avertissement si bind non-local
     if host not in ("127.0.0.1", "localhost", "::1"):
-        import sys
-
         print(
             f"[synthwave] WARNING: UI bound to {host} is exposed to network — "
             "no auth, use at your own risk. Prefer 127.0.0.1",
             file=sys.stderr,
         )
     if open_browser:
-        import threading
-        import webbrowser
-
         threading.Timer(0.8, lambda: webbrowser.open(f"http://{host}:{port}")).start()
     uvicorn.run(app, host=host, port=port, log_level="warning")

@@ -1,4 +1,5 @@
 """One live playback session (Renderer + Player) shared by the MCP server and the web UI."""
+
 from __future__ import annotations
 
 import threading
@@ -21,6 +22,7 @@ class Session:
 
     def start(self, cfg: RenderConfig, blocksize: int = 1024, device=None) -> dict:
         from .audio.output import Player
+
         with self._lock:
             if self.player is not None and self.player.running:
                 return {"ok": False, "error": "already running; call stop first"}

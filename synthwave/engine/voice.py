@@ -16,9 +16,23 @@ def midi_to_hz(note: float) -> float:
 class Voice:
     def __init__(self, patch: PatchModel, sr: int, rng: np.random.Generator):
         self.patch, self.sr = patch, sr
-        self.oscs = [Oscillator(o.wave, sr, rng, o.unison, o.detune, o.octave, o.semi, o.level,
-                                o.pwm, o.spread, o.fm_ratio, o.fm_index)
-                     for o in patch.oscillators]
+        self.oscs = [
+            Oscillator(
+                o.wave,
+                sr,
+                rng,
+                o.unison,
+                o.detune,
+                o.octave,
+                o.semi,
+                o.level,
+                o.pwm,
+                o.spread,
+                o.fm_ratio,
+                o.fm_index,
+            )
+            for o in patch.oscillators
+        ]
         e = patch.amp_env
         self.amp_env = ADSR(e.attack, e.decay, e.sustain, e.release, sr)
         self.filter = Filter(patch.filter.type, sr) if patch.filter else None
@@ -80,7 +94,7 @@ class Voice:
         lfo = self.lfo.render(n) if self.lfo else None
         lfo_mean = float(lfo.mean()) if lfo is not None else 0.0
         if self.glide_coef:
-            self.freq = self.target_freq + (self.freq - self.target_freq) * self.glide_coef ** n
+            self.freq = self.target_freq + (self.freq - self.target_freq) * self.glide_coef**n
         freq = self.freq
         pwm = None
         if p.lfo and p.lfo.target == "pitch":

@@ -1,0 +1,37 @@
+---
+# Codacy config — réduit le bruit des issues non-actionnables
+# Doc: https://docs.codacy.com/repositories-configure/codacy-configuration-file/
+
+exclude_paths:
+  - "uv.lock"
+  - ".venv/**"
+  - "**/*.min.js"
+  - "docs/superpowers/**"
+  - ".memsearch/**"
+
+engines:
+  # pylint / prospector : le pattern "Use of assert detected" est légitime dans les tests
+  pylint:
+    exclude_paths:
+      - "tests/**"
+  prospector:
+    exclude_paths:
+      - "tests/**"
+      - "uv.lock"
+  # metric / lizard : exclure les artefacts générés
+  metric:
+    exclude_paths:
+      - "uv.lock"
+      - "tests/**"
+  lizard:
+    exclude_paths:
+      - "uv.lock"
+      - "tests/**"
+  duplication:
+    exclude_paths:
+      - "tests/**"
+      - "uv.lock"
+  # garder ruff comme source de vérité locale (line-length 100)
+  pycodestyle:
+    exclude_paths:
+      - "uv.lock"

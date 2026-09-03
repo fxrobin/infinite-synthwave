@@ -47,8 +47,8 @@ def test_shortening_stage_mid_flight_does_not_crash():
     # Un tweak live (update_patch) peut raccourcir l'attaque alors que t la dépasse déjà.
     env = ADSR(1.0, 0.1, 0.5, 0.1, SR)
     env.gate_on()
-    env.render(SR // 2)          # à mi-attaque
-    env.a = SR // 10             # l'attaque devient plus courte que t
+    env.render(SR // 2)  # à mi-attaque
+    env.a = SR // 10  # l'attaque devient plus courte que t
     out = env.render(256)
     assert out.shape == (256,)
     assert np.all(np.isfinite(out))
