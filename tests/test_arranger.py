@@ -93,12 +93,7 @@ def test_bass_instrument_rotates_between_sections():
     assert len(firsts) >= 5 and len(basses) >= 2
     assert all(b.startswith("bass_") for b in basses)
     first_track = [p for p in firsts if p.track == 1 and p.section != Section.TRANSITION]
-    assert {p.patches["drums"] for p in first_track} <= {
-        "drums_dark",
-        "drums_industrial",
-        "drums_hall",
-        "drums_lofi",
-    }
+    assert {p.patches["drums"] for p in first_track} <= set(MOODS["dark"].pools["drums"])
     assert len({p.patches["pad"] for p in firsts} | {p.patches["arp"] for p in firsts}) >= 3
     b0, b1 = plans[0].patterns["bass"], plans[1].patterns["bass"]
     assert b0 != b1 or plans[0].chord != plans[1].chord
@@ -300,3 +295,24 @@ def test_predrop_carries_a_cymbal_roll():
     plans = [a.next_bar() for _ in range(200)]
     pre = [p for p in plans if p.drop]
     assert pre and all(any(n.note == 57 and n.step == 0 for n in p.patterns["drums"]) for p in pre)
+
+
+def test_straight_mood_groove_never_moves_inside_a_section():
+    """Eighties moods: same kick/snare grid every bar, no random roll mid-section."""
+    a = make(seed=11, mood="outrun")
+    plans = [a.next_bar() for _ in range(300)]
+    verses = [p for p in plans if p.section == Section.VERSE and not p.fill and not p.drop]
+    assert len(verses) > 20
+    # the backbeat voice (snare or finger snap) is drawn once per section, the grid never moves
+    first = []
+    for p in verses:  # bars of the very first verse only (section_bar keeps increasing)
+        if first and p.section_bar <= first[-1].section_bar:
+            break
+        first.append(p)
+    grids = {
+        tuple(sorted((n.step, n.note) for n in p.patterns["drums"] if n.note in (36, 38, 39, 40)))
+        for p in first
+    }
+    assert len(first) > 4 and len(grids) == 1
+    for p in verses:  # four on the floor everywhere, in every verse of every track
+        assert {n.step for n in p.patterns["drums"] if n.note == 36} == {0, 4, 8, 12}

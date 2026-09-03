@@ -43,15 +43,21 @@ def gen_drums(  # noqa: PLR0913 - drum pattern needs many flags (bundled from ar
     ride: bool = False,
     shaker: bool = False,
     tick: bool = False,
+    straight: bool = False,
 ) -> Pattern:
     """
     One bar of drums.
 
     `snap`: finger snaps take the backbeat (layered with the snare in a strong chorus);
     `ride`: the ride cymbal replaces the closed hats on the 8ths; `shaker`: 16th-note
-    shaker underneath.
+    shaker underneath; `straight`: eighties groove, dead on the 4/4 grid, without the
+    random extra kicks and 16th hats (see `_gen_drums_straight`).
     """
-    p = _gen_drums(rng, density, fill, snare, crash, halftime, strong)
+    p = (
+        _gen_drums_straight(fill, snare, crash, halftime, strong)
+        if straight
+        else _gen_drums(rng, density, fill, snare, crash, halftime, strong)
+    )
     if snap and snare:
         keep = strong
         p = [n for n in p if n.note != SNARE or keep]
@@ -63,6 +69,37 @@ def gen_drums(  # noqa: PLR0913 - drum pattern needs many flags (bundled from ar
         p += [Note(s, TICK, 0.8 if s % 4 == 0 else 0.55) for s in range(0, STEPS, 2)]
     if shaker:
         p += [Note(s, SHAKER, 0.55 if s % 4 == 2 else 0.3) for s in range(STEPS)]
+    return _sorted(p)
+
+
+def _gen_drums_straight(
+    fill: bool, snare: bool, crash: bool, halftime: bool, strong: bool
+) -> Pattern:
+    """
+    One bar of straight eighties groove (LinnDrum / Oberheim DMX school).
+
+    Everything sits on the grid and never changes from bar to bar: four on the floor,
+    snare and clap layered on 2 and 4, closed hats on the 8ths (16ths in a chorus).
+    No random kick, no random hat, no tom fill.
+    """
+    if halftime:
+        p: Pattern = [Note(0, KICK, 1.0), Note(8, KICK, 0.85)]
+        if snare:
+            p += [Note(8, SNARE, 1.0), Note(8, CLAP, 0.7)]
+    else:
+        p = [Note(s, KICK, 1.0) for s in (0, 4, 8, 12)]
+        if snare:
+            p += [Note(4, SNARE, 1.0), Note(12, SNARE, 1.0)]
+            p += [Note(4, CLAP, 0.7), Note(12, CLAP, 0.7)]
+    p += [Note(s, HAT_C, 0.85 if s % 4 == 0 else 0.6) for s in range(0, STEPS, 2)]
+    p.append(Note(14, HAT_O, 0.6 if strong else 0.55))  # open hat before the turnaround
+    if strong:  # chorus: straight 16ths on the hats
+        p += [Note(s, HAT_C, 0.4) for s in range(1, STEPS, 2)]
+    if fill:  # phrase end: four snare 16ths under an unbroken four on the floor
+        p = [n for n in p if n.step < 12 or n.note == KICK]
+        p += [Note(12 + i, SNARE, round(0.55 + 0.15 * i, 3)) for i in range(4)]
+    if crash:
+        p.append(Note(0, CRASH, 0.8))
     return _sorted(p)
 
 
@@ -158,6 +195,17 @@ def add_roll(rng: np.random.Generator, pattern: Pattern, start: int, length: int
     window = set(range(start, min(STEPS, start + length)))
     kept = [n for n in pattern if n.step not in window or n.note in (KICK, CRASH)]
     return _sorted(kept + gen_roll(rng, start, len(window)))
+
+
+def add_straight_fill(pattern: Pattern, start: int = 12, length: int = 4) -> Pattern:
+    """Phrase-end fill for a straight groove: plain snare 16ths crescendo, kick and crash
+    left untouched so the four on the floor never breaks.
+    """
+    window = [s for s in range(start, min(STEPS, start + length))]
+    kept = [n for n in pattern if n.step not in window or n.note in (KICK, CRASH)]
+    vels = np.linspace(0.55, 1.0, len(window))
+    fill = [Note(s, SNARE, float(round(v, 3))) for s, v in zip(window, vels, strict=True)]
+    return _sorted(kept + fill)
 
 
 def drum_layer(pattern: Pattern, level: int) -> Pattern:

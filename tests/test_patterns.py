@@ -169,3 +169,31 @@ def test_tick_replaces_closed_hats_on_eighths():
     assert {n.step for n in p if n.note == TICK} == set(range(0, STEPS, 2))
     assert not any(n.note == 42 and n.step % 2 == 0 for n in p)
     assert any(n.note == TICK for n in drum_layer(p, 1))
+
+
+def test_straight_groove_is_deterministic_and_on_the_grid():
+    """80s straight groove: no random kick or hat, identical whatever the rng draw."""
+    a = gen_drums(np.random.default_rng(0), 0.9, straight=True)
+    b = gen_drums(np.random.default_rng(7), 0.2, straight=True)
+    assert a == b
+    kicks = sorted(n.step for n in a if n.note == 36)
+    assert kicks == [0, 4, 8, 12]  # four on the floor, nothing else
+    snares = sorted(n.step for n in a if n.note == 38)
+    claps = sorted(n.step for n in a if n.note == 39)
+    assert snares == [4, 12] and claps == [4, 12]  # snare + clap layered on 2 and 4
+    hats = sorted(n.step for n in a if n.note == 42)
+    assert hats == list(range(0, STEPS, 2))  # plain 8ths, no 16th noise
+    assert in_range(a)
+
+
+def test_straight_chorus_adds_sixteenth_hats_not_extra_kicks():
+    p = gen_drums(np.random.default_rng(1), 0.8, straight=True, strong=True)
+    assert sorted(n.step for n in p if n.note == 36) == [0, 4, 8, 12]
+    assert sorted(n.step for n in p if n.note == 42) == list(range(STEPS))
+
+
+def test_straight_fill_is_a_plain_snare_crescendo():
+    p = gen_drums(np.random.default_rng(2), 0.6, straight=True, fill=True)
+    tail = sorted((n.step, n.note) for n in p if n.step >= 12)
+    # snare 16ths only, and the four on the floor keeps its kick on the 4
+    assert tail == [(12, 36), (12, 38), (13, 38), (14, 38), (15, 38)]

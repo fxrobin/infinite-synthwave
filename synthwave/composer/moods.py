@@ -27,6 +27,7 @@ class Mood:
     ride_prob: float = 0.0  # ride cymbal instead of closed hats (per section)
     shaker_prob: float = 0.0  # 16th-note shaker (per section)
     tick_prob: float = 0.5  # dry closed hat "tic tic" on the 8ths (per section)
+    straight: bool = False  # eighties groove: dead on the 4/4 grid, no random kick/hat/roll
 
 
 DARK_PATCHES = {
@@ -88,7 +89,14 @@ DARK_POOLS = {
         "arp_piano_atmos",
     ],
     "ambient": ["ambient_dark", "ambient_deep", "ambient_wind", "ambient_choir"],
-    "drums": ["drums_dark", "drums_industrial", "drums_hall", "drums_lofi", "drums_breaks"],
+    "drums": [
+        "drums_dark",
+        "drums_industrial",
+        "drums_hall",
+        "drums_lofi",
+        "drums_breaks",
+        "drums_acoustic",
+    ],
 }
 BRIGHT_POOLS = {
     "bass": [
@@ -157,14 +165,13 @@ BRIGHT_POOLS = {
         "ambient_choir",
         "ambient_wind",
     ],
-    "drums": [
+    "drums": [  # dry, pure kits only: no delay, no breakbeat, for the straight eighties groove
         "drums_808",
         "drums_linn",
+        "drums_dmx",
         "drums_tight",
-        "drums_hall",
         "drums_acoustic",
         "drums_soft80",
-        "drums_breaks",
     ],
 }
 DARK_BASS = {"eighths": 2, "riff": 3, "sixteenths": 2, "syncopated": 1, "octaves": 1}
@@ -229,7 +236,7 @@ DRIVE_POOLS = {
     "pad": ["pad_juno", "pad_strings", "pad_shimmer", "pad_jupiter", "pad_obx"],
     "arp": ["arp_saw", "arp_pluck", "arp_stab", "arp_square", "arp_jupiter", "arp_sh101"],
     "ambient": ["ambient_shimmer", "ambient_drone", "ambient_wind"],
-    "drums": ["drums_808", "drums_linn", "drums_tight", "drums_soft80"],
+    "drums": ["drums_808", "drums_linn", "drums_dmx", "drums_tight", "drums_soft80"],
 }
 DRIVE_BASS = {"eighths": 3, "sixteenths": 3, "octaves": 2, "syncopated": 1}
 CHILL_BASS = {"eighths": 2, "walk": 3, "syncopated": 2, "octaves": 1}
@@ -306,6 +313,7 @@ MOODS: dict[str, Mood] = {
         snap_prob=0.4,
         ride_prob=0.3,
         shaker_prob=0.3,
+        straight=True,
     ),
     "outrun": Mood(
         "outrun",
@@ -328,6 +336,7 @@ MOODS: dict[str, Mood] = {
         bass_styles=BRIGHT_BASS,
         bpm_range=(110.0, 128.0),
         ride_prob=0.3,
+        straight=True,
     ),
     "cyberpunk": Mood(
         "cyberpunk",
@@ -415,6 +424,7 @@ MOODS: dict[str, Mood] = {
         snap_prob=0.8,
         ride_prob=0.4,
         shaker_prob=0.6,
+        straight=True,
     ),
     "retro": Mood(
         "retro",
@@ -444,6 +454,7 @@ MOODS: dict[str, Mood] = {
         snap_prob=0.35,
         ride_prob=0.5,
         shaker_prob=0.2,
+        straight=True,
     ),
     "drive": Mood(
         "drive",
@@ -471,5 +482,6 @@ MOODS: dict[str, Mood] = {
         bpm_range=(122.0, 136.0),
         tick_prob=0.4,
         ride_prob=0.35,
+        straight=True,
     ),
 }
