@@ -15,7 +15,9 @@ from .renderer import Renderer
 
 
 class Player:
+    """Player."""
     def __init__(self, renderer: Renderer, blocksize: int = 1024, prefill: int = 6, device=None):
+        """Initialize."""
         self.renderer, self.blocksize, self.prefill = renderer, blocksize, prefill
         self.device = device
         self.queue: queue.Queue = queue.Queue(maxsize=prefill)
@@ -27,6 +29,7 @@ class Player:
         self.stream = None
 
     def _produce(self) -> None:
+        """Produce."""
         try:
             while not self.stop_event.is_set() and not self.renderer.finished:
                 block = self.renderer.render(self.blocksize)
@@ -41,6 +44,7 @@ class Player:
             self.stop_event.set()
 
     def _callback(self, outdata, frames, time_info, status) -> None:
+        """Callback."""
         if status and status.output_underflow:
             self.underruns += 1
         try:
@@ -52,6 +56,7 @@ class Player:
             self.underruns += 1
 
     def start(self) -> None:
+        """Start."""
         if sd is None:
             raise RuntimeError("sounddevice not available")
         self.thread = threading.Thread(target=self._produce, daemon=True, name="synthwave-render")
@@ -76,12 +81,15 @@ class Player:
 
     @property
     def running(self) -> bool:
+        """Running."""
         return self.stream is not None and self.stream.active and not self.done_event.is_set()
 
     def wait(self, timeout: float | None = None) -> None:
+        """Wait."""
         self.done_event.wait(timeout)
 
     def stop(self) -> None:
+        """Stop."""
         self.stop_event.set()
         if self.stream is not None:
             self.stream.stop()

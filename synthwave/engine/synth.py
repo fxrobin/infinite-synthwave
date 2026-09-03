@@ -10,6 +10,7 @@ from .voice import Voice
 
 
 def _oscillators_changed(new: PatchModel, old: PatchModel) -> bool:
+    """Oscillators changed."""
     if len(new.oscillators) != len(old.oscillators):
         return True
     return any(
@@ -19,6 +20,7 @@ def _oscillators_changed(new: PatchModel, old: PatchModel) -> bool:
 
 
 def _filter_changed(new: PatchModel, old: PatchModel) -> bool:
+    """Filter changed."""
     if (new.filter is None) != (old.filter is None):
         return True
     if new.filter and old.filter:
@@ -29,6 +31,7 @@ def _filter_changed(new: PatchModel, old: PatchModel) -> bool:
 
 
 def _has_structural_change(new: PatchModel, old: PatchModel) -> bool:
+    """Has structural change."""
     if new.polyphony != old.polyphony:
         return True
     if _oscillators_changed(new, old):
@@ -41,16 +44,20 @@ def _has_structural_change(new: PatchModel, old: PatchModel) -> bool:
 
 
 def _effects_differ(new: PatchModel, old: PatchModel) -> bool:
+    """Effects differ."""
     return [e.model_dump() for e in new.effects] != [e.model_dump() for e in old.effects]
 
 
 class Synth:
+    """Synth."""
     def __init__(self, patch: PatchModel, sr: int, rng: np.random.Generator, bpm: float):
+        """Initialize."""
         self.sr, self.rng, self.bpm = sr, rng, bpm
         self.counter = 0
         self.set_patch(patch)
 
     def set_patch(self, patch: PatchModel) -> None:
+        """Set patch."""
         self.patch = patch
         self.voices = [Voice(patch, self.sr, self.rng) for _ in range(patch.polyphony)]
         self.effects = build_effects([e.model_dump() for e in patch.effects], self.sr, self.bpm)
@@ -71,10 +78,12 @@ class Synth:
             self.effects = build_effects([e.model_dump() for e in patch.effects], self.sr, self.bpm)
 
     def set_bpm(self, bpm: float) -> None:
+        """Set bpm."""
         self.bpm = bpm
         self.effects = build_effects([e.model_dump() for e in self.patch.effects], self.sr, bpm)
 
     def note_on(self, note: int, velocity: float) -> None:
+        """Note on."""
         self.counter += 1
         if len(self.voices) == 1:
             v = self.voices[0]
@@ -87,11 +96,13 @@ class Synth:
         v.age = self.counter
 
     def note_off(self, note: int) -> None:
+        """Note off."""
         for v in self.voices:
             if v.active and v.note == note and v.amp_env.stage != RELEASE:
                 v.note_off()
 
     def _render_voices(self, n: int) -> np.ndarray:
+        """Render voices."""
         out = np.zeros((n, 2), dtype=np.float32)
         for v in self.voices:
             if v.active:
@@ -99,6 +110,7 @@ class Synth:
         return out
 
     def render(self, n: int, events: list[NoteEvent]) -> np.ndarray:
+        """Render."""
         out = np.zeros((n, 2), dtype=np.float32)
         pos = 0
         for ev in sorted(events):

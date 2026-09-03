@@ -43,12 +43,15 @@ def _sweep_lp(x: np.ndarray, f_start: float, f_end: float, sr: int, chunks: int 
 
 
 class RiserKit:
+    """Riserkit."""
     def __init__(self, sr: int, rng: np.random.Generator, bpm: float, volume: float = 0.6):
+        """Initialize."""
         self.sr, self.rng, self.volume = sr, rng, volume
         self.active: list[tuple[np.ndarray, int, float]] = []
         self.set_bpm(bpm)
 
     def set_bpm(self, bpm: float) -> None:
+        """Set bpm."""
         self.bpm = bpm
         sr, rng = self.sr, self.rng
         bar = int(sr * 16 * 60.0 / bpm / 4.0)
@@ -93,6 +96,7 @@ class RiserKit:
         }
 
     def render(self, n: int, events: list[NoteEvent]) -> np.ndarray:
+        """Render."""
         out = np.zeros((n, 2), dtype=np.float32)
         for ev in events:
             name = NOTE_TO_RISER.get(ev.note)

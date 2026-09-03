@@ -16,6 +16,7 @@ _MAX_STR_LEN = 64
 
 
 def note_to_seconds(value: float | str, bpm: float) -> float:
+    """Note to seconds."""
     if isinstance(value, (int, float)):
         v = float(value)
         if not 0.001 <= v <= _MAX_NOTE_SEC:
@@ -47,11 +48,14 @@ def note_to_seconds(value: float | str, bpm: float) -> float:
 
 
 class Effect:
+    """Effect."""
     def process(self, x: np.ndarray) -> np.ndarray:  # pragma: no cover
+        """Process."""
         raise NotImplementedError
 
 
 class Chorus(Effect):
+    """Chorus."""
     def __init__(
         self, sr: int, bpm: float, rate: float = 0.5, depth: float = 0.003, mix: float = 0.4
     ):
@@ -63,6 +67,7 @@ class Chorus(Effect):
         self.depth, self.base, self.mix = depth * sr, 0.02 * sr, mix
 
     def process(self, x: np.ndarray) -> np.ndarray:
+        """Process."""
         n = len(x)
         idx = (self.pos + np.arange(n)) % self.size
         self.buf[idx] = x
@@ -79,6 +84,7 @@ class Chorus(Effect):
 
 
 class Delay(Effect):
+    """Delay."""
     def __init__(
         self,
         sr: int,
@@ -88,6 +94,7 @@ class Delay(Effect):
         mix: float = 0.3,
         pingpong: bool = True,
     ):
+        """Initialize."""
         sec = note_to_seconds(time, bpm)
         # clamp final pour rester < _MAX_DELAY_SEC (défense en profondeur)
         sec = float(np.clip(sec, 0.001, _MAX_DELAY_SEC))
@@ -103,6 +110,7 @@ class Delay(Effect):
         self.pingpong = bool(pingpong)
 
     def process(self, x: np.ndarray) -> np.ndarray:
+        """Process."""
         n = len(x)
         out = np.empty((n, 2))
         start = 0
@@ -130,7 +138,9 @@ _SPREAD = 23
 
 
 class _Line:
+    """Line."""
     def __init__(self, length: int):
+        """Initialize."""
         self.len, self.buf, self.pos, self.zi = length, np.zeros(length), 0, np.zeros(1)
 
 
@@ -146,6 +156,7 @@ class Reverb(Effect):
         mix: float = 0.3,
         predelay: float = 0.02,
     ):
+        """Initialize."""
         scale = sr / 44100.0
         self.fb = 0.7 + 0.28 * float(np.clip(size, 0, 1))
         self.damp = float(np.clip(damping, 0, 0.95))
@@ -157,6 +168,7 @@ class Reverb(Effect):
         self.pre_line = _Line(self.pre + 8192) if self.pre else None
 
     def _comb(self, c: _Line, x: np.ndarray) -> np.ndarray:
+        """Comb."""
         out = np.empty_like(x)
         start = 0
         while start < len(x):
@@ -172,6 +184,7 @@ class Reverb(Effect):
 
     @staticmethod
     def _allpass(a: _Line, x: np.ndarray) -> np.ndarray:
+        """Allpass."""
         out = np.empty_like(x)
         start = 0
         while start < len(x):
@@ -186,6 +199,7 @@ class Reverb(Effect):
         return out
 
     def _predelay(self, x: np.ndarray) -> np.ndarray:
+        """Predelay."""
         if not self.pre_line:
             return x
         p = self.pre_line
@@ -203,6 +217,7 @@ class Reverb(Effect):
         return out
 
     def process(self, x: np.ndarray) -> np.ndarray:
+        """Process."""
         mono = self._predelay(x.astype(np.float64).mean(axis=1)) * 0.03
         out = np.empty((len(x), 2))
         for ch in (0, 1):
@@ -214,6 +229,7 @@ class Reverb(Effect):
 
 
 class GatedReverb(Effect):
+    """Gatedreverb."""
     def __init__(
         self,
         sr: int,
@@ -223,6 +239,7 @@ class GatedReverb(Effect):
         threshold: float = 0.1,
         mix: float = 0.5,
     ):
+        """Initialize."""
         self.rev = Reverb(sr, bpm, size=size, damping=0.3, mix=1.0, predelay=0.0)
         # hold borné à 2s max pour éviter buffer/état géant
         hold = float(np.clip(hold, 0.01, _MAX_DELAY_SEC))
@@ -231,6 +248,7 @@ class GatedReverb(Effect):
         self.open_left = 0
 
     def process(self, x: np.ndarray) -> np.ndarray:
+        """Process."""
         n = len(x)
         wet = self.rev.process(x)
         gate = np.zeros(n)
@@ -248,10 +266,13 @@ class GatedReverb(Effect):
 
 
 class Limiter(Effect):
+    """Limiter."""
     def __init__(self, sr: int, bpm: float, threshold: float = 0.9, release: float = 0.1):
+        """Initialize."""
         self.thr, self.coef, self.gain = threshold, float(np.exp(-1.0 / (release * sr))), 1.0
 
     def process(self, x: np.ndarray) -> np.ndarray:
+        """Process."""
         n = len(x)
         peak = float(np.abs(x).max()) if n else 0.0
         target = min(1.0, self.thr / peak) if peak > 0 else 1.0
@@ -269,9 +290,11 @@ class Sidechain:
     """Ducking envelope triggered at sample offsets; gain = 1 - depth * exp(-t/release)."""
 
     def __init__(self, sr: int, depth: float = 0.5, release: float = 0.25):
+        """Initialize."""
         self.depth, self.rel, self.t = depth, max(1.0, release * sr), 10**9
 
     def gain(self, n: int, triggers: list[int]) -> np.ndarray:
+        """Gain."""
         g = np.empty(n)
         pos = 0
         for tr in sorted(triggers) + [n]:
@@ -298,12 +321,14 @@ class Gate(Effect):
         duty: float = 0.5,
         smooth: float = 0.002,
     ):
+        """Initialize."""
         self.period = max(2.0, note_to_seconds(rate, bpm) * sr)
         self.depth, self.duty = float(np.clip(depth, 0, 1)), float(np.clip(duty, 0.05, 0.95))
         self.coef = float(np.exp(-1.0 / max(1.0, smooth * sr)))
         self.pos, self.prev = 0.0, 1.0
 
     def process(self, x: np.ndarray) -> np.ndarray:
+        """Process."""
         n = len(x)
         t = (self.pos + np.arange(n)) % self.period
         g = np.where(t < self.duty * self.period, 1.0, 1.0 - self.depth)
@@ -325,6 +350,7 @@ class Bitcrush(Effect):
         self.hold = np.zeros(2)
 
     def process(self, x: np.ndarray) -> np.ndarray:
+        """Process."""
         n = len(x)
         idx = np.arange(n) + self.phase
         src = (idx // self.k) * self.k - self.phase
@@ -350,6 +376,7 @@ class LoFi(Effect):
         noise: float = 0.004,
         mix: float = 1.0,
     ):
+        """Initialize."""
         self.crush = Bitcrush(sr, bpm, bits, downsample)
         self.lp, self.cutoff = Filter("lp", sr), cutoff
         self.wob = Chorus(sr, bpm, rate=0.4, depth=wobble, mix=1.0)
@@ -357,6 +384,7 @@ class LoFi(Effect):
         self.rng = np.random.default_rng(1234)
 
     def process(self, x: np.ndarray) -> np.ndarray:
+        """Process."""
         y = self.crush.process(x)
         y = self.lp.process(y, self.cutoff, 0.1)
         y = self.wob.process(y)
@@ -371,11 +399,13 @@ class Distortion(Effect):
     def __init__(
         self, sr: int, bpm: float, drive: float = 4.0, tone: float = 4000, mix: float = 1.0
     ):
+        """Initialize."""
         self.drive = max(1.0, float(drive))
         self.lp, self.tone, self.mix = Filter("lp", sr), tone, mix
         self.comp = 1.0 / np.tanh(self.drive * 0.5)
 
     def process(self, x: np.ndarray) -> np.ndarray:
+        """Process."""
         y = np.tanh(x * self.drive) * self.comp * 0.5
         y = self.lp.process(y.astype(np.float32), self.tone, 0.0)
         return (x * (1 - self.mix) + y * self.mix).astype(np.float32)
@@ -387,10 +417,12 @@ class AutoPan(Effect):
     def __init__(
         self, sr: int, bpm: float, rate: float | str = "1/2", depth: float = 0.8, wave: str = "sine"
     ):
+        """Initialize."""
         hz = 1.0 / note_to_seconds(rate, bpm) if isinstance(rate, str) else float(rate)
         self.lfo, self.depth = LFO(wave, hz, sr), float(np.clip(depth, 0, 1))
 
     def process(self, x: np.ndarray) -> np.ndarray:
+        """Process."""
         pan = self.depth * self.lfo.render(len(x))
         angle = (pan + 1.0) * np.pi / 4.0
         mono = x.mean(axis=1)
@@ -413,6 +445,7 @@ class Phaser(Effect):
         mix: float = 0.5,
         feedback: float = 0.3,
     ):
+        """Initialize."""
         hz = 1.0 / note_to_seconds(rate, bpm) if isinstance(rate, str) else float(rate)
         self.sr, self.lfo = sr, LFO("triangle", hz, sr)
         self.depth, self.mix = float(np.clip(depth, 0, 1)), mix
@@ -422,6 +455,7 @@ class Phaser(Effect):
         self.last = np.zeros(2)
 
     def process(self, x: np.ndarray) -> np.ndarray:
+        """Process."""
         n = len(x)
         lfo = self.lfo.render(n)
         out = np.empty((n, 2))
@@ -454,6 +488,7 @@ class Flanger(Effect):
         feedback: float = 0.5,
         mix: float = 0.5,
     ):
+        """Initialize."""
         hz = 1.0 / note_to_seconds(rate, bpm) if isinstance(rate, str) else float(rate)
         if not 0.01 <= hz <= 20:
             raise ValueError(f"flanger rate out of range: {hz}")
@@ -469,6 +504,7 @@ class Flanger(Effect):
         self.pos = 0
 
     def process(self, x: np.ndarray) -> np.ndarray:
+        """Process."""
         n = len(x)
         lfo = self.lfo.render(n)
         out = np.empty((n, 2))
@@ -505,6 +541,7 @@ _REGISTRY = {
 
 
 def build_effects(specs: list[dict], sr: int, bpm: float) -> list[Effect]:
+    """Build effects."""
     if not isinstance(specs, list):
         raise ValueError("effects must be a list")
     if len(specs) > _MAX_EFFECTS_PER_LAYER:

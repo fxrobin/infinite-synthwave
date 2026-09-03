@@ -41,6 +41,7 @@ MAX_TRACK_SECTIONS = 8  # safety net when sections are forced by hand
 
 
 class Section(StrEnum):
+    """Section."""
     INTRO = "intro"
     VERSE = "verse"
     CHORUS = "chorus"
@@ -142,6 +143,7 @@ _DRUM_LEVELS = {
 
 @dataclass(frozen=True)
 class BarPlan:
+    """Barplan."""
     bar: int
     section: Section
     section_bar: int
@@ -164,6 +166,7 @@ class BarPlan:
 
 
 class Arranger:
+    """Arranger."""
     def __init__(
         self,
         rng: np.random.Generator,
@@ -211,6 +214,7 @@ class Arranger:
             self.transition_requested = True
 
     def force_next_section(self) -> None:
+        """Force next section."""
         self.section_bar = self.section_len
 
     def draw_bpm(self) -> float:
@@ -225,9 +229,11 @@ class Arranger:
 
     # ----- track / section bookkeeping -----
     def _bar_seconds(self) -> float:
+        """Bar seconds."""
         return 4.0 * 60.0 / self.bpm
 
     def _new_track(self) -> None:
+        """New track."""
         self.track += 1
         self.track_bar, self.track_sections = 0, 0
         self.theme = gen_theme(self.rng, self.mood.drum_density)  # one theme per track
@@ -236,9 +242,11 @@ class Arranger:
         self.track_bars = max(bars, SECTION_BARS[Section.INTRO] + 8 + SECTION_BARS[Section.OUTRO])
 
     def _density(self) -> float:
+        """Density."""
         return self.mood.drum_density * (0.3 if self.section == Section.INTRO else 1.0)
 
     def _new_styles(self) -> None:
+        """New styles."""
         r = self.rng
         styles = self.mood.bass_styles or {"eighths": 3, "octaves": 2, "syncopated": 1}
         w = np.array(list(styles.values()), dtype=float)
@@ -276,6 +284,7 @@ class Arranger:
         self.fx = self._section_fx()
 
     def _section_fx(self) -> dict[str, list[dict]]:
+        """Section fx."""
         r, fx = self.rng, {}
         energy = self.mood.drum_density
         if self.section == Section.CHORUS:
@@ -347,6 +356,7 @@ class Arranger:
         )
 
     def _track_outro_due(self) -> bool:
+        """Track outro due."""
         room = self.track_bars - SECTION_BARS[Section.OUTRO] - self.track_bar
         return room < 8 or self.track_sections >= MAX_TRACK_SECTIONS
 
@@ -385,6 +395,7 @@ class Arranger:
         self.progression = [pivot] * SECTION_BARS[Section.TRANSITION]
 
     def _start_section(self) -> None:
+        """Start section."""
         self.sections_done += 1
         self.track_sections += 1
         if self._final_outro_due():
@@ -416,6 +427,7 @@ class Arranger:
 
     # ----- per-bar helpers -----
     def _going_to_chorus(self) -> bool:
+        """Going to chorus."""
         return self.next_section == Section.CHORUS and self.section not in (
             Section.OUTRO,
             Section.TRANSITION,
@@ -429,6 +441,7 @@ class Arranger:
         return self.section == Section.CHORUS and self.mid_drop and self.section_bar == 7
 
     def _drum_level(self) -> int:
+        """Drum level."""
         level = 2
         for at, lvl in _DRUM_LEVELS.get(self.section, ()):
             if self.section_bar >= at:
@@ -436,6 +449,7 @@ class Arranger:
         return level
 
     def _gains(self, predrop: bool) -> dict[str, float]:
+        """Gains."""
         gains = dict(_GAINS[self.section])
         for layer, at in _ENTRY.get(self.section, {}).items():
             if self.section_bar < at:
@@ -451,6 +465,7 @@ class Arranger:
         return gains
 
     def _drums(self, r: np.random.Generator, predrop: bool, density: float) -> Pattern:
+        """Drums."""
         if self.section == Section.TRANSITION:
             return []
         first, last = self.section_bar == 0, self.section_bar == self.section_len - 1
@@ -546,6 +561,7 @@ class Arranger:
         out = {k: dict(v) for k, v in self.gestures.items()}
 
         def mul(layer: str, path: str, factor: float) -> None:
+            """Mul."""
             out.setdefault(layer, {})
             out[layer][path] = out[layer].get(path, 1.0) * factor
 
@@ -566,6 +582,7 @@ class Arranger:
         return {k: {p: round(f, 4) for p, f in v.items()} for k, v in out.items() if v}
 
     def _silence(self) -> BarPlan:
+        """Silence."""
         plan = BarPlan(
             self.bar,
             Section.OUTRO,
@@ -582,6 +599,7 @@ class Arranger:
         return plan
 
     def next_bar(self) -> BarPlan:
+        """Next bar."""
         if self.finished or (self.total_bars is not None and self.bar >= self.total_bars):
             self.finished = True
             return self._silence()

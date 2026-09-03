@@ -10,11 +10,14 @@ from .oscillator import Oscillator
 
 
 def midi_to_hz(note: float) -> float:
+    """Midi to hz."""
     return 440.0 * 2.0 ** ((note - 69.0) / 12.0)
 
 
 class Voice:
+    """Voice."""
     def __init__(self, patch: PatchModel, sr: int, rng: np.random.Generator):
+        """Initialize."""
         self.patch, self.sr = patch, sr
         self.oscs = [
             Oscillator(
@@ -67,14 +70,17 @@ class Voice:
         self.glide_coef = float(np.exp(-1.0 / (patch.glide * sr))) if patch.glide > 0 else 0.0
 
     def _set_env(self, env: ADSR, a: float, d: float, sus: float, r: float) -> None:
+        """Set env."""
         env.a, env.d = max(1, int(a * self.sr)), max(1, int(d * self.sr))
         env.s, env.r = float(np.clip(sus, 0.0, 1.0)), max(1, int(r * self.sr))
 
     @property
     def active(self) -> bool:
+        """Active."""
         return not self.amp_env.finished
 
     def note_on(self, note: int, velocity: float, legato: bool = False) -> None:
+        """Note on."""
         self.note, self.velocity = note, float(velocity)
         self.target_freq = midi_to_hz(note)
         if not (legato and self.glide_coef):
@@ -85,11 +91,13 @@ class Voice:
                 self.filt_env.gate_on()
 
     def note_off(self) -> None:
+        """Note off."""
         self.amp_env.gate_off()
         if self.filt_env:
             self.filt_env.gate_off()
 
     def render(self, n: int) -> np.ndarray:
+        """Render."""
         p = self.patch
         lfo = self.lfo.render(n) if self.lfo else None
         lfo_mean = float(lfo.mean()) if lfo is not None else 0.0

@@ -8,6 +8,7 @@ WAVES = ("saw", "square", "triangle", "sine", "noise", "fm")
 
 
 def _polyblep(t: np.ndarray, dt: float) -> np.ndarray:
+    """Polyblep."""
     out = np.zeros_like(t)
     m = t < dt
     x = t[m] / dt
@@ -50,6 +51,7 @@ def render_wave(
 
 
 class Oscillator:
+    """Oscillator."""
     def __init__(  # noqa: PLR0913 - DSP voice needs many params (bundled in OscSpec in caller)
         self,
         wave: str,
@@ -85,6 +87,7 @@ class Oscillator:
         self.norm = self.level / np.sqrt(self.unison)
 
     def render(self, freq_hz: float, n: int, pwm: float | None = None) -> np.ndarray:
+        """Render."""
         out = np.zeros((n, 2), dtype=np.float64)
         pwm = self.pwm if pwm is None else pwm
         idx = np.arange(1, n + 1)

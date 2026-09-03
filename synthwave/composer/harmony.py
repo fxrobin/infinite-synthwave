@@ -86,33 +86,40 @@ _QUALITY = {
 
 @dataclass(frozen=True)
 class Chord:
+    """Chord."""
     root_pc: int
     degree: int
     intervals: tuple[int, ...]
 
     def notes(self, octave: int = 4) -> list[int]:
+        """Notes."""
         root = 12 * octave + self.root_pc
         return [root + i for i in self.intervals]
 
     def bass_note(self) -> int:
+        """Bass note."""
         return 12 * 3 + self.root_pc  # 36..47
 
     @property
     def name(self) -> str:
+        """Name."""
         return NOTE_NAMES[self.root_pc % 12] + _QUALITY.get(self.intervals, "")
 
 
 class Harmony:
+    """Harmony."""
     MINOR = (0, 2, 3, 5, 7, 8, 10)
     MAJOR = (0, 2, 4, 5, 7, 9, 11)
 
     def __init__(self, rng: np.random.Generator, mood: Mood):
+        """Initialize."""
         self.rng, self.mood = rng, mood
         self.tonic = int(rng.integers(0, 12))
         self.current: str | None = None
         self.set_mood(mood)
 
     def set_mood(self, mood: Mood) -> None:
+        """Set mood."""
         self.mood = mood
         self.mode = (
             self.MAJOR
@@ -122,10 +129,12 @@ class Harmony:
 
     @property
     def key_name(self) -> str:
+        """Key name."""
         names = {v: k for k, v in SCALES.items()}
         return NOTE_NAMES[self.tonic] + " " + names.get(self.mode, "minor").replace("_", " ")
 
     def chord_for_degree(self, deg: int) -> Chord:
+        """Chord for degree."""
         s = self.mode
         root = s[deg % 7]
         stack = (0, 2, 4, 6) if self.mood.sevenths else (0, 2, 4)
@@ -133,6 +142,7 @@ class Harmony:
         return Chord((self.tonic + root) % 12, deg % 7, intervals)
 
     def next_progression(self) -> list[Chord]:
+        """Next progression."""
         names = [n for n in PROGRESSIONS if self.mood.progressions.get(n, 0) > 0]
         w = np.array(
             [self.mood.progressions[n] * (0.25 if n == self.current else 1.0) for n in names],
@@ -142,9 +152,11 @@ class Harmony:
         return [self.chord_for_degree(d) for d in PROGRESSIONS[self.current]]
 
     def modulate(self) -> None:
+        """Modulate."""
         self.tonic = (self.tonic + int(self.rng.choice([5, 7, -3, 3]))) % 12
 
     def pitch_classes(self, tonic: int | None = None, mode: tuple[int, ...] | None = None) -> set:
+        """Pitch classes."""
         t = self.tonic if tonic is None else tonic
         return {(t + i) % 12 for i in (mode or self.mode)}
 
@@ -181,6 +193,7 @@ class Harmony:
         prev_pcs = {(prev.root_pc + i) % 12 for i in prev.intervals}
 
         def score(deg: int) -> tuple[int, int]:
+            """Score."""
             c = self.chord_for_degree(deg)
             pcs = {(c.root_pc + i) % 12 for i in c.intervals}
             return (int(c.root_pc == prev.root_pc), len(pcs & prev_pcs))
@@ -188,5 +201,6 @@ class Harmony:
         return self.chord_for_degree(max(range(7), key=score))
 
     def scale_notes(self, low: int, high: int) -> list[int]:
+        """Scale notes."""
         pcs = {(self.tonic + i) % 12 for i in self.mode}
         return [n for n in range(low, high + 1) if n % 12 in pcs]

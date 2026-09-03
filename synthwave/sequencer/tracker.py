@@ -6,12 +6,15 @@ from .transport import Transport
 
 
 class Tracker:
+    """Tracker."""
     def __init__(self, transport: Transport, arranger):
+        """Initialize."""
         self.transport, self.arranger = transport, arranger
         self.plan: BarPlan | None = None
         self.pending: list[tuple[int, str, int]] = []  # (absolute off time, layer, note)
 
     def advance(self, n: int) -> tuple[dict[str, list[NoteEvent]], BarPlan | None]:
+        """Advance."""
         events: dict[str, list[NoteEvent]] = {layer: [] for layer in LAYERS}
         base = self.transport.clock
         new_plan = None
