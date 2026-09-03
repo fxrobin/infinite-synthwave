@@ -124,8 +124,9 @@ def _validate_export_path(path: str) -> Path:
 
 
 def export_wav(renderer: Renderer, seconds: float, path: str, blocksize: int = 1024) -> int:
-    """Render offline until `seconds` reached (and, in duration mode, until the
-    outro finishes).
+    """
+    Render offline until `seconds` reached (and, in duration mode, until the outro
+    finishes).
 
     Format follows the extension: .wav (PCM 16 bit), .flac, .ogg, .mp3.
     """

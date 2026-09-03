@@ -1,5 +1,5 @@
-"""Transition one-shots (reverse cymbal, uplifter, scream, impact) synthesised
-per tempo.
+"""Transition one-shots (reverse cymbal, uplifter, scream, impact) synthesised per
+tempo.
 """
 
 from __future__ import annotations
@@ -21,9 +21,7 @@ NOTE_TO_RISER = {v: k for k, v in RISER_NOTES.items()}
 
 
 def _stereo(x: np.ndarray, gain: float, sr: int = 44100, edge_ms: float = 3.0) -> np.ndarray:
-    """Normalise, apply short fades at both ends (no clicks) and duplicate to
-    stereo.
-    """
+    """Normalise, apply short fades at both ends (no clicks) and duplicate to stereo."""
     x = x / max(1e-9, float(np.abs(x).max())) * gain
     k = min(len(x) // 2, int(sr * edge_ms / 1000.0))
     if k > 0:

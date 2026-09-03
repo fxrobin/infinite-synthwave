@@ -1,6 +1,4 @@
-"""Key, chords with sevenths, and a Markov chain over synthwave
-progressions.
-"""
+"""Key, chords with sevenths, and a Markov chain over synthwave progressions."""
 
 from __future__ import annotations
 
@@ -193,8 +191,8 @@ class Harmony:
         self.current = None
 
     def pivot_chord(self, prev: Chord) -> Chord:
-        """Chord of the current key closest to `prev`: same root if it exists,
-        else most common tones; used to bridge two keys during a transition.
+        """Chord of the current key closest to `prev`: same root if it exists, else most
+        common tones; used to bridge two keys during a transition.
         """
         prev_pcs = {(prev.root_pc + i) % 12 for i in prev.intervals}
 
