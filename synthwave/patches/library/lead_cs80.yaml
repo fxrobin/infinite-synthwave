@@ -1,0 +1,19 @@
+name: lead_cs80
+polyphony: 1
+glide: 0.1
+volume: 1.4
+oscillators:
+  - {wave: saw, level: 0.6}
+  - {wave: square, pwm: 0.5, level: 0.35}
+  - {wave: sine, octave: -1, level: 0.3}
+amp_env: {attack: 0.15, decay: 0.5, sustain: 0.85, release: 0.8}
+filter:
+  type: lp
+  cutoff: 900
+  resonance: 0.2
+  env: {attack: 0.4, decay: 1.2, sustain: 0.6, release: 0.6, amount: 1400}
+lfo: {wave: sine, rate: 4.8, target: pitch, amount: 0.25}
+effects:
+  - {type: chorus, rate: 0.4, depth: 0.004, mix: 0.4}
+  - {type: delay, time: "1/4", feedback: 0.45, mix: 0.35, pingpong: true}
+  - {type: reverb, size: 0.92, damping: 0.45, mix: 0.4, predelay: 0.03}

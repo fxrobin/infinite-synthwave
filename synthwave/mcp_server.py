@@ -1,91 +1,44 @@
 """MCP server (stdio) piloting a live Player. Run with: synthwave mcp"""
 from __future__ import annotations
 
-import threading
-
 from mcp.server.mcpserver import MCPServer
 
 from .audio.renderer import RenderConfig, Renderer
-from .composer.moods import MOODS
 from .patches import loader
+from .session import SESSION
 
 mcp = MCPServer("infinite-synthwave")
-_lock = threading.Lock()
-_player = None
-_renderer: Renderer | None = None
-
-
-def _live() -> Renderer | None:
-    if _player is None or not _player.running:
-        return None
-    return _renderer
 
 
 def _command(fn) -> dict:
-    r = _live()
-    if r is None:
-        return {"ok": False, "error": "player not running; call start first"}
-    done = threading.Event()
-    box: dict = {}
-
-    def run():
-        try:
-            fn(r)
-        except Exception as e:
-            box["error"] = str(e)
-        finally:
-            done.set()
-
-    r.submit(run)
-    done.wait(2.0)
-    if "error" in box:
-        return {"ok": False, "error": box["error"]}
-    return {"ok": True, "status": r.status()}
+    return SESSION.command(fn)
 
 
 @mcp.tool()
 def start(mood: str | None = None, bpm: float | None = None, seed: int | None = None,
-          duration_s: float | None = None, bpm_range: list[float] | None = None) -> dict:
+          duration_s: float | None = None, bpm_range: list[float] | None = None,
+          track_s: float = 210.0) -> dict:
     """Start synthwave on the audio output (infinite unless duration_s given).
 
     mood None: drawn at random and redrawn at every transition; a given mood is kept.
     bpm fixes the tempo; bpm_range=[low, high] bounds the random tempo drawn at start
-    and at each transition (default: the mood's own range)."""
-    global _player, _renderer
-    from .audio.output import Player
-    with _lock:
-        if _player is not None and _player.running:
-            return {"ok": False, "error": "already running; call stop first"}
-        try:
-            rng = (float(bpm_range[0]), float(bpm_range[1])) if bpm_range else None
-            _renderer = Renderer(RenderConfig(mood=mood, bpm=bpm, seed=seed,
-                                              duration_s=duration_s, bpm_range=rng))
-            _player = Player(_renderer)
-            _player.start()
-        except Exception as e:
-            _player = None
-            return {"ok": False, "error": str(e)}
-    return {"ok": True, "status": _renderer.status()}
+    and at each transition (default: the mood's own range). track_s is the target length of
+    one track (intro -> outro, then a transition to the next track)."""
+    rng = (float(bpm_range[0]), float(bpm_range[1])) if bpm_range else None
+    return SESSION.start(RenderConfig(mood=mood, bpm=bpm, seed=seed, duration_s=duration_s,
+                                      bpm_range=rng, track_s=track_s))
 
 
 @mcp.tool()
 def stop() -> dict:
     """Stop playback."""
-    global _player
-    with _lock:
-        if _player is None:
-            return {"ok": False, "error": "not running"}
-        _player.stop()
-        _player = None
-    return {"ok": True}
+    return SESSION.stop()
 
 
 @mcp.tool()
 def status() -> dict:
     """Current transport, key, chord, section and layer state."""
-    if _live() is None:
-        return {"running": False, "moods": list(MOODS)}
-    return {"running": True, "underruns": _player.underruns, **_renderer.status()}
+    return SESSION.status()
 
 
 @mcp.tool()
@@ -131,6 +84,13 @@ def set_layer_effects(layer: str, effects: list[dict] | None = None) -> dict:
     """Manual insert effects for a layer or 'master', e.g. [{"type":"gate","rate":"1/16"}],
     [{"type":"lofi","bits":8}], [{"type":"bitcrush","bits":6,"downsample":4}]. None = auto."""
     return _command(lambda r: r.set_layer_effects(layer, effects))
+
+
+@mcp.tool()
+def set_auto_tweaks(enabled: bool) -> dict:
+    """Enable/disable the live composer's patch gestures (filter sweeps before a drop, detune,
+    LFO changes per section). Manual set_patch_param edits are kept underneath."""
+    return _command(lambda r: r.set_auto_tweaks(enabled))
 
 
 @mcp.tool()

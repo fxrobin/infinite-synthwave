@@ -1,0 +1,16 @@
+name: pad_strings
+polyphony: 6
+volume: 0.55
+oscillators:
+  - {wave: saw, unison: 5, detune: 12, level: 0.6, spread: 1.0}
+  - {wave: saw, octave: 1, unison: 2, detune: 8, level: 0.2, spread: 0.8}
+amp_env: {attack: 1.2, decay: 0.8, sustain: 0.9, release: 2.2}
+filter:
+  type: lp
+  cutoff: 1800
+  resonance: 0.1
+  env: {attack: 1.5, decay: 1.5, sustain: 0.6, release: 2.0, amount: 600}
+lfo: {wave: sine, rate: 0.2, target: cutoff, amount: 250}
+effects:
+  - {type: chorus, rate: 0.4, depth: 0.004, mix: 0.5}
+  - {type: reverb, size: 0.92, damping: 0.5, mix: 0.4, predelay: 0.03}

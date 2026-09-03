@@ -12,8 +12,15 @@ RISER_NOTES = {"reverse_cymbal": 60, "uplifter": 61, "scream": 62, "impact": 63,
 NOTE_TO_RISER = {v: k for k, v in RISER_NOTES.items()}
 
 
-def _stereo(x: np.ndarray, gain: float) -> np.ndarray:
+def _stereo(x: np.ndarray, gain: float, sr: int = 44100, edge_ms: float = 3.0) -> np.ndarray:
+    """Normalise, apply short fades at both ends (no clicks) and duplicate to stereo."""
     x = x / max(1e-9, float(np.abs(x).max())) * gain
+    k = min(len(x) // 2, int(sr * edge_ms / 1000.0))
+    if k > 0:
+        ramp = np.linspace(0.0, 1.0, k)
+        x = x.copy()
+        x[:k] *= ramp
+        x[-k:] *= ramp[::-1]
     return np.stack([x, x], axis=1).astype(np.float32)
 
 
@@ -52,14 +59,19 @@ class RiserKit:
         saw = 2.0 * ((np.cumsum(f) / sr) % 1.0) - 1.0
         up = _sweep_lp(saw * 0.6 + rng.uniform(-1, 1, n) * 0.4, 300, 12000, sr)
         up = up * (np.arange(n) / n) ** 1.5
-        # scream: FM with rising pitch and index, saturated, cut at the bar end
+        # scream: band-limited siren. Additive harmonics (1/k) on a pitch gliding up two
+        # octaves with vibrato, filter opening, soft saturation, swelling to the bar end.
         t3 = np.arange(bar) / bar
-        car = 300.0 * 2.0 ** (2.2 * t3)
-        idx = 1.0 + 7.0 * t3
-        ph = np.cumsum(car) / sr
-        mod = np.sin(2 * np.pi * ph * 1.5)
-        scr = np.tanh(3.0 * np.sin(2 * np.pi * ph + idx * mod))
-        scr = scr * np.minimum(1.0, t3 * 4.0) * np.exp((t3 - 1.0) * 2.0)
+        vib = 1.0 + 0.012 * np.sin(2 * np.pi * 6.0 * np.arange(bar) / sr) * t3
+        f0 = 220.0 * 2.0 ** (2.0 * t3) * vib
+        ph = 2 * np.pi * np.cumsum(f0) / sr
+        scr = np.zeros(bar)
+        for h in range(1, 7):
+            if 220.0 * 4.0 * h < sr * 0.45:            # keep every partial below Nyquist
+                scr += np.sin(h * ph) / h
+        scr = _sweep_lp(scr, 900, 6000, sr)
+        scr = np.tanh(1.4 * scr / max(1e-9, float(np.abs(scr).max())))
+        scr = scr * np.minimum(1.0, t3 * 4.0) * (0.35 + 0.65 * t3 ** 2)
         # impact: sub boom + noise burst, decaying
         n4 = int(sr * 1.2)
         t4 = np.arange(n4) / sr
@@ -67,9 +79,9 @@ class RiserKit:
         burst = _sweep_lp(rng.uniform(-1, 1, n4), 6000, 200, sr) * np.exp(-t4 / 0.25)
         imp = np.tanh(2.0 * (boom + 0.5 * burst))
         self.samples = {
-            "reverse_cymbal": _stereo(rev, 0.7), "reverse_short": _stereo(short, 0.6),
-            "uplifter": _stereo(up, 0.55), "scream": _stereo(scr, 0.6),
-            "impact": _stereo(imp, 0.9),
+            "reverse_cymbal": _stereo(rev, 0.7, sr), "reverse_short": _stereo(short, 0.6, sr),
+            "uplifter": _stereo(up, 0.55, sr), "scream": _stereo(scr, 0.4, sr),
+            "impact": _stereo(imp, 0.9, sr),
         }
 
     def render(self, n: int, events: list[NoteEvent]) -> np.ndarray:

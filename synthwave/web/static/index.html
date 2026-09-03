@@ -1,0 +1,416 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Infinite Synthwave</title>
+<style>
+  :root {
+    --bg: #0a0614; --bg2: #120b24; --card: rgba(22, 13, 46, .78); --line: rgba(255,255,255,.08);
+    --txt: #ece6ff; --muted: #9a8fc2; --pink: #ff2d95; --cyan: #19e6ff; --violet: #8b5cf6;
+    --amber: #ffb547; --green: #4ade80; --radius: 14px;
+    --font: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--txt); font-family: var(--font); }
+  body {
+    min-height: 100vh;
+    background:
+      radial-gradient(1200px 600px at 50% -10%, rgba(255,45,149,.18), transparent 60%),
+      radial-gradient(900px 500px at 90% 110%, rgba(25,230,255,.12), transparent 60%),
+      linear-gradient(180deg, var(--bg) 0%, var(--bg2) 100%);
+  }
+  body::before {
+    content: ""; position: fixed; inset: 0; pointer-events: none; opacity: .18;
+    background-image: linear-gradient(rgba(139,92,246,.6) 1px, transparent 1px),
+                      linear-gradient(90deg, rgba(139,92,246,.6) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: linear-gradient(180deg, transparent 55%, black 100%);
+    transform: perspective(600px) rotateX(55deg) translateY(30%); transform-origin: bottom;
+  }
+  header {
+    position: sticky; top: 0; z-index: 5; display: flex; flex-wrap: wrap; gap: 12px;
+    align-items: center; padding: 14px 22px; backdrop-filter: blur(14px);
+    background: rgba(10,6,20,.7); border-bottom: 1px solid var(--line);
+  }
+  h1 { margin: 0 18px 0 0; font-size: 20px; letter-spacing: .12em; text-transform: uppercase;
+       background: linear-gradient(90deg, var(--pink), var(--cyan)); -webkit-background-clip: text;
+       background-clip: text; color: transparent; font-weight: 800; }
+  .pill { padding: 5px 11px; border-radius: 999px; font-size: 12px; letter-spacing: .06em;
+          border: 1px solid var(--line); color: var(--muted); text-transform: uppercase; }
+  .pill.on { color: #071b1f; background: var(--cyan); border-color: transparent;
+             box-shadow: 0 0 18px rgba(25,230,255,.55); }
+  main { padding: 20px 22px 60px; display: grid; gap: 18px; max-width: 1500px; margin: 0 auto; }
+  .row { display: grid; gap: 18px; grid-template-columns: 1.25fr 1fr; }
+  @media (max-width: 1000px) { .row { grid-template-columns: 1fr; } }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+          padding: 16px 18px; box-shadow: 0 10px 40px rgba(0,0,0,.35); }
+  .card h2 { margin: 0 0 12px; font-size: 12px; letter-spacing: .14em; text-transform: uppercase;
+             color: var(--muted); font-weight: 600; }
+  label { font-size: 11px; color: var(--muted); letter-spacing: .06em; text-transform: uppercase; }
+  input[type=number], input[type=text], select {
+    background: rgba(0,0,0,.35); color: var(--txt); border: 1px solid var(--line);
+    border-radius: 8px; padding: 7px 9px; font: inherit; font-size: 13px; min-width: 0;
+  }
+  select option { background: #160d2e; }
+  input[type=range] { accent-color: var(--pink); width: 100%; }
+  button {
+    font: inherit; font-size: 13px; font-weight: 600; letter-spacing: .04em; cursor: pointer;
+    border: 1px solid var(--line); background: rgba(255,255,255,.05); color: var(--txt);
+    padding: 8px 14px; border-radius: 10px; transition: .15s;
+  }
+  button:hover { border-color: var(--violet); background: rgba(139,92,246,.18); }
+  button.primary { background: linear-gradient(90deg, var(--pink), #b53cff); border: none;
+                   box-shadow: 0 0 22px rgba(255,45,149,.45); }
+  button.small { padding: 4px 9px; font-size: 11px; border-radius: 7px; }
+  button.active { background: var(--pink); border-color: transparent; color: #fff; }
+  button.active.solo { background: var(--amber); color: #1d1200; }
+  .field { display: grid; gap: 4px; }
+  .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; }
+  .big { font-size: 34px; font-weight: 800; letter-spacing: .04em; line-height: 1; }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 12px; }
+  .stat { display: grid; gap: 4px; }
+  .stat .v { font-size: 20px; font-weight: 700; }
+  .bar { height: 8px; border-radius: 999px; background: rgba(255,255,255,.07); overflow: hidden; }
+  .bar > i { display: block; height: 100%; width: 0; border-radius: 999px;
+             background: linear-gradient(90deg, var(--cyan), var(--violet)); transition: width .25s; }
+  .bar.track > i { background: linear-gradient(90deg, var(--pink), var(--amber)); }
+  .section { display: inline-block; padding: 6px 14px; border-radius: 10px; font-weight: 800;
+             letter-spacing: .14em; text-transform: uppercase; font-size: 16px;
+             background: rgba(139,92,246,.2); border: 1px solid rgba(139,92,246,.5); }
+  .section.chorus { background: rgba(255,45,149,.25); border-color: var(--pink);
+                    box-shadow: 0 0 18px rgba(255,45,149,.35); }
+  .section.transition, .section.outro { background: rgba(25,230,255,.12); border-color: var(--cyan); }
+  .drop { color: var(--amber); font-weight: 800; letter-spacing: .2em; opacity: 0;
+          transition: opacity .1s; }
+  .drop.on { opacity: 1; text-shadow: 0 0 14px var(--amber); }
+  canvas { width: 100%; height: 150px; display: block; border-radius: 10px;
+           background: rgba(0,0,0,.35); }
+  .layers { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); }
+  .layer { display: grid; gap: 9px; position: relative; }
+  .layer .name { display: flex; justify-content: space-between; align-items: center;
+                 font-weight: 800; letter-spacing: .1em; text-transform: uppercase; font-size: 13px; }
+  .meter { height: 6px; border-radius: 999px; background: rgba(255,255,255,.06); overflow: hidden; }
+  .meter > i { display: block; height: 100%; width: 0;
+               background: linear-gradient(90deg, var(--green), var(--cyan) 60%, var(--pink)); }
+  .layer.off { opacity: .45; }
+  .chips { display: flex; flex-wrap: wrap; gap: 5px; }
+  .chip { font-size: 11px; padding: 3px 8px; border-radius: 999px; border: 1px solid var(--line);
+          background: rgba(25,230,255,.08); color: var(--cyan); cursor: pointer; }
+  .chip.manual { background: rgba(255,45,149,.15); color: var(--pink); }
+  .chip.add { color: var(--muted); background: transparent; border-style: dashed; }
+  .chip.tweak { background: rgba(255,181,71,.12); color: var(--amber); cursor: default; }
+  .mini { font-size: 11px; color: var(--muted); }
+  .tweak { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); }
+  .tweak .field span { font-size: 11px; color: var(--cyan); font-variant-numeric: tabular-nums; }
+  .toast { position: fixed; right: 20px; bottom: 20px; padding: 10px 14px; border-radius: 10px;
+           background: #2a1240; border: 1px solid var(--pink); font-size: 13px; opacity: 0;
+           transition: .3s; pointer-events: none; z-index: 10; }
+  .toast.on { opacity: 1; }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Infinite Synthwave</h1>
+  <span id="state" class="pill">stopped</span>
+  <div class="controls" style="margin-left:auto">
+    <div class="field"><label>Mood</label><select id="startMood"><option value="">random</option></select></div>
+    <div class="field"><label>BPM</label><input id="startBpm" type="number" min="60" max="180" placeholder="auto" style="width:80px"></div>
+    <div class="field"><label>Seed</label><input id="startSeed" type="number" placeholder="random" style="width:110px"></div>
+    <div class="field"><label>Morceau (s)</label><input id="startTrack" type="number" value="210" min="60" max="900" style="width:80px"></div>
+    <button id="btnStart" class="primary">▶ Start</button>
+    <button id="btnStop">■ Stop</button>
+  </div>
+</header>
+
+<main>
+  <div class="row">
+    <section class="card">
+      <h2>Now playing</h2>
+      <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-bottom:12px">
+        <span id="section" class="section">—</span>
+        <span id="drop" class="drop">DROP</span>
+        <span class="mini" id="pending"></span>
+        <button id="btnNext" class="small" style="margin-left:auto">Section suivante ⏭</button>
+      </div>
+      <div class="stats">
+        <div class="stat"><label>Mood</label><div class="v" id="mood">—</div></div>
+        <div class="stat"><label>Tonalité</label><div class="v" id="key">—</div></div>
+        <div class="stat"><label>Accord</label><div class="v" id="chord">—</div></div>
+        <div class="stat"><label>BPM</label><div class="v" id="bpm">—</div></div>
+        <div class="stat"><label>Morceau</label><div class="v" id="track">—</div></div>
+        <div class="stat"><label>Écoulé</label><div class="v" id="elapsed">—</div></div>
+      </div>
+      <div style="display:grid;gap:8px;margin-top:14px">
+        <div><div class="mini" id="secLabel">section</div><div class="bar"><i id="secBar"></i></div></div>
+        <div><div class="mini" id="trkLabel">morceau</div><div class="bar track"><i id="trkBar"></i></div></div>
+      </div>
+      <div class="controls" style="margin-top:16px">
+        <div class="field" style="flex:1;min-width:220px"><label>Tempo live <span id="tempoVal"></span></label>
+          <input id="tempo" type="range" min="60" max="180" step="0.5"></div>
+        <div class="field"><label>Compositeur live</label>
+          <button id="btnAuto" class="small active">gestes auto : ON</button></div>
+        <div class="field"><label>Changer de mood (via outro + transition)</label>
+          <div style="display:flex;gap:6px"><select id="liveMood"><option value="random">random</option></select>
+          <button id="btnMood" class="small">Appliquer</button></div></div>
+      </div>
+    </section>
+    <section class="card">
+      <h2>Master</h2>
+      <canvas id="scope" width="640" height="150"></canvas>
+      <div style="margin-top:10px"><div class="mini">niveau master · underruns <span id="under">0</span></div>
+        <div class="meter"><i id="masterMeter"></i></div></div>
+      <div style="margin-top:12px"><label>Effets master</label><div class="chips" id="fx-master"></div></div>
+    </section>
+  </div>
+
+  <section class="card">
+    <h2>Couches</h2>
+    <div class="layers" id="layers"></div>
+  </section>
+
+  <section class="card hidden" id="tweakCard">
+    <h2>Tweak <span id="tweakTitle" style="color:var(--pink)"></span>
+      <button id="tweakClose" class="small" style="float:right">fermer</button></h2>
+    <div class="tweak" id="tweak"></div>
+  </section>
+</main>
+<div class="toast" id="toast"></div>
+
+<script>
+const $ = (s) => document.querySelector(s);
+const state = { meta: null, st: null, tweakLayer: null, dragging: new Set() };
+const LAYER_COLORS = { drums: "#ffb547", bass: "#ff2d95", arp: "#19e6ff", pad: "#8b5cf6",
+                       lead: "#4ade80", ambient: "#c084fc", riser: "#f472b6" };
+
+function toast(msg, ok = true) {
+  const t = $("#toast"); t.textContent = msg; t.style.borderColor = ok ? "var(--cyan)" : "var(--pink)";
+  t.classList.add("on"); clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove("on"), 2200);
+}
+async function api(path, body) {
+  const res = await fetch("/api/" + path, body === undefined ? {} :
+    { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || data.ok === false) toast(data.error || ("erreur " + res.status), false);
+  return data;
+}
+const debounce = (fn, ms = 120) => { let h; return (...a) => { clearTimeout(h); h = setTimeout(() => fn(...a), ms); }; };
+
+// ---------- bootstrap ----------
+async function init() {
+  state.meta = await api("meta");
+  for (const sel of [$("#startMood"), $("#liveMood")])
+    for (const name of Object.keys(state.meta.moods)) {
+      const o = document.createElement("option"); o.value = name; o.textContent = name; sel.appendChild(o);
+    }
+  buildLayers();
+  connect();
+}
+function connect() {
+  const ws = new WebSocket((location.protocol === "https:" ? "wss://" : "ws://") + location.host + "/ws");
+  ws.onmessage = (e) => render(JSON.parse(e.data));
+  ws.onclose = () => setTimeout(connect, 1000);
+}
+
+// ---------- layers ----------
+function buildLayers() {
+  const root = $("#layers"); root.innerHTML = "";
+  for (const layer of state.meta.layers) {
+    const el = document.createElement("div"); el.className = "card layer"; el.id = "layer-" + layer;
+    el.style.borderTop = "3px solid " + LAYER_COLORS[layer];
+    const patches = state.meta.patches.filter(p => p.startsWith(layer + "_"));
+    el.innerHTML = `
+      <div class="name"><span>${layer}</span><span class="mini" data-gain></span></div>
+      <div class="meter"><i data-meter></i></div>
+      <div style="display:flex;gap:6px;align-items:center">
+        <button class="small" data-mute>M</button><button class="small" data-solo>S</button>
+        <input type="range" min="0" max="2" step="0.01" value="1" data-vol title="volume">
+        <span class="mini" data-volv>1.00</span>
+      </div>
+      ${layer === "riser" ? `<div class="mini">annonces de chorus (built-in)</div>` : `
+      <div style="display:flex;gap:6px;align-items:center">
+        <select data-patch style="flex:1">${patches.map(p => `<option>${p}</option>`).join("")}</select>
+        <button class="small" data-tweak>tweak</button>
+      </div>
+      <div class="chips" data-fx></div>
+      <div class="chips" data-tweaks></div>`}`;
+    root.appendChild(el);
+    el.querySelector("[data-mute]").onclick = () => api("layer", { layer, mute: !state.st.layers[layer].muted });
+    el.querySelector("[data-solo]").onclick = () => api("layer", { layer, solo: !state.st.layers[layer].solo });
+    const vol = el.querySelector("[data-vol]");
+    vol.oninput = debounce(() => api("layer", { layer, volume: parseFloat(vol.value) }), 80);
+    vol.onpointerdown = () => state.dragging.add(layer + ":vol");
+    vol.onpointerup = () => state.dragging.delete(layer + ":vol");
+    const ps = el.querySelector("[data-patch]");
+    if (ps) ps.onchange = () => api("patch", { layer, name: ps.value }).then(() => state.tweakLayer === layer && openTweak(layer));
+    const tw = el.querySelector("[data-tweak]");
+    if (tw) tw.onclick = () => openTweak(layer);
+  }
+}
+
+function fxChips(container, layer, specs, manual) {
+  container.innerHTML = "";
+  (specs || []).forEach((spec, i) => {
+    const c = document.createElement("span"); c.className = "chip" + (manual ? " manual" : "");
+    const params = Object.entries(spec).filter(([k]) => k !== "type").map(([k, v]) => `${k}=${v}`).join(" ");
+    c.textContent = spec.type; c.title = params + " — clic : retirer";
+    c.onclick = () => { const next = specs.filter((_, j) => j !== i); api("effects", { layer, effects: next }); };
+    container.appendChild(c);
+  });
+  const add = document.createElement("select"); add.className = "chip add";
+  add.innerHTML = `<option value="">+ effet</option>` +
+    Object.keys(state.meta.effects).map(k => `<option>${k}</option>`).join("");
+  add.onchange = () => { if (!add.value) return;
+    const spec = { type: add.value, ...state.meta.effects[add.value] };
+    api("effects", { layer, effects: [...(specs || []), spec] }); add.value = ""; };
+  container.appendChild(add);
+  if (manual) {
+    const auto = document.createElement("span"); auto.className = "chip add"; auto.textContent = "↺ auto";
+    auto.title = "rendre la main à l'arrangeur"; auto.onclick = () => api("effects", { layer, effects: null });
+    container.appendChild(auto);
+  }
+}
+
+// ---------- tweak panel ----------
+const TWEAK_FIELDS = [
+  ["volume", 0, 2, 0.01], ["glide", 0, 0.3, 0.005],
+  ["filter.cutoff", 20, 20000, 1, "log"], ["filter.resonance", 0, 1, 0.01],
+  ["filter.env.amount", 0, 5000, 10], ["filter.env.attack", 0, 3, 0.01], ["filter.env.decay", 0, 3, 0.01],
+  ["amp_env.attack", 0, 4, 0.01], ["amp_env.decay", 0, 4, 0.01], ["amp_env.sustain", 0, 1, 0.01],
+  ["amp_env.release", 0, 5, 0.01], ["lfo.rate", 0.02, 12, 0.02, "log"], ["lfo.amount", 0, 2000, 1],
+  ["oscillators.0.detune", 0, 60, 1], ["oscillators.0.level", 0, 2, 0.01], ["oscillators.0.pwm", 0.05, 0.95, 0.01],
+  ["oscillators.0.fm_index", 0, 10, 0.05], ["oscillators.0.fm_ratio", 0.25, 8, 0.05],
+  ["oscillators.1.level", 0, 2, 0.01], ["oscillators.1.detune", 0, 60, 1],
+  ["kick.gain", 0, 3, 0.05], ["kick.drive", 1, 8, 0.1], ["kick.sub", 0, 1.5, 0.05], ["kick.decay", 0.05, 1.5, 0.01],
+  ["snare.gain", 0, 2, 0.05], ["snare.reverb_mix", 0, 1, 0.01], ["snare.gate_hold", 0.05, 0.8, 0.01],
+  ["hat.gain", 0, 1.5, 0.05], ["hat.cutoff", 2000, 14000, 100], ["clap.gain", 0, 2, 0.05],
+  ["tom.gain", 0, 2, 0.05], ["crash_gain", 0, 1, 0.02],
+];
+const getPath = (o, p) => p.split(".").reduce((x, k) => (x == null ? undefined : x[k]), o);
+async function openTweak(layer) {
+  const res = await api("patch/" + layer);
+  if (!res.ok) return;
+  state.tweakLayer = layer;
+  $("#tweakCard").classList.remove("hidden");
+  $("#tweakTitle").textContent = `${layer} · ${res.name}`;
+  const root = $("#tweak"); root.innerHTML = "";
+  for (const [path, min, max, step, scale] of TWEAK_FIELDS) {
+    const v = getPath(res.patch, path);
+    if (typeof v !== "number") continue;
+    const f = document.createElement("div"); f.className = "field";
+    const toSlider = (x) => scale === "log" ? Math.log(x / min) / Math.log(max / min) : (x - min) / (max - min);
+    const fromSlider = (s) => scale === "log" ? min * Math.pow(max / min, s) : min + s * (max - min);
+    f.innerHTML = `<label>${path} <span>${fmt(v)}</span></label>
+                   <input type="range" min="0" max="1" step="0.001" value="${toSlider(v)}">`;
+    const input = f.querySelector("input"), span = f.querySelector("span");
+    input.oninput = debounce(() => {
+      let x = fromSlider(parseFloat(input.value)); x = Math.round(x / step) * step;
+      x = parseFloat(x.toFixed(4)); span.textContent = fmt(x);
+      api("patch_param", { layer, path, value: x });
+    }, 60);
+    root.appendChild(f);
+  }
+  $("#tweakCard").scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+const fmt = (x) => Math.abs(x) >= 100 ? Math.round(x).toString() : x.toFixed(x < 1 ? 3 : 2);
+$("#tweakClose").onclick = () => { state.tweakLayer = null; $("#tweakCard").classList.add("hidden"); };
+
+// ---------- render ----------
+function render(st) {
+  state.st = st;
+  const running = !!st.running;
+  $("#state").textContent = running ? "live" : "stopped";
+  $("#state").classList.toggle("on", running);
+  if (!running) { $("#section").textContent = "—"; $("#section").className = "section"; drawScope(null); return; }
+  const sec = st.section; const el = $("#section");
+  el.textContent = sec; el.className = "section " + sec;
+  $("#drop").classList.toggle("on", !!st.drop);
+  $("#pending").textContent = st.pending_mood ? `→ ${st.pending_mood} au prochain outro` :
+    (st.mood_locked ? "mood figé" : "mood aléatoire à chaque morceau");
+  $("#mood").textContent = st.mood; $("#key").textContent = st.key; $("#chord").textContent = st.chord || "—";
+  $("#bpm").textContent = st.bpm; $("#track").textContent = "#" + st.track;
+  const s = Math.round(st.elapsed_s); $("#elapsed").textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+  const secLen = { intro: 8, verse: 16, chorus: 16, break: 8, transition: 4, outro: 8 }[sec] || 16;
+  const secBar = st.bar - trackStartBar(st);
+  $("#secLabel").textContent = `${sec} · mesure ${secBarOf(st) + 1}`;
+  $("#secBar").style.width = (100 * (secBarOf(st) + 1) / secLen) + "%";
+  $("#trkLabel").textContent = `morceau ${st.track} · ${st.track_bar + 1} / ${st.track_bars} mesures`;
+  $("#trkBar").style.width = (100 * (st.track_bar + 1) / Math.max(1, st.track_bars)) + "%";
+  if (!state.dragging.has("tempo")) { $("#tempo").value = st.bpm; $("#tempoVal").textContent = st.bpm; }
+  $("#under").textContent = st.underruns ?? 0;
+  $("#masterMeter").style.width = (100 * Math.min(1, st.levels.master)) + "%";
+  fxChipsIfChanged("master", st);
+  for (const layer of state.meta.layers) {
+    const L = st.layers[layer], card = $("#layer-" + layer);
+    card.classList.toggle("off", L.gain === 0 || L.muted);
+    card.querySelector("[data-gain]").textContent = `gain ${L.gain.toFixed(2)}`;
+    card.querySelector("[data-meter]").style.width = (100 * Math.min(1, st.levels[layer] || 0)) + "%";
+    card.querySelector("[data-mute]").classList.toggle("active", L.muted);
+    card.querySelector("[data-solo]").classList.toggle("active", L.solo);
+    card.querySelector("[data-solo]").classList.toggle("solo", L.solo);
+    if (!state.dragging.has(layer + ":vol")) { card.querySelector("[data-vol]").value = L.volume;
+      card.querySelector("[data-volv]").textContent = L.volume.toFixed(2); }
+    const ps = card.querySelector("[data-patch]");
+    if (ps && ps.value !== L.patch && document.activeElement !== ps) {
+      if (![...ps.options].some(o => o.value === L.patch)) ps.add(new Option(L.patch));
+      ps.value = L.patch;
+    }
+    if (ps) fxChipsIfChanged(layer, st);
+    if (ps) tweakChips(card.querySelector("[data-tweaks]"), (st.tweaks || {})[layer]);
+  }
+  $("#btnAuto").textContent = "gestes auto : " + (st.auto_tweaks ? "ON" : "OFF");
+  $("#btnAuto").classList.toggle("active", !!st.auto_tweaks);
+  drawScope(st.scope);
+}
+function secBarOf(st) { return st.section_bar ?? 0; }
+function trackStartBar(st) { return st.bar - st.track_bar; }
+const fxCache = {};
+function fxChipsIfChanged(layer, st) {
+  const specs = st.effects[layer] || [], manual = (st.manual_fx || []).includes(layer);
+  const key = JSON.stringify([specs, manual]);
+  if (fxCache[layer] === key) return;
+  fxCache[layer] = key;
+  fxChips($("#fx-" + layer) || $("#layer-" + layer).querySelector("[data-fx]"), layer, specs, manual);
+}
+const tweakCache = {};
+function tweakChips(container, tweaks) {
+  const key = JSON.stringify(tweaks || {});
+  if (tweakCache[container] === key && container.dataset.key === key) return;
+  container.dataset.key = key; container.innerHTML = "";
+  for (const [path, f] of Object.entries(tweaks || {})) {
+    const c = document.createElement("span"); c.className = "chip tweak";
+    c.textContent = `${path.replace("filter.", "").replace("oscillators.", "osc")} ×${f}`;
+    c.title = "geste du compositeur live (section / build-up)";
+    container.appendChild(c);
+  }
+}
+function drawScope(samples) {
+  const c = $("#scope"), ctx = c.getContext("2d"), w = c.width, h = c.height;
+  ctx.fillStyle = "rgba(8,4,16,.6)"; ctx.fillRect(0, 0, w, h);
+  ctx.strokeStyle = "rgba(139,92,246,.25)"; ctx.beginPath();
+  for (let x = 0; x < w; x += w / 8) { ctx.moveTo(x, 0); ctx.lineTo(x, h); } ctx.stroke();
+  if (!samples) return;
+  const grad = ctx.createLinearGradient(0, 0, w, 0); grad.addColorStop(0, "#19e6ff"); grad.addColorStop(1, "#ff2d95");
+  ctx.strokeStyle = grad; ctx.lineWidth = 2; ctx.shadowColor = "#ff2d95"; ctx.shadowBlur = 10; ctx.beginPath();
+  samples.forEach((v, i) => { const x = i / (samples.length - 1) * w, y = h / 2 - v * h * 0.48;
+    i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); });
+  ctx.stroke(); ctx.shadowBlur = 0;
+}
+
+// ---------- transport ----------
+$("#btnStart").onclick = () => api("start", {
+  mood: $("#startMood").value, bpm: $("#startBpm").value, seed: $("#startSeed").value,
+  track_s: $("#startTrack").value }).then(r => r.ok && toast("lecture démarrée"));
+$("#btnStop").onclick = () => api("stop", {}).then(() => toast("stop"));
+$("#btnNext").onclick = () => api("next_section", {});
+$("#btnAuto").onclick = () => api("auto_tweaks", { enabled: !(state.st && state.st.auto_tweaks) });
+$("#btnMood").onclick = () => api("mood", { mood: $("#liveMood").value }).then(r => r.ok && toast("mood programmé"));
+const tempo = $("#tempo");
+tempo.onpointerdown = () => state.dragging.add("tempo");
+tempo.onpointerup = () => { state.dragging.delete("tempo"); };
+tempo.oninput = debounce(() => { $("#tempoVal").textContent = tempo.value; api("tempo", { bpm: parseFloat(tempo.value) }); }, 100);
+init();
+</script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+name: pad_choir
+polyphony: 6
+volume: 0.5
+oscillators:
+  - {wave: square, pwm: 0.4, unison: 3, detune: 9, level: 0.5, spread: 1.0}
+  - {wave: triangle, level: 0.4}
+  - {wave: saw, octave: -1, level: 0.15}
+amp_env: {attack: 1.5, decay: 1.0, sustain: 0.9, release: 3.0}
+filter:
+  type: lp
+  cutoff: 1400
+  resonance: 0.2
+lfo: {wave: sine, rate: 0.15, target: pwm, amount: 0.3}
+effects:
+  - {type: chorus, rate: 0.35, depth: 0.006, mix: 0.55}
+  - {type: reverb, size: 0.97, damping: 0.5, mix: 0.5, predelay: 0.05}

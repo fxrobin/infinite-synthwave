@@ -1,0 +1,15 @@
+name: arp_saw
+polyphony: 6
+volume: 0.75
+oscillators:
+  - {wave: saw, unison: 3, detune: 12, level: 0.6, spread: 0.8}
+  - {wave: saw, octave: -1, level: 0.3}
+amp_env: {attack: 0.003, decay: 0.3, sustain: 0.15, release: 0.2}
+filter:
+  type: lp
+  cutoff: 1200
+  resonance: 0.2
+  env: {attack: 0.002, decay: 0.25, sustain: 0.1, release: 0.1, amount: 1800}
+effects:
+  - {type: delay, time: "1/8d", feedback: 0.4, mix: 0.35, pingpong: true}
+  - {type: reverb, size: 0.8, damping: 0.5, mix: 0.25}

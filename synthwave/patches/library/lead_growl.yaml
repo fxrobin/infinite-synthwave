@@ -1,0 +1,20 @@
+name: lead_growl
+polyphony: 1
+glide: 0.08
+volume: 1.0
+oscillators:
+  - {wave: fm, fm_ratio: 1.5, fm_index: 3.0, level: 0.6}
+  - {wave: saw, unison: 2, detune: 14, level: 0.5}
+  - {wave: square, pwm: 0.3, octave: -1, level: 0.3}
+amp_env: {attack: 0.05, decay: 0.5, sustain: 0.85, release: 0.5}
+filter:
+  type: lp
+  cutoff: 1100
+  resonance: 0.25
+  env: {attack: 0.2, decay: 1.0, sustain: 0.5, release: 0.4, amount: 900}
+lfo: {wave: triangle, rate: 3.5, target: cutoff, amount: 300}
+effects:
+  - {type: distortion, drive: 6.0, tone: 2800, mix: 0.8}
+  - {type: flanger, rate: 0.2, depth: 0.002, base: 0.004, feedback: 0.55, mix: 0.4}
+  - {type: delay, time: "1/8", feedback: 0.45, mix: 0.35, pingpong: true}
+  - {type: reverb, size: 0.9, damping: 0.6, mix: 0.3}

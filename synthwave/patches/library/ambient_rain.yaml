@@ -1,0 +1,16 @@
+name: ambient_rain
+polyphony: 3
+volume: 0.8
+oscillators:
+  - {wave: noise, level: 0.7}
+  - {wave: sine, octave: -1, level: 0.25}
+amp_env: {attack: 2.5, decay: 1.0, sustain: 0.9, release: 4.0}
+filter:
+  type: hp
+  cutoff: 2500
+  resonance: 0.2
+lfo: {wave: sine, rate: 0.35, target: amp, amount: 0.3}
+effects:
+  - {type: bitcrush, bits: 6, downsample: 3, mix: 0.35}
+  - {type: lofi, bits: 9, downsample: 2, cutoff: 6000, wobble: 0.003, noise: 0.002, mix: 0.6}
+  - {type: reverb, size: 0.95, damping: 0.4, mix: 0.5, predelay: 0.02}

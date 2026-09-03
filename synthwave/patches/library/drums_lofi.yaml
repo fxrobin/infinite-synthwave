@@ -1,0 +1,12 @@
+name: drums_lofi
+kind: drums
+volume: 0.35
+kick: {pitch_start: 150, pitch_end: 50, pitch_decay: 0.05, decay: 0.45, click: 0.2, sub: 0.7, sub_decay: 0.5, drive: 1.6, gain: 1.4}
+snare: {tone: 170, tone_decay: 0.1, noise_decay: 0.22, gate_hold: 0.25, reverb_size: 0.8, reverb_mix: 0.4, gain: 0.6}
+hat: {closed_decay: 0.05, open_decay: 0.3, cutoff: 5500, gain: 0.43}
+clap: {decay: 0.25, gate_hold: 0.2, reverb_mix: 0.5, gain: 0.55}
+tom: {pitch_low: 100, pitch_mid: 145, decay: 0.3, gain: 0.8}
+crash_gain: 0.3
+perc_effects:
+  - {type: lofi, bits: 8, downsample: 4, cutoff: 4500, wobble: 0.002, noise: 0.003, mix: 0.8}
+  - {type: reverb, size: 0.8, damping: 0.7, mix: 0.2}

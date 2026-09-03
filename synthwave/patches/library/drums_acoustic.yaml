@@ -1,0 +1,15 @@
+name: drums_acoustic
+kind: drums
+volume: 0.5
+kick: {pitch_start: 120, pitch_end: 55, pitch_decay: 0.03, decay: 0.28, click: 0.05, sub: 0.35, sub_decay: 0.3, drive: 1.0, beater: 0.8, gain: 1.5}
+snare: {tone: 205, tone_decay: 0.11, noise_decay: 0.16, gate_hold: 0.15, reverb_size: 0.7, reverb_mix: 0.25, gain: 0.6}
+hat: {closed_decay: 0.04, open_decay: 0.3, cutoff: 8000, gain: 0.4}
+clap: {decay: 0.2, gate_hold: 0.15, reverb_mix: 0.3, gain: 0.45}
+tom: {pitch_low: 95, pitch_mid: 140, decay: 0.35, gain: 0.8}
+snap: {tone: 1800, decay: 0.07, body: 0.4, reverb_mix: 0.2, gain: 0.7}
+ride: {decay: 1.1, cutoff: 4500, ping: 0.6, gain: 0.32}
+tick: {decay: 0.014, cutoff: 8500, gain: 0.3}
+crash_gain: 0.4
+crash_roll_gain: 0.5
+perc_effects:
+  - {type: reverb, size: 0.8, damping: 0.6, mix: 0.15}

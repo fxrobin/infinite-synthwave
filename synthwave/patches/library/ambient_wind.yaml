@@ -1,0 +1,15 @@
+name: ambient_wind
+polyphony: 3
+volume: 1.4
+oscillators:
+  - {wave: noise, level: 0.8}
+  - {wave: sine, octave: -1, level: 0.3}
+amp_env: {attack: 4.0, decay: 1.0, sustain: 0.9, release: 5.0}
+filter:
+  type: bp
+  cutoff: 600
+  resonance: 0.35
+lfo: {wave: triangle, rate: 0.07, target: cutoff, amount: 450}
+effects:
+  - {type: autopan, rate: 0.05, depth: 0.7}
+  - {type: reverb, size: 1.0, damping: 0.5, mix: 0.6, predelay: 0.04}

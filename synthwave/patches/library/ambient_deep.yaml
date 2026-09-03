@@ -1,0 +1,16 @@
+name: ambient_deep
+polyphony: 3
+volume: 0.38
+oscillators:
+  - {wave: sine, octave: -2, level: 0.7}
+  - {wave: fm, fm_ratio: 0.25, fm_index: 0.5, octave: -1, level: 0.4}
+  - {wave: triangle, octave: -1, level: 0.25}
+amp_env: {attack: 3.0, decay: 1.0, sustain: 0.95, release: 4.0}
+filter:
+  type: lp
+  cutoff: 300
+  resonance: 0.2
+lfo: {wave: triangle, rate: 0.04, target: cutoff, amount: 150}
+effects:
+  - {type: chorus, rate: 0.1, depth: 0.006, mix: 0.3}
+  - {type: reverb, size: 1.0, damping: 0.75, mix: 0.5, predelay: 0.03}

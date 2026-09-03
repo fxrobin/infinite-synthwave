@@ -1,0 +1,14 @@
+name: drums_industrial
+kind: drums
+volume: 0.38
+kick: {pitch_start: 180, pitch_end: 42, pitch_decay: 0.05, decay: 0.5, click: 0.4, sub: 0.8, sub_decay: 0.5, drive: 5.0, gain: 1.3}
+snare: {tone: 150, tone_decay: 0.12, noise_decay: 0.35, gate_hold: 0.35, reverb_size: 0.9, reverb_mix: 0.5, gain: 0.6}
+hat: {closed_decay: 0.03, open_decay: 0.2, cutoff: 6500, gain: 0.36}
+clap: {decay: 0.3, gate_hold: 0.3, reverb_mix: 0.5, gain: 0.55}
+tom: {pitch_low: 75, pitch_mid: 110, decay: 0.45, gain: 0.9}
+crash_gain: 0.3
+perc_effects:
+  - {type: distortion, drive: 5.0, tone: 4500, mix: 0.6}
+  - {type: bitcrush, bits: 9, downsample: 2, mix: 0.3}
+  - {type: delay, time: "1/16", feedback: 0.35, mix: 0.25, pingpong: true}
+  - {type: reverb, size: 0.9, damping: 0.6, mix: 0.25}

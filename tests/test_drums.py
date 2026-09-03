@@ -60,3 +60,48 @@ def test_perc_bus_echo_but_kick_dry():
     kick = k2.render(d + 2000, [NoteEvent(0, 36, 1.0, True)])
     kick_dry = k3.render(d + 2000, [NoteEvent(0, 36, 1.0, True)])
     assert np.allclose(kick, kick_dry)
+
+
+def test_snap_ride_shaker_render_and_are_distinct():
+    import numpy as np
+
+    from synthwave.engine.drums import DrumKit
+    from synthwave.engine.events import NoteEvent
+    from synthwave.patches.loader import load_patch
+    kit = DrumKit(load_patch("drums_808"), 44100, np.random.default_rng(0), 110.0)
+    outs = {}
+    for name, note in (("snap", 40), ("ride", 51), ("shaker", 70)):
+        kit.active = []
+        outs[name] = kit.render(44100, [NoteEvent(0, note, 1.0, True)])
+        assert np.isfinite(outs[name]).all() and np.abs(outs[name]).max() > 0.01
+    dur = {k: int(np.flatnonzero(np.abs(v[:, 0]) > 0.005).max()) / 44100 for k, v in outs.items()}
+    assert dur["snap"] < 0.4 < dur["ride"]        # snap short, ride long
+    assert dur["shaker"] < 0.3
+
+
+def test_tick_crash_roll_and_soft_kick():
+    import numpy as np
+
+    from synthwave.engine.drums import DrumKit
+    from synthwave.engine.events import NoteEvent
+    from synthwave.patches.loader import load_patch
+    rng = np.random.default_rng(0)
+    kit = DrumKit(load_patch("drums_acoustic"), 44100, rng, 120.0)
+    tick = kit.render(22050, [NoteEvent(0, 44, 1.0, True)])
+    assert np.abs(tick).max() > 0.01
+    assert int(np.flatnonzero(np.abs(tick[:, 0]) > 0.01).max()) < 0.06 * 44100   # very short
+    roll = kit.samples["crash_roll"]
+    bar = int(44100 * 4 * 60 / 120)
+    assert len(roll) > bar
+    first, last = np.abs(roll[: bar // 4]).max(), np.abs(roll[bar * 3 // 4: bar]).max()
+    assert last > first * 3                                                   # swells to the bar
+    kit.set_bpm(60)
+    assert len(kit.samples["crash_roll"]) > 2 * bar                          # follows the tempo
+    soft = DrumKit(load_patch("drums_acoustic"), 44100, rng).samples["kick"][:, 0]
+    hard = DrumKit(load_patch("drums_industrial"), 44100, rng).samples["kick"][:, 0]
+
+    def hf(x):
+        sp = np.abs(np.fft.rfft(x)) ** 2
+        f = np.fft.rfftfreq(len(x), 1 / 44100)
+        return sp[f > 1500].sum() / sp.sum()
+    assert hf(soft) < hf(hard)                                                # less clicky / driven

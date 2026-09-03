@@ -97,6 +97,45 @@ class Harmony:
     def modulate(self) -> None:
         self.tonic = (self.tonic + int(self.rng.choice([5, 7, -3, 3]))) % 12
 
+    def pitch_classes(self, tonic: int | None = None, mode: tuple[int, ...] | None = None) -> set:
+        t = self.tonic if tonic is None else tonic
+        return {(t + i) % 12 for i in (mode or self.mode)}
+
+    def change_key(self, mood: Mood, last_chord: Chord | None = None) -> None:
+        """Move to `mood`'s mode on the tonic that keeps the most notes in common.
+
+        Score = shared pitch classes + 3 if `last_chord` fits the new key (pivot chord)
+        + 1 for staying on the same tonic; the new tonic is drawn among the best candidates."""
+        self.mood = mood
+        new_mode = (self.MAJOR if self.rng.random() < mood.major_prob
+                    else SCALES.get(mood.scale, self.MINOR))
+        old = self.pitch_classes()
+        chord_pcs = ({(last_chord.root_pc + i) % 12 for i in last_chord.intervals}
+                     if last_chord else set())
+        scored = []
+        for t in range(12):
+            pcs = self.pitch_classes(t, new_mode)
+            score = len(old & pcs) + (3 if chord_pcs and chord_pcs <= pcs else 0)
+            score += 1 if t == self.tonic else 0
+            scored.append((score, t))
+        best = max(sc for sc, _ in scored)
+        cands = [t for sc, t in scored if sc >= best - 1]
+        self.tonic = int(self.rng.choice(cands))
+        self.mode = new_mode
+        self.current = None
+
+    def pivot_chord(self, prev: Chord) -> Chord:
+        """Chord of the current key closest to `prev`: same root if it exists, else most
+        common tones; used to bridge two keys during a transition."""
+        prev_pcs = {(prev.root_pc + i) % 12 for i in prev.intervals}
+
+        def score(deg: int) -> tuple[int, int]:
+            c = self.chord_for_degree(deg)
+            pcs = {(c.root_pc + i) % 12 for i in c.intervals}
+            return (int(c.root_pc == prev.root_pc), len(pcs & prev_pcs))
+
+        return self.chord_for_degree(max(range(7), key=score))
+
     def scale_notes(self, low: int, high: int) -> list[int]:
         pcs = {(self.tonic + i) % 12 for i in self.mode}
         return [n for n in range(low, high + 1) if n % 12 in pcs]

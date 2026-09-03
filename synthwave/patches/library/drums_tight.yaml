@@ -1,0 +1,9 @@
+name: drums_tight
+kind: drums
+volume: 0.5
+kick: {pitch_start: 160, pitch_end: 50, pitch_decay: 0.035, decay: 0.25, click: 0.45, sub: 0.5, sub_decay: 0.3, drive: 2.2, gain: 1.4}
+snare: {tone: 200, tone_decay: 0.06, noise_decay: 0.12, gate_hold: 0.12, reverb_size: 0.6, reverb_mix: 0.15, gain: 0.65}
+hat: {closed_decay: 0.025, open_decay: 0.15, cutoff: 9500, gain: 0.48}
+clap: {decay: 0.15, gate_hold: 0.12, reverb_mix: 0.2, gain: 0.55}
+tom: {pitch_low: 120, pitch_mid: 170, decay: 0.2, gain: 0.8}
+crash_gain: 0.35

@@ -1,0 +1,15 @@
+name: bass_ms20
+polyphony: 1
+glide: 0.02
+volume: 0.45
+oscillators:
+  - {wave: saw, level: 0.6}
+  - {wave: square, pwm: 0.5, octave: -1, level: 0.5}
+amp_env: {attack: 0.005, decay: 0.3, sustain: 0.55, release: 0.2}
+filter:
+  type: lp
+  cutoff: 300
+  resonance: 0.45
+  env: {attack: 0.005, decay: 0.25, sustain: 0.3, release: 0.2, amount: 600}
+effects:
+  - {type: distortion, drive: 3.5, tone: 2500, mix: 0.55}

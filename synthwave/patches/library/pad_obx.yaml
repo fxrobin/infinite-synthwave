@@ -1,0 +1,16 @@
+name: pad_obx
+polyphony: 6
+volume: 0.55
+oscillators:
+  - {wave: saw, unison: 2, detune: 12, level: 0.6, spread: 1.0}
+  - {wave: saw, unison: 2, detune: 5, octave: -1, level: 0.3, spread: 0.6}
+amp_env: {attack: 0.05, decay: 0.6, sustain: 0.85, release: 1.2}
+filter:
+  type: lp
+  cutoff: 1300
+  resonance: 0.2
+  env: {attack: 0.02, decay: 0.8, sustain: 0.6, release: 1.0, amount: 1500}
+lfo: {wave: sine, rate: 0.25, target: cutoff, amount: 200}
+effects:
+  - {type: chorus, rate: 0.3, depth: 0.003, mix: 0.3}
+  - {type: reverb, size: 0.88, damping: 0.45, mix: 0.3, predelay: 0.02}

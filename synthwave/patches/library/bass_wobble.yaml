@@ -1,0 +1,16 @@
+name: bass_wobble
+polyphony: 1
+glide: 0.02
+volume: 0.45
+oscillators:
+  - {wave: saw, unison: 2, detune: 18, level: 0.7, spread: 0.3}
+  - {wave: square, pwm: 0.3, octave: -1, level: 0.45}
+  - {wave: sine, octave: -1, level: 0.5}
+amp_env: {attack: 0.01, decay: 0.3, sustain: 0.85, release: 0.25}
+filter:
+  type: lp
+  cutoff: 350
+  resonance: 0.15
+lfo: {wave: triangle, rate: 2.0, target: cutoff, amount: 350}
+effects:
+  - {type: distortion, drive: 2.0, tone: 2500, mix: 0.4}

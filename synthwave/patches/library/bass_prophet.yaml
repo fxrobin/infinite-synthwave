@@ -1,0 +1,13 @@
+name: bass_prophet
+polyphony: 1
+glide: 0.015
+volume: 0.55
+oscillators:
+  - {wave: saw, level: 0.6}
+  - {wave: square, pwm: 0.45, octave: -1, level: 0.6}
+amp_env: {attack: 0.005, decay: 0.35, sustain: 0.6, release: 0.2}
+filter:
+  type: lp
+  cutoff: 380
+  resonance: 0.2
+  env: {attack: 0.005, decay: 0.3, sustain: 0.35, release: 0.2, amount: 500}
