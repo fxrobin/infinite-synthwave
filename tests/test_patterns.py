@@ -197,3 +197,31 @@ def test_straight_fill_is_a_plain_snare_crescendo():
     tail = sorted((n.step, n.note) for n in p if n.step >= 12)
     # snare 16ths only, and the four on the floor keeps its kick on the 4
     assert tail == [(12, 36), (12, 38), (13, 38), (14, 38), (15, 38)]
+
+
+def _gaps(p):
+    """(step, end) pairs sorted, to check notes do not run into each other."""
+    s = sorted(p, key=lambda n: n.step)
+    return [(a.step + a.length, b.step) for a, b in zip(s, s[1:], strict=False)]
+
+
+def test_staccato_theme_detaches_every_note():
+    t = gen_theme(np.random.default_rng(4), 0.8, staccato=True)
+    for motif in (t.question, t.answer, t.counter):
+        assert all(length <= 3 for _, _, length in motif.notes)
+        steps = [s for s, _, _ in motif.notes]
+        for (s, _, length), nxt in zip(motif.notes, steps[1:], strict=False):
+            assert s + length <= nxt  # a rest before the next note, never legato
+
+
+def test_legato_theme_is_unchanged_by_default():
+    t = gen_theme(np.random.default_rng(4), 0.8)
+    assert any(length > 3 for _, _, length in t.question.notes)
+
+
+def test_straight_bass_is_short_and_deterministic():
+    a = gen_bass(np.random.default_rng(0), AM7, "eighths", straight=True)
+    b = gen_bass(np.random.default_rng(9), AM7, "eighths", straight=True)
+    assert a == b
+    assert [n.step for n in a] == list(range(0, STEPS, 2))
+    assert all(n.length == 1 for n in a)  # punchy eighths, not tied
