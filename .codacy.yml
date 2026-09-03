@@ -9,6 +9,9 @@ exclude_paths:
   - "docs/superpowers/**"
   - ".memsearch/**"
   - "tests/**"
+  - "synthwave/**"
+  - "CLAUDE.md"
+  - "README.md"
 
 engines:
   # Docstring PEP257 et complexité générative : masqués via pydocstyle/lizard, pas pylint
