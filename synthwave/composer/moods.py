@@ -36,6 +36,7 @@ DARK_PATCHES = {
     "arp": "arp_dark",
     "pad": "pad_dark",
     "lead": "lead_dark",
+    "lead2": "lead_hollow",
     "ambient": "ambient_dark",
 }
 DARK_POOLS = {
@@ -69,6 +70,14 @@ DARK_POOLS = {
         "lead_d50",
         "lead_sem",
         "lead_piano_atmos",
+    ],
+    "lead2": [  # second voice: softer patches that sit under the theme
+        "lead_hollow",
+        "lead_organ",
+        "lead_polysix",
+        "lead_sem",
+        "lead_piano_atmos",
+        "lead_memorymoog",
     ],
     "pad": [
         "pad_dark",
@@ -142,6 +151,15 @@ BRIGHT_POOLS = {
         "lead_d50",
         "lead_piano_atmos",
     ],
+    "lead2": [  # second voice: softer patches that sit under the theme
+        "lead_hollow",
+        "lead_juno",
+        "lead_polysix",
+        "lead_organ",
+        "lead_m1",
+        "lead_piano_atmos",
+        "lead_jx8p",
+    ],
     "pad": [
         "pad_juno",
         "pad_strings",
@@ -212,6 +230,12 @@ CYBER_POOLS = {
         "lead_memorymoog",
         "lead_dx7",
     ],
+    "lead2": [  # second voice: softer patches that sit under the theme
+        "lead_hollow",
+        "lead_sem",
+        "lead_organ",
+        "lead_dx7",
+    ],
     "pad": ["pad_dark", "pad_shimmer", "pad_glass", "pad_prophet"],
     "arp": ["arp_stab", "arp_fm", "arp_dark", "arp_square", "arp_sh101"],
     "ambient": ["ambient_dark", "ambient_rain", "ambient_deep", "ambient_vhs", "ambient_neon"],
@@ -244,6 +268,13 @@ DRIVE_POOLS = {
         "lead_synthex",
         "lead_pro_one",
         "lead_polysix",
+    ],
+    "lead2": [  # second voice: softer patches that sit under the theme
+        "lead_hollow",
+        "lead_juno",
+        "lead_polysix",
+        "lead_jx8p",
+        "lead_m1",
     ],
     "pad": ["pad_juno", "pad_strings", "pad_shimmer", "pad_jupiter", "pad_obx"],
     "arp": ["arp_saw", "arp_pluck", "arp_stab", "arp_square", "arp_jupiter", "arp_sh101"],

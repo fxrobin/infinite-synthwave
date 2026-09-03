@@ -34,7 +34,8 @@ def test_websocket_feed_sends_status():
 
 def test_master_color_route_and_meta():
     with TestClient(app) as c:
-        assert "tape" in c.get("/api/meta").json()["master_colors"]
+        colors = c.get("/api/meta").json()["master_colors"]
+        assert colors[0] == "auto" and "tape" in colors
         bad = c.post("/api/master_color", json={"color": "nope"})
         assert bad.status_code == 400
         off = c.post("/api/master_color", json={"color": "vhs"})

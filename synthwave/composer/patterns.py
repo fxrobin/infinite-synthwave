@@ -462,6 +462,21 @@ def render_motif(
     return _trim_overlaps(_sorted(p))
 
 
+def harmonize(pattern: Pattern, scale_notes: list[int], degrees: int) -> Pattern:
+    """Second voice for a melody: every note moved by `degrees` scale steps (negative =
+    below), same rhythm, a little quieter so it sits under the theme. Notes are clipped to
+    the scale range, so the harmony never leaves the key.
+    """
+    if not scale_notes:
+        return []
+    out: Pattern = []
+    for note in pattern:
+        idx = min(range(len(scale_notes)), key=lambda i: abs(scale_notes[i] - note.note))
+        moved = scale_notes[int(np.clip(idx + degrees, 0, len(scale_notes) - 1))]
+        out.append(Note(note.step, moved, round(note.vel * 0.75, 3), note.length))
+    return _sorted(out)
+
+
 def mutate(
     rng: np.random.Generator, pattern: Pattern, rate: float, allowed_notes: list[int]
 ) -> Pattern:

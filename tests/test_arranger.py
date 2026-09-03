@@ -1,5 +1,6 @@
 import numpy as np
 
+from synthwave.audio.renderer import MASTER_COLORS
 from synthwave.composer.arranger import LAYERS, Arranger, Section
 from synthwave.composer.harmony import Harmony
 from synthwave.composer.moods import MOODS
@@ -362,3 +363,38 @@ def test_straight_mood_bass_repeats_instead_of_wandering():
     repeated = [v for v in by_chord.values() if len(v) > 2]
     assert repeated and all(all(x == v[0] for x in v) for v in repeated)
     assert all(n.length == 1 for v in repeated for n in v[0])
+
+
+def test_lead2_harmonises_the_lead_under_it():
+    a = make(seed=23, mood="outrun")
+    a.mood_locked = True
+    plans = [a.next_bar() for _ in range(300)]
+    assert "lead2" in LAYERS
+    both = [p for p in plans if p.patterns["lead2"]]
+    assert len(both) > 10
+    for p in both:
+        lead = sorted(p.patterns["lead"], key=lambda n: n.step)
+        second = sorted(p.patterns["lead2"], key=lambda n: n.step)
+        assert lead, "lead2 only sounds with the lead"
+        assert [n.step for n in second] == [n.step for n in lead]  # same rhythm
+        assert all(b.note < t.note for b, t in zip(second, lead, strict=True))  # sits under
+        assert all(b.vel < t.vel for b, t in zip(second, lead, strict=True))
+    # it enters after the lead and is silent in the intro
+    for p in plans:
+        if p.section == Section.INTRO:
+            assert p.gains["lead2"] == 0.0
+        if p.gains["lead2"] > 0:
+            assert p.gains["lead"] > 0
+
+
+def test_master_color_is_composed_per_track_and_per_section():
+    a = make(seed=31, mood="outrun")
+    a.mood_locked = True
+    plans = [a.next_bar() for _ in range(400)]
+    sent = [p for p in plans if p.master_color]
+    assert sent, "the arranger picks the master colour"
+    assert all(p.section_bar == 0 for p in sent)  # announced on a section's first bar
+    assert {p.master_color for p in sent} <= set(MASTER_COLORS)
+    assert len({p.master_color for p in sent}) >= 2  # it moves between sections/tracks
+    breaks = [p.master_color for p in sent if p.section == Section.BREAK]
+    assert breaks and set(breaks) <= {"crush", "mic", "vhs"}  # breaks go grittier

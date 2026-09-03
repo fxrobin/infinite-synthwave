@@ -70,7 +70,9 @@ Renderer.render(n) : draine la file de commandes, applique le BarPlan (gains, mo
 Player (audio/output.py) : thread producteur → queue → callback sounddevice (copie seule)
 ```
 
-Couches fixes : `LAYERS = drums, bass, arp, pad, lead, ambient, riser` (`composer/arranger.py`).
+Couches fixes : `LAYERS = drums, bass, arp, pad, lead, lead2, ambient, riser` (`composer/arranger.py`).
+`lead2` est la voix d'harmonie : le thème du lead transposé de −2/−5/−7 degrés diatoniques
+(`patterns.harmonize`), muet dès que le lead se tait.
 `riser` est built-in (`RiserKit`, pas de patch YAML, one-shots resynthétisés à chaque BPM).
 
 ### Composition (`synthwave/composer/`)

@@ -114,7 +114,7 @@ async def meta(_: Request) -> JSONResponse:
             },
             "patches": loader.list_patches(),
             "layers": list(LAYERS),
-            "master_colors": list(MASTER_COLORS),
+            "master_colors": ["auto", *MASTER_COLORS],
             "effects": {k: FX_DEFAULTS.get(k, {}) for k in _REGISTRY if k != "limiter"},
         }
     )
@@ -228,9 +228,9 @@ async def master_color(request: Request) -> JSONResponse:
     """Master color."""
     b = await _body(request)
     try:
-        name = str(b.get("color", "tape"))
+        name = str(b.get("color", "auto"))
         _validate_str(name)
-        if name not in MASTER_COLORS:
+        if name != "auto" and name not in MASTER_COLORS:
             raise ValueError(f"unknown master colour: {name}")
     except ValueError as e:
         return JSONResponse({"ok": False, "error": str(e)}, status_code=400)
