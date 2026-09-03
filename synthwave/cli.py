@@ -16,11 +16,16 @@ FX_OPTION = typer.Option(None, help="Insert manuel: layer:type[:k=v,...] "
 
 
 def parse_duration(text: str) -> float:
+    if not isinstance(text, str) or len(text) > 32 or "\x00" in text:
+        raise ValueError(f"invalid duration {text!r}")
     m = _DUR.match(text.strip())
     if not m or not any(m.groups()):
         raise ValueError(f"invalid duration {text!r} (examples: 90, 90s, 5m, 1h30m)")
     h, mi, s = (int(g) if g else 0 for g in m.groups())
-    return h * 3600 + mi * 60 + s
+    total = h * 3600 + mi * 60 + s
+    if not 1 <= total <= 14400:
+        raise ValueError(f"duration out of range 1-14400s, got {total}")
+    return float(total)
 
 
 def parse_bpm_range(text: str) -> tuple[float, float]:
@@ -35,20 +40,42 @@ def parse_bpm_range(text: str) -> tuple[float, float]:
 
 def parse_fx(text: str) -> tuple[str, dict]:
     """'pad:gate:rate=1/16,depth=0.8' -> ('pad', {'type': 'gate', 'rate': '1/16', 'depth': 0.8})."""
+    if not isinstance(text, str) or len(text) > 256 or "\x00" in text:
+        raise ValueError(f"invalid --fx {text!r}")
     parts = text.split(":", 2)
     if len(parts) < 2:
         raise ValueError(f"invalid --fx {text!r}, expected layer:type[:k=v,...]")
-    spec: dict = {"type": parts[1]}
+    layer, typ = parts[0], parts[1]
+    if len(layer) > 32 or len(typ) > 32:
+        raise ValueError("fx layer/type too long")
+    # validation rapide couche/type
+    from .audio.renderer import LAYERS
+    from .engine.effects import _REGISTRY
+
+    if layer not in set(LAYERS) | {"master"}:
+        raise ValueError(f"unknown fx layer {layer!r}")
+    if typ not in _REGISTRY:
+        raise ValueError(f"unknown effect type {typ!r}")
+    spec: dict = {"type": typ}
     if len(parts) == 3 and parts[2]:
+        if len(parts[2]) > 200:
+            raise ValueError("fx params too long")
         for kv in parts[2].split(","):
+            if not kv or "=" not in kv:
+                raise ValueError(f"invalid fx param {kv!r}, expected k=v")
             k, v = kv.split("=", 1)
+            if len(k) > 32 or len(v) > 64 or "\x00" in k or "\x00" in v:
+                raise ValueError(f"fx param too long: {kv!r}")
             try:
                 spec[k] = float(v) if "." in v or v.lstrip("-").isdigit() else v
                 if isinstance(spec[k], float) and spec[k].is_integer() and "." not in v:
                     spec[k] = int(spec[k])
             except ValueError:
                 spec[k] = v
-    return parts[0], spec
+            # borne nombre d'effets/params côté CLI
+            if len(spec) > 12:
+                raise ValueError("too many fx params")
+    return layer, spec
 
 
 @app.command()
@@ -64,21 +91,50 @@ def play(duration: str | None = typer.Option(None, help="ex: 5m, 90s, 1h. Absent
          export: str | None = typer.Option(None, help="Rendu hors-ligne vers un WAV"),
          blocksize: int = typer.Option(1024),
          device: str | None = typer.Option(None, help="Nom ou index du périphérique"),
-         fx: list[str] | None = FX_OPTION):
+          fx: list[str] | None = FX_OPTION):
     """Joue de la synthwave sur la sortie audio (ou exporte en WAV)."""
-    seconds = parse_duration(duration) if duration else None
+    # --- validation bornes ---
+    if blocksize is not None and not 64 <= blocksize <= 8192:
+        raise typer.BadParameter("blocksize must be 64-8192")
+    if device is not None and (len(device) > 128 or "\x00" in device):
+        raise typer.BadParameter("device string too long")
+    if mood is not None and mood not in MOODS:
+        raise typer.BadParameter(f"unknown mood {mood!r}, choose from {list(MOODS)}")
+    try:
+        seconds = parse_duration(duration) if duration else None
+    except ValueError as e:
+        raise typer.BadParameter(str(e)) from e
     if export and seconds is None:
         raise typer.BadParameter("--export requires --duration")
-    rng = parse_bpm_range(bpm_range) if bpm_range else None
-    renderer = Renderer(RenderConfig(bpm=bpm, mood=mood, seed=seed, duration_s=seconds,
-                                     bpm_range=rng, track_s=parse_duration(track)))
-    for layer, spec in (parse_fx(f) for f in fx or []):
-        renderer.set_layer_effects(layer, [spec])
+    try:
+        rng = parse_bpm_range(bpm_range) if bpm_range else None
+    except ValueError as e:
+        raise typer.BadParameter(str(e)) from e
+    try:
+        track_s = parse_duration(track)
+    except ValueError as e:
+        raise typer.BadParameter(f"invalid --track {track!r}: {e}") from e
+    try:
+        renderer = Renderer(
+            RenderConfig(
+                bpm=bpm, mood=mood, seed=seed, duration_s=seconds, bpm_range=rng, track_s=track_s
+            )
+        )
+    except ValueError as e:
+        raise typer.BadParameter(str(e)) from e
+    try:
+        for layer, spec in (parse_fx(f) for f in fx or []):
+            renderer.set_layer_effects(layer, [spec])
+    except ValueError as e:
+        raise typer.BadParameter(str(e)) from e
     typer.echo(f"seed={renderer.seed} bpm={renderer.bpm:g} mood={renderer.mood.name}"
                f"{'' if mood else ' (random)'} key={renderer.arranger.harmony.key_name}")
     if export:
         from .audio.export import export_wav
-        n = export_wav(renderer, seconds, export, blocksize)
+        try:
+            n = export_wav(renderer, seconds, export, blocksize)
+        except ValueError as e:
+            raise typer.BadParameter(str(e)) from e
         typer.echo(f"wrote {export} ({n / renderer.sr:.1f}s)")
         return
     from .audio.output import Player

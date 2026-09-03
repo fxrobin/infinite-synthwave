@@ -7,18 +7,42 @@ from scipy.signal import lfilter
 from .filter import Filter
 from .lfo import LFO
 
+_MAX_DELAY_SEC = 2.0
+_MAX_NOTE_SEC = 8.0
+_MAX_EFFECTS_PER_LAYER = 8
+_MAX_SPEC_KEYS = 12
+_MAX_STR_LEN = 64
+
 
 def note_to_seconds(value: float | str, bpm: float) -> float:
     if isinstance(value, (int, float)):
-        return float(value)
-    s = value.strip()
+        v = float(value)
+        if not 0.001 <= v <= _MAX_NOTE_SEC:
+            raise ValueError(f"time value out of range: {v}")
+        return v
+    s = str(value).strip()
+    if len(s) > _MAX_STR_LEN:
+        raise ValueError("time value too long")
     mult = 1.0
     if s.endswith("d"):
         mult, s = 1.5, s[:-1]
     elif s.endswith("t"):
         mult, s = 2.0 / 3.0, s[:-1]
-    num, den = s.split("/")
-    return 4.0 * (60.0 / bpm) * int(num) / int(den) * mult
+    if "/" not in s:
+        raise ValueError(f"invalid note value {value!r}")
+    a, b = s.split("/", 1)
+    try:
+        num, den = int(a), int(b)
+    except ValueError as e:
+        raise ValueError(f"invalid note value {value!r}: {e}") from e
+    if not 1 <= num <= 16 or not 1 <= den <= 32:
+        raise ValueError(f"note fraction out of range: {value!r}")
+    if not 40 <= bpm <= 200:
+        raise ValueError(f"bpm out of range: {bpm}")
+    sec = 4.0 * (60.0 / bpm) * num / den * mult
+    if not 0.001 <= sec <= _MAX_NOTE_SEC:
+        raise ValueError(f"computed delay out of range: {sec}")
+    return sec
 
 
 class Effect:
@@ -54,12 +78,19 @@ class Chorus(Effect):
 class Delay(Effect):
     def __init__(self, sr: int, bpm: float, time: float | str = "1/8", feedback: float = 0.4,
                  mix: float = 0.3, pingpong: bool = True):
-        self.d = max(1, int(note_to_seconds(time, bpm) * sr))
+        sec = note_to_seconds(time, bpm)
+        # clamp final pour rester < _MAX_DELAY_SEC (défense en profondeur)
+        sec = float(np.clip(sec, 0.001, _MAX_DELAY_SEC))
+        self.d = max(1, min(int(sec * sr), int(_MAX_DELAY_SEC * sr)))
         self.size = self.d * 2 + 8192
+        # garde supplémentaire : bloque allocation > 4s stéréo
+        if self.size > int(_MAX_DELAY_SEC * sr * 2 + 8192):
+            raise ValueError("delay buffer too large")
         self.buf = np.zeros((self.size, 2))
         self.pos = 0
         self.feedback = float(np.clip(feedback, 0, 0.95))
-        self.mix, self.pingpong = mix, pingpong
+        self.mix = float(np.clip(mix, 0, 1))
+        self.pingpong = bool(pingpong)
 
     def process(self, x: np.ndarray) -> np.ndarray:
         n = len(x)
@@ -101,9 +132,10 @@ class Reverb(Effect):
         scale = sr / 44100.0
         self.fb = 0.7 + 0.28 * float(np.clip(size, 0, 1))
         self.damp = float(np.clip(damping, 0, 0.95))
-        self.mix = mix
+        self.mix = float(np.clip(mix, 0, 1))
         self.combs = [[_Line(int(c * scale) + ch * _SPREAD) for c in _COMBS] for ch in (0, 1)]
         self.allp = [[_Line(int(a * scale) + ch * _SPREAD) for a in _ALLPASSES] for ch in (0, 1)]
+        predelay = float(np.clip(predelay, 0, _MAX_DELAY_SEC))
         self.pre = max(0, int(predelay * sr))
         self.pre_line = _Line(self.pre + 8192) if self.pre else None
 
@@ -168,7 +200,10 @@ class GatedReverb(Effect):
     def __init__(self, sr: int, bpm: float, size: float = 0.85, hold: float = 0.25,
                  threshold: float = 0.1, mix: float = 0.5):
         self.rev = Reverb(sr, bpm, size=size, damping=0.3, mix=1.0, predelay=0.0)
-        self.hold, self.thr, self.mix = int(hold * sr), threshold, mix
+        # hold borné à 2s max pour éviter buffer/état géant
+        hold = float(np.clip(hold, 0.01, _MAX_DELAY_SEC))
+        self.hold, self.thr = int(hold * sr), float(np.clip(threshold, 0, 1))
+        self.mix = float(np.clip(mix, 0, 1))
         self.open_left = 0
 
     def process(self, x: np.ndarray) -> np.ndarray:
@@ -362,9 +397,15 @@ class Flanger(Effect):
     def __init__(self, sr: int, bpm: float, rate: float | str = 0.25, depth: float = 0.002,
                  base: float = 0.003, feedback: float = 0.5, mix: float = 0.5):
         hz = 1.0 / note_to_seconds(rate, bpm) if isinstance(rate, str) else float(rate)
+        if not 0.01 <= hz <= 20:
+            raise ValueError(f"flanger rate out of range: {hz}")
         self.sr, self.lfo = sr, LFO("sine", hz, sr)
+        # base/depth en secondes, bornés pour éviter OOM
+        base = float(np.clip(base, 0.001, 0.02))
+        depth = float(np.clip(depth, 0, 0.02))
         self.base, self.depth = max(2.0, base * sr), depth * sr
-        self.fb, self.mix = float(np.clip(feedback, 0, 0.9)), mix
+        self.fb = float(np.clip(feedback, 0, 0.9))
+        self.mix = float(np.clip(mix, 0, 1))
         self.size = int(sr * 0.05)
         self.buf = np.zeros((self.size, 2))
         self.pos = 0
@@ -396,9 +437,27 @@ _REGISTRY = {"chorus": Chorus, "delay": Delay, "reverb": Reverb,
 
 
 def build_effects(specs: list[dict], sr: int, bpm: float) -> list[Effect]:
+    if not isinstance(specs, list):
+        raise ValueError("effects must be a list")
+    if len(specs) > _MAX_EFFECTS_PER_LAYER:
+        raise ValueError(f"too many effects: {len(specs)} > {_MAX_EFFECTS_PER_LAYER}")
     out = []
     for spec in specs:
+        if not isinstance(spec, dict):
+            raise ValueError("effect spec must be a mapping")
+        if len(spec) > _MAX_SPEC_KEYS:
+            raise ValueError("effect spec too large")
         kw = dict(spec)
-        kind = kw.pop("type")
+        kind = kw.pop("type", None)
+        if not isinstance(kind, str) or len(kind) > _MAX_STR_LEN:
+            raise ValueError(f"invalid effect type {kind!r}")
+        if kind not in _REGISTRY:
+            raise KeyError(kind)
+        # borne taille des clés/valeurs string
+        for k, v in kw.items():
+            if not isinstance(k, str) or len(k) > _MAX_STR_LEN:
+                raise ValueError(f"invalid effect param {k!r}")
+            if isinstance(v, str) and len(v) > _MAX_STR_LEN:
+                raise ValueError(f"effect param {k!r} too long")
         out.append(_REGISTRY[kind](sr, bpm, **kw))
     return out

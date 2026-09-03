@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import re
+import tempfile
 from pathlib import Path
 
 import yaml
@@ -9,6 +11,43 @@ from .model import AnyPatch, DrumPatchModel, PatchModel
 
 LIBRARY = Path(__file__).parent / "library"
 USER_DIR = Path.home() / ".config" / "synthwave" / "patches"
+
+# --- sécurité : bornes et allowlist ---
+_MAX_PATCH_BYTES = 256 * 1024  # 256 Ko max par fichier YAML
+_ALLOWED_PATCH_SUFFIXES = {".yaml", ".yml"}
+_BARE_NAME_RE = re.compile(r"^[A-Za-z0-9_-]+$")
+
+
+def _allowed_patch_roots() -> list[Path]:
+    roots: list[Path] = []
+    for p in (LIBRARY, USER_DIR, Path.cwd(), Path.home(), Path(tempfile.gettempdir())):
+        try:
+            # USER_DIR peut ne pas exister
+            if p.exists():
+                roots.append(p.resolve())
+            elif p == USER_DIR:
+                # autorise quand même le parent résolu pour les vérifications
+                roots.append(p.resolve())
+        except Exception:
+            continue
+    # dédup
+    seen: set[Path] = set()
+    uniq: list[Path] = []
+    for r in roots:
+        if r not in seen:
+            seen.add(r)
+            uniq.append(r)
+    return uniq
+
+
+def _is_within_allowed_roots(resolved: Path) -> bool:
+    for root in _allowed_patch_roots():
+        try:
+            if resolved.is_relative_to(root):
+                return True
+        except ValueError:
+            continue
+    return False
 
 
 class PatchError(Exception):
@@ -36,8 +75,16 @@ def patch_from_dict(data: dict) -> AnyPatch:
 
 
 def load_patch(name_or_path: str) -> AnyPatch:
+    if not isinstance(name_or_path, str) or not name_or_path or "\x00" in name_or_path:
+        raise PatchError("invalid patch name")
+    # --- cas nom nu (sans extension) : lookup strict en allowlist ---
     path = Path(name_or_path)
     if not path.suffix:
+        if not _BARE_NAME_RE.match(name_or_path):
+            raise PatchError(
+                f"invalid patch name {name_or_path!r}: "
+                f"bare names must match {_BARE_NAME_RE.pattern}"
+            )
         for d in _dirs():
             cand = d / f"{name_or_path}.yaml"
             if cand.exists():
@@ -45,12 +92,49 @@ def load_patch(name_or_path: str) -> AnyPatch:
                 break
         else:
             raise PatchError(f"patch {name_or_path!r} not found in {[str(d) for d in _dirs()]}")
-    if not path.exists():
+    else:
+        # --- cas chemin explicite : validation stricte ---
+        if path.suffix.lower() not in _ALLOWED_PATCH_SUFFIXES:
+            raise PatchError(f"patch file must end with .yaml/.yml, got {path.suffix!r}")
+        # normalise sans suivre le symlink final inexistant (strict=False)
+        try:
+            resolved = path.expanduser().resolve()
+        except Exception as e:
+            raise PatchError(f"invalid patch path {name_or_path!r}: {e}") from e
+        if not _is_within_allowed_roots(resolved):
+            raise PatchError(
+                f"patch path {name_or_path!r} is outside allowed directories "
+                f"{[str(p) for p in _allowed_patch_roots()]}"
+            )
+        # vérifie que le chemin demandé ne sort pas via .. non résolu (défense en profondeur)
+        try:
+            resolved.relative_to(resolved.anchor)
+        except Exception:
+            raise PatchError(f"invalid patch path {name_or_path!r}") from None
+        path = resolved
+
+    # --- vérifications communes ---
+    try:
+        resolved_final = path.resolve()
+    except Exception as e:
+        raise PatchError(f"invalid patch path {path}: {e}") from e
+    if not resolved_final.is_file():
         raise PatchError(f"patch file {path} not found")
     try:
-        data = yaml.safe_load(path.read_text())
+        size = resolved_final.stat().st_size
+    except OSError as e:
+        raise PatchError(f"cannot stat patch file {path}: {e}") from e
+    if size > _MAX_PATCH_BYTES:
+        raise PatchError(f"patch file {path} too large ({size} > {_MAX_PATCH_BYTES} bytes)")
+    try:
+        text = resolved_final.read_text(encoding="utf-8")
+    except OSError as e:
+        raise PatchError(f"cannot read patch file {path}: {e}") from e
+    try:
+        data = yaml.safe_load(text)
     except yaml.YAMLError as e:
-        raise PatchError(f"invalid YAML in {path}: {e}") from e
+        # ne pas fuiter le chemin absolu résolu complet
+        raise PatchError(f"invalid YAML in {path.name}: {e}") from e
     return patch_from_dict(data)
 
 

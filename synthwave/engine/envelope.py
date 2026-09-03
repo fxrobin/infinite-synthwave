@@ -39,6 +39,10 @@ class ADSR:
                 self.level = self.s
                 break
             length = {ATTACK: self.a, DECAY: self.d, RELEASE: self.r}[self.stage]
+            if self.t >= length:
+                # Un update_patch a raccourci l'étape sous nos pieds : on la clôt.
+                self._advance()
+                continue
             k = min(k, length - self.t)
             ts = self.t + np.arange(1, k + 1)
             if self.stage == ATTACK:
@@ -52,11 +56,14 @@ class ADSR:
             self.t += k
             filled += k
             if self.t >= length:
-                self.t = 0
-                if self.stage == ATTACK:
-                    self.stage, self.level = DECAY, 1.0
-                elif self.stage == DECAY:
-                    self.stage, self.level = SUSTAIN, self.s
-                else:
-                    self.stage, self.level = IDLE, 0.0
+                self._advance()
         return out
+
+    def _advance(self) -> None:
+        self.t = 0
+        if self.stage == ATTACK:
+            self.stage, self.level = DECAY, 1.0
+        elif self.stage == DECAY:
+            self.stage, self.level = SUSTAIN, self.s
+        else:
+            self.stage, self.level = IDLE, 0.0
