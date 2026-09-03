@@ -48,14 +48,12 @@ def _is_within_allowed_roots(resolved: Path) -> bool:
             if resolved.is_relative_to(root):
                 return True
         except ValueError:
-            continue
+            pass
     return False
 
 
 class PatchError(Exception):
     """Patcherror."""
-
-    pass
 
 
 def _dirs() -> list[Path]:

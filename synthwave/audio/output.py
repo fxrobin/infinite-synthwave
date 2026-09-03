@@ -1,5 +1,6 @@
 """Producer thread renders ahead into a queue; the sounddevice callback only
-copies blocks."""
+copies blocks.
+"""
 
 from __future__ import annotations
 

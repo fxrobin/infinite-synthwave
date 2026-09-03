@@ -239,6 +239,7 @@ Le vibrato `pitch` est évalué sur la moyenne du bloc, le `pwm` est passé par-
 | 12 | `flanger` | `Flanger` | `rate=0.25` (Hz ou note), `depth=0.002` s, `base=0.003` s, `feedback=0.5` (0–0.9), `mix=0.5` | Court délai modulé sine (buffer 50 ms) avec feedback, interpolé linéaire. | `lead_pulse`, arrangeur `lead` chorus |
 
 Notes :
+
 - `note_to_seconds` : `"1/16"`, `"1/8d"` (= ×1.5), `"1/8t"` (= ×2/3), `"1/4"` etc. → `4 * (60/bpm) * num/den * mult`.
 - Chaînes : `master` et par-couche s'additionnent ; `manual_fx` remplace `auto_fx` de l'arrangeur ; `_rebuild_inserts` reconstruit à chaque changement de BPM.
 - DrumKit `perc_effects` = chaîne appliquée à toutes les percu *sauf* le kick ; RiserKit n'a pas d'inserts.

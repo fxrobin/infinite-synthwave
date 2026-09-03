@@ -1,5 +1,6 @@
 """Transition one-shots (reverse cymbal, uplifter, scream, impact) synthesised
-per tempo."""
+per tempo.
+"""
 
 from __future__ import annotations
 
@@ -21,7 +22,8 @@ NOTE_TO_RISER = {v: k for k, v in RISER_NOTES.items()}
 
 def _stereo(x: np.ndarray, gain: float, sr: int = 44100, edge_ms: float = 3.0) -> np.ndarray:
     """Normalise, apply short fades at both ends (no clicks) and duplicate to
-    stereo."""
+    stereo.
+    """
     x = x / max(1e-9, float(np.abs(x).max())) * gain
     k = min(len(x) // 2, int(sr * edge_ms / 1000.0))
     if k > 0:
@@ -34,7 +36,8 @@ def _stereo(x: np.ndarray, gain: float, sr: int = 44100, edge_ms: float = 3.0) -
 
 def _sweep_lp(x: np.ndarray, f_start: float, f_end: float, sr: int, chunks: int = 32):
     """Lowpass whose cutoff glides geometrically from f_start to f_end over the
-    buffer."""
+    buffer.
+    """
     out = np.empty_like(x)
     zi = np.zeros(2)
     edges = np.linspace(0, len(x), chunks + 1).astype(int)

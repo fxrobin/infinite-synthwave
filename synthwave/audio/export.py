@@ -48,7 +48,7 @@ def _is_within_allowed_export_roots(resolved: Path) -> bool:
             if resolved.is_relative_to(root):
                 return True
         except ValueError:
-            continue
+            pass
     return False
 
 
@@ -88,9 +88,8 @@ def _check_export_sensitive(parent: Path, resolved: Path, path: str) -> None:
         except ValueError as e:
             if "sensitive directory" in str(e):
                 raise
-            continue
         except Exception:
-            continue
+            pass
 
 
 def _check_export_hidden(resolved: Path, path: str) -> None:
@@ -104,7 +103,6 @@ def _check_export_hidden(resolved: Path, path: str) -> None:
     except ValueError as e:
         if "hidden path" in str(e):
             raise
-        pass
 
 
 def _validate_export_path(path: str) -> Path:

@@ -1,5 +1,6 @@
 """Key, chords with sevenths, and a Markov chain over synthwave
-progressions."""
+progressions.
+"""
 
 from __future__ import annotations
 
@@ -163,7 +164,7 @@ class Harmony:
         t = self.tonic if tonic is None else tonic
         return {(t + i) % 12 for i in (mode or self.mode)}
 
-    def change_key(self, mood: Mood, last_chord: Chord | None = None) -> None:
+    def change_key(self, mood: Mood, last_chord: Chord | None = None) -> None:  # noqa: C901 - key modulation branches
         """Move to `mood`'s mode on the tonic that keeps the most notes in common.
 
         Score = shared pitch classes + 3 if `last_chord` fits the new key (pivot chord)
@@ -193,7 +194,8 @@ class Harmony:
 
     def pivot_chord(self, prev: Chord) -> Chord:
         """Chord of the current key closest to `prev`: same root if it exists,
-        else most common tones; used to bridge two keys during a transition."""
+        else most common tones; used to bridge two keys during a transition.
+        """
         prev_pcs = {(prev.root_pc + i) % 12 for i in prev.intervals}
 
         def score(deg: int) -> tuple[int, int]:

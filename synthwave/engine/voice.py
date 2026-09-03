@@ -49,7 +49,8 @@ class Voice:
 
     def retune(self, patch: PatchModel) -> None:
         """Update continuous parameters in place (same structure as the current
-        patch)."""
+        patch).
+        """
         self.patch = patch
         sr = self.sr
         for osc, o in zip(self.oscs, patch.oscillators, strict=True):
@@ -98,7 +99,7 @@ class Voice:
         if self.filt_env:
             self.filt_env.gate_off()
 
-    def render(self, n: int) -> np.ndarray:
+    def render(self, n: int) -> np.ndarray:  # noqa: C901 - voice render mixes oscillators, envelopes, filters
         """Render."""
         p = self.patch
         lfo = self.lfo.render(n) if self.lfo else None

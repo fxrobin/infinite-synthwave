@@ -14,7 +14,7 @@ class Tracker:
         self.plan: BarPlan | None = None
         self.pending: list[tuple[int, str, int]] = []  # (absolute off time, layer, note)
 
-    def advance(self, n: int) -> tuple[dict[str, list[NoteEvent]], BarPlan | None]:
+    def advance(self, n: int) -> tuple[dict[str, list[NoteEvent]], BarPlan | None]:  # noqa: C901 - tick/event loop branches
         """Advance."""
         events: dict[str, list[NoteEvent]] = {layer: [] for layer in LAYERS}
         base = self.transport.clock

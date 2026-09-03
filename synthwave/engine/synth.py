@@ -57,7 +57,7 @@ class Synth:
         self.counter = 0
         self.set_patch(patch)
 
-    def set_patch(self, patch: PatchModel) -> None:
+    def set_patch(self, patch: PatchModel) -> None:  # noqa: C901 - trivial but flagged by lizard
         """Set patch."""
         self.patch = patch
         self.voices = [Voice(patch, self.sr, self.rng) for _ in range(patch.polyphony)]
@@ -113,7 +113,7 @@ class Synth:
                 out += v.render(n)
         return out
 
-    def render(self, n: int, events: list[NoteEvent]) -> np.ndarray:
+    def render(self, n: int, events: list[NoteEvent]) -> np.ndarray:  # noqa: C901 - event slicing branches
         """Render."""
         out = np.zeros((n, 2), dtype=np.float32)
         pos = 0

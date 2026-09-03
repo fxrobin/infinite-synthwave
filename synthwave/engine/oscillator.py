@@ -1,5 +1,6 @@
 """Band-limited oscillators (polyBLEP) with unison, detune and stereo
-spread."""
+spread.
+"""
 
 from __future__ import annotations
 

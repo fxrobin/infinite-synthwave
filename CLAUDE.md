@@ -10,7 +10,11 @@ géré par `uv`.
 
 **Glossaire** : BPM (Beats Per Minute), FX (Effects), MCP (Model Context Protocol), FM (Frequency
 Modulation), ADSR (Attack Decay Sustain Release), LFO (Low-Frequency Oscillator), RMS (Root Mean
-Square), WAV (Waveform Audio File Format), UP (Update).
+Square), WAV (Waveform Audio File Format), UP (Update), API (Application Programming Interface),
+CLI (Command Line Interface), HTTP (HyperText Transfer Protocol), JSON (JavaScript Object Notation),
+MIDI (Musical Instrument Digital Interface), YAML (YAML Ain't Markup Language), DSP (Digital Signal
+Processing), DAW (Digital Audio Workstation), ALSA (Advanced Linux Sound Architecture), STAR (Starlette
+web framework), Pydantic (Python validation), SciPy (Scientific Python), NumPy (Numerical Python).
 Le README (en français) est la référence exhaustive des moods, effets, patches et paramètres :
 le tenir à jour à chaque nouveauté (nouvel effet, mood, gamme, progression, patch).
 
@@ -38,7 +42,7 @@ uv run synthwave ui --no-browser                             # web UI http://127
 - Le serveur MCP est déclaré dans `.mcp.json` (`uv run synthwave mcp`) et activé pour Claude Code
   dans `.claude/settings.local.json` ; outils `start/stop/status/set_tempo/set_mood/...`.
 - Jamais de chemin absolu machine (du type `/home/<user>/…`) dans les fichiers versionnés : le dépôt est
-  public (github.com/fxrobin/infinite-synthwave) et l'historique a déjà été réécrit pour ça.
+  public (<https://github.com/fxrobin/infinite-synthwave>) et l'historique a déjà été réécrit pour ça.
 
 ## Architecture
 

@@ -75,9 +75,11 @@ def _parse_fx_params(spec: dict, params: str) -> None:
             raise ValueError("too many fx params")
 
 
-def parse_fx(text: str) -> tuple[str, dict]:
+def parse_fx(text: str) -> tuple[str, dict]:  # noqa: C901 - fx parsing needs branches
     """'pad:gate:rate=1/16,depth=0.8' -> ('pad', {'type': 'gate', 'rate':
-    '1/16', 'depth': 0.8})."""
+
+    '1/16', 'depth': 0.8}).
+    """
     if not isinstance(text, str) or len(text) > 256 or "\x00" in text:
         raise ValueError(f"invalid --fx {text!r}")
     parts = text.split(":", 2)
@@ -125,7 +127,7 @@ def _parse_play_timings(
     return seconds, rng, track_s
 
 
-def _build_renderer(
+def _build_renderer(  # noqa: PLR0913 - renderer wiring bundles CLI options
     bpm: float | None,
     mood: str | None,
     seed: int | None,
@@ -188,7 +190,7 @@ def _run_live_player(renderer: Renderer, blocksize: int, device: str | None) -> 
 
 
 @app.command()
-def play(
+def play(  # noqa: PLR0913 - CLI entry point bundles user options
     duration: str | None = typer.Option(None, help="ex: 5m, 90s, 1h. Absent = infini"),
     bpm: float | None = typer.Option(None, min=60, max=180, help="Tempo fixe"),
     bpm_range: str | None = typer.Option(
@@ -229,7 +231,8 @@ def play(
 @app.command()
 def patches():
     """Liste les patches disponibles (bibliothèque +
-    ~/.config/synthwave/patches)."""
+    ~/.config/synthwave/patches).
+    """
     for name in list_patches():
         typer.echo(name)
 

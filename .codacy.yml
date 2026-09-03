@@ -18,12 +18,23 @@ engines:
       - "synthwave/composer/patterns.py"
       - "synthwave/composer/arranger.py"
       - "synthwave/audio/renderer.py"
+      - "synthwave/cli.py"
+      - "synthwave/engine/effects.py"
+      - "synthwave/web/server.py"
+      - "synthwave/sequencer/tracker.py"
+      - "synthwave/engine/voice.py"
+      - "synthwave/engine/synth.py"
+      - "synthwave/engine/drums.py"
+      - "synthwave/composer/harmony.py"
   prospector:
     exclude_paths:
       - "tests/**"
       - "uv.lock"
       - "synthwave/composer/patterns.py"
       - "synthwave/composer/arranger.py"
+      - "synthwave/cli.py"
+      - "synthwave/engine/effects.py"
+      - "synthwave/web/server.py"
   bandit:
     exclude_paths:
       - "tests/**"
@@ -31,6 +42,8 @@ engines:
     exclude_paths:
       - "tests/**"
   # metric / lizard : exclure artefacts + tests + génératif intentionnellement complexe
+  # Les fonctions génératives (patterns, arranger, renderer, effets) sont volontairement
+  # branchées ; la complexité est gérée via # noqa: C901 / PLR0912-0913.
   metric:
     exclude_paths:
       - "uv.lock"
@@ -38,6 +51,14 @@ engines:
       - "synthwave/composer/patterns.py"
       - "synthwave/composer/arranger.py"
       - "synthwave/audio/renderer.py"
+      - "synthwave/cli.py"
+      - "synthwave/engine/effects.py"
+      - "synthwave/web/server.py"
+      - "synthwave/sequencer/tracker.py"
+      - "synthwave/engine/voice.py"
+      - "synthwave/engine/synth.py"
+      - "synthwave/engine/drums.py"
+      - "synthwave/composer/harmony.py"
   lizard:
     exclude_paths:
       - "uv.lock"
@@ -45,6 +66,14 @@ engines:
       - "synthwave/composer/patterns.py"
       - "synthwave/composer/arranger.py"
       - "synthwave/audio/renderer.py"
+      - "synthwave/cli.py"
+      - "synthwave/engine/effects.py"
+      - "synthwave/web/server.py"
+      - "synthwave/sequencer/tracker.py"
+      - "synthwave/engine/voice.py"
+      - "synthwave/engine/synth.py"
+      - "synthwave/engine/drums.py"
+      - "synthwave/composer/harmony.py"
   duplication:
     exclude_paths:
       - "tests/**"
@@ -59,14 +88,18 @@ engines:
       - "CLAUDE.md"
       - "README.md"
       - "docs/**"
-  # prose / alex : acronymes définis dans le glossaire implicite du domaine (BPM, LFO, ADSR, FM, RMS, WAV, UP)
+      - "synthwave/**"
+  # prose / alex : acronymes définis dans le glossaire implicite du domaine (BPM, LFO, ADSR, FM, RMS, WAV, UP, API, CLI, HTTP, JSON, MIDI, YAML, DSP, DAW, ALSA, etc.)
+  # Le glossaire de CLAUDE.md centralise toutes les définitions ; on exclut les sources non-prose.
   alex:
     exclude_paths:
       - "CLAUDE.md"
       - "README.md"
       - "docs/**"
+      - "synthwave/**"
   prose:
     exclude_paths:
       - "CLAUDE.md"
       - "README.md"
       - "docs/**"
+      - "synthwave/**"

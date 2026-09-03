@@ -1,5 +1,6 @@
 """One live playback session (Renderer + Player) shared by the MCP server and
-the web UI."""
+the web UI.
+"""
 
 from __future__ import annotations
 
@@ -59,7 +60,8 @@ class Session:
 
     def command(self, fn, timeout: float = 2.0) -> dict:
         """Run `fn(renderer)` on the audio thread and wait for it (thread-
-        safe)."""
+        safe).
+        """
         r = self.live
         if r is None:
             return {"ok": False, "error": "player not running; call start first"}
