@@ -1,9 +1,10 @@
 """Section state machine turning harmony + generators into one BarPlan per bar.
 
 The stream is a sequence of *tracks* of about `track_s` seconds each:
-intro -> verse / chorus / break ... -> outro -> transition -> next track.
-Inside a section, layers enter one after the other every two bars (build-up); the bar before
-a chorus is a pre-drop (percussion cut, snare roll) so the chorus lands as a drop.
+intro -> verse / chorus / break ... -> outro -> transition -> next
+track. Inside a section, layers enter one after the other every two bars
+(build-up); the bar before a chorus is a pre-drop (percussion cut, snare
+roll) so the chorus lands as a drop.
 """
 
 from __future__ import annotations
@@ -204,7 +205,8 @@ class Arranger:
 
     # ----- external control -----
     def set_mood(self, mood: Mood | None) -> None:
-        """Schedule a mood change (applied after an outro, at the next transition) and lock it.
+        """Schedule a mood change (applied after an outro, at the next
+        transition) and lock it.
 
         None unlocks: every following transition draws a new random mood.
         """
@@ -222,9 +224,9 @@ class Arranger:
         self.section_bar = self.section_len
 
     def draw_bpm(self) -> float:
-        """Tempo for the next track: user range -> uniform; else the mood's range, staying as
-        close as possible to the current tempo (smooth transitions).
-        """
+        """Tempo for the next track: user range -> uniform; else the mood's
+        range, staying as close as possible to the current tempo (smooth
+        transitions)."""
         if self.bpm_range is not None:
             lo, hi = self.bpm_range
             return round(float(self.rng.uniform(lo, hi)), 1)
@@ -366,7 +368,8 @@ class Arranger:
         return room < 8 or self.track_sections >= MAX_TRACK_SECTIONS
 
     def _pick_mood(self) -> Mood:
-        """Next track's mood, weighted towards moods close to the current one (tempo, feel)."""
+        """Next track's mood, weighted towards moods close to the current one
+        (tempo, feel)."""
         others = [m for m in MOODS.values() if m is not self.mood]
         w = []
         for m in others:
@@ -383,7 +386,8 @@ class Arranger:
         return others[int(self.rng.choice(len(others), p=w))]
 
     def _enter_transition(self) -> None:
-        """Ambient-only bars bridging two tracks: pivot chord, related key, nearby tempo."""
+        """Ambient-only bars bridging two tracks: pivot chord, related key,
+        nearby tempo."""
         self.transition_requested = False
         last_chord = self.progression[(self.section_bar - 1) % len(self.progression)]
         new_mood = self.pending_mood
@@ -439,7 +443,8 @@ class Arranger:
         )
 
     def _is_predrop(self) -> bool:
-        """Percussion cut before a hit: last bar before a chorus, or mid-chorus (bar 7)."""
+        """Percussion cut before a hit: last bar before a chorus, or mid-chorus
+        (bar 7)."""
         last = self.section_bar == self.section_len - 1
         if last and self._going_to_chorus():
             return True
@@ -500,7 +505,8 @@ class Arranger:
         return drums
 
     def _risers(self, predrop: bool) -> Pattern:
-        """Announce the coming chorus on the two last bars; drop an impact on its first beat."""
+        """Announce the coming chorus on the two last bars; drop an impact on
+        its first beat."""
         remaining = self.section_len - self.section_bar  # bars left including this one
         going_to_chorus = self._going_to_chorus()
         p: Pattern = []
@@ -524,7 +530,8 @@ class Arranger:
         return p
 
     def _bass(self, r: np.random.Generator, chord: Chord, predrop: bool) -> Pattern:
-        """Regenerate on the chord each bar; every second bar apply a light mutation."""
+        """Regenerate on the chord each bar; every second bar apply a light
+        mutation."""
         p = gen_bass(r, chord, self.bass_style)
         if predrop:
             return cut_after(p, 12)
@@ -534,10 +541,10 @@ class Arranger:
         return p
 
     def _lead(self, r: np.random.Generator, chord: Chord, active: bool) -> Pattern:
-        """The track's theme: question / answer motifs alternate bar by bar in verse and chorus
-        (octave up in the second half of a chorus); the counter-melody plays in breaks and
-        as a secondary line late in a verse.
-        """
+        """The track's theme: question / answer motifs alternate bar by bar in
+        verse and chorus (octave up in the second half of a chorus); the
+        counter-melody plays in breaks and as a secondary line late in a
+        verse."""
         if not active:
             return []
         lo = 55 if self.mood.pad_octave <= 3 else 60
@@ -562,9 +569,9 @@ class Arranger:
         return render_motif(r, motif, chord, scale, octave=octave, vary=vary)
 
     def _tweaks(self, predrop: bool) -> dict[str, dict[str, float]]:
-        """Section gestures + per-bar sweeps: the filter opens over the 4 bars before a
-        chorus (build-up), closes down in a break, and rises through the intro.
-        """
+        """Section gestures + per-bar sweeps: the filter opens over the 4 bars
+        before a chorus (build-up), closes down in a break, and rises through
+        the intro."""
         out = {k: dict(v) for k, v in self.gestures.items()}
 
         def mul(layer: str, path: str, factor: float) -> None:

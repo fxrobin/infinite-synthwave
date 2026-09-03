@@ -20,17 +20,17 @@ _BARE_NAME_RE = re.compile(r"^[A-Za-z0-9_-]+$")
 
 def _allowed_patch_roots() -> list[Path]:
     """Allowed patch roots."""
+    import contextlib
+
     roots: list[Path] = []
     for p in (LIBRARY, USER_DIR, Path.cwd(), Path.home(), Path(tempfile.gettempdir())):
-        try:
+        with contextlib.suppress(Exception):
             # USER_DIR peut ne pas exister
             if p.exists():
                 roots.append(p.resolve())
             elif p == USER_DIR:
                 # autorise quand même le parent résolu pour les vérifications
                 roots.append(p.resolve())
-        except Exception:
-            continue
     # dédup
     seen: set[Path] = set()
     uniq: list[Path] = []
@@ -209,10 +209,12 @@ def _get_nested(data: dict, path: str):
 
 
 def apply_tweaks(patch: AnyPatch, tweaks: dict[str, float]) -> AnyPatch:
-    """Multiply numeric parameters by factors: {"filter.cutoff": 0.6, "oscillators.0.detune": 1.5}.
+    """Multiply numeric parameters by factors: {"filter.cutoff": 0.6,
+    "oscillators.0.detune": 1.5}.
 
-    Values are clamped to sane bounds; paths that do not exist in this patch are ignored, so
-    one set of gestures can be applied to any patch.
+    Values are clamped to sane bounds; paths that do not exist in this
+    patch are ignored, so one set of gestures can be applied to any
+    patch.
     """
     if not tweaks:
         return patch

@@ -48,7 +48,8 @@ class Voice:
         self.age = 0
 
     def retune(self, patch: PatchModel) -> None:
-        """Update continuous parameters in place (same structure as the current patch)."""
+        """Update continuous parameters in place (same structure as the current
+        patch)."""
         self.patch = patch
         sr = self.sr
         for osc, o in zip(self.oscs, patch.oscillators, strict=True):

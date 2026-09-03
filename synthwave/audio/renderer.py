@@ -1,4 +1,5 @@
-"""Mixes all layers into a stereo block; owns the command queue used by CLI/MCP threads."""
+"""Mixes all layers into a stereo block; owns the command queue used by CLI/MCP
+threads."""
 
 from __future__ import annotations
 
@@ -114,7 +115,10 @@ class Renderer:
 
     # ----- instruments -----
     def _install(self, layer: str, name: str, patch, live: bool = False) -> None:
-        """Load `patch` into a layer. `live`: parameter-only change, keep voices running."""
+        """Load `patch` into a layer.
+
+        `live`: parameter-only change, keep voices running.
+        """
         if layer == "riser":
             raise PatchError("layer 'riser' is built-in and has no patch")
         self.base_patch[layer] = patch
@@ -167,7 +171,8 @@ class Renderer:
         self._rebuild_inserts()
 
     def set_mood(self, name: str) -> None:
-        """Request a mood change through an ambient transition; 'random' unlocks the draw."""
+        """Request a mood change through an ambient transition; 'random'
+        unlocks the draw."""
         if name == "random":
             self.arranger.set_mood(None)
             return
@@ -217,7 +222,8 @@ class Renderer:
         self.manual_patch.add(layer)  # a hand-tweaked patch is kept across sections
 
     def set_auto_tweaks(self, enabled: bool) -> None:
-        """Enable / disable the arranger's live patch gestures (filter sweeps, detune...)."""
+        """Enable / disable the arranger's live patch gestures (filter sweeps,
+        detune...)."""
         self.auto_tweaks_enabled = bool(enabled)
         for layer in LAYERS:
             if layer in self.base_patch:
@@ -242,7 +248,8 @@ class Renderer:
         self.arranger.force_next_section()
 
     def set_layer_effects(self, layer: str, specs: list[dict] | None) -> None:
-        """Manual insert chain for a layer or 'master'; None restores the arranger's choice."""
+        """Manual insert chain for a layer or 'master'; None restores the
+        arranger's choice."""
         if layer not in LAYERS and layer != "master":
             raise ValueError(f"unknown layer {layer!r}, choose from {LAYERS + ('master',)}")
         if specs is None:

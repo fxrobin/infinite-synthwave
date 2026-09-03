@@ -1,4 +1,5 @@
-"""Local web UI: Starlette app serving one page, a JSON API and a WebSocket status feed.
+"""Local web UI: Starlette app serving one page, a JSON API and a WebSocket
+status feed.
 
 Run with: synthwave ui  (http://127.0.0.1:8765)
 """
