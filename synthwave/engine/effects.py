@@ -49,6 +49,7 @@ def note_to_seconds(value: float | str, bpm: float) -> float:
 
 class Effect:
     """Effect."""
+
     def process(self, x: np.ndarray) -> np.ndarray:  # pragma: no cover
         """Process."""
         raise NotImplementedError
@@ -56,6 +57,7 @@ class Effect:
 
 class Chorus(Effect):
     """Chorus."""
+
     def __init__(
         self, sr: int, bpm: float, rate: float = 0.5, depth: float = 0.003, mix: float = 0.4
     ):
@@ -85,6 +87,7 @@ class Chorus(Effect):
 
 class Delay(Effect):
     """Delay."""
+
     def __init__(
         self,
         sr: int,
@@ -139,6 +142,7 @@ _SPREAD = 23
 
 class _Line:
     """Line."""
+
     def __init__(self, length: int):
         """Initialize."""
         self.len, self.buf, self.pos, self.zi = length, np.zeros(length), 0, np.zeros(1)
@@ -230,6 +234,7 @@ class Reverb(Effect):
 
 class GatedReverb(Effect):
     """Gatedreverb."""
+
     def __init__(
         self,
         sr: int,
@@ -267,6 +272,7 @@ class GatedReverb(Effect):
 
 class Limiter(Effect):
     """Limiter."""
+
     def __init__(self, sr: int, bpm: float, threshold: float = 0.9, release: float = 0.1):
         """Initialize."""
         self.thr, self.coef, self.gain = threshold, float(np.exp(-1.0 / (release * sr))), 1.0

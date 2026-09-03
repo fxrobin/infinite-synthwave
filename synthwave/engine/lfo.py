@@ -5,6 +5,7 @@ import numpy as np
 
 class LFO:
     """Lfo."""
+
     def __init__(self, wave: str, rate_hz: float, sr: int, phase: float = 0.0):
         """Initialize."""
         self.wave, self.rate, self.sr, self.phase = wave, float(rate_hz), sr, float(phase)

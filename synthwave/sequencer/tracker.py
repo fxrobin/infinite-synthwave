@@ -7,6 +7,7 @@ from .transport import Transport
 
 class Tracker:
     """Tracker."""
+
     def __init__(self, transport: Transport, arranger):
         """Initialize."""
         self.transport, self.arranger = transport, arranger

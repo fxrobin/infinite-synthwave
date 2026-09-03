@@ -87,6 +87,7 @@ _QUALITY = {
 @dataclass(frozen=True)
 class Chord:
     """Chord."""
+
     root_pc: int
     degree: int
     intervals: tuple[int, ...]
@@ -108,6 +109,7 @@ class Chord:
 
 class Harmony:
     """Harmony."""
+
     MINOR = (0, 2, 3, 5, 7, 8, 10)
     MAJOR = (0, 2, 4, 5, 7, 9, 11)
 
@@ -164,7 +166,8 @@ class Harmony:
         """Move to `mood`'s mode on the tonic that keeps the most notes in common.
 
         Score = shared pitch classes + 3 if `last_chord` fits the new key (pivot chord)
-        + 1 for staying on the same tonic; the new tonic is drawn among the best candidates."""
+        + 1 for staying on the same tonic; the new tonic is drawn among the best candidates.
+        """
         self.mood = mood
         new_mode = (
             self.MAJOR
@@ -189,7 +192,8 @@ class Harmony:
 
     def pivot_chord(self, prev: Chord) -> Chord:
         """Chord of the current key closest to `prev`: same root if it exists, else most
-        common tones; used to bridge two keys during a transition."""
+        common tones; used to bridge two keys during a transition.
+        """
         prev_pcs = {(prev.root_pc + i) % 12 for i in prev.intervals}
 
         def score(deg: int) -> tuple[int, int]:

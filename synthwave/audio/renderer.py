@@ -36,6 +36,7 @@ LAYER_TRIM = {"lead": 2.5}  # static make-up gain per layer, applied before the 
 @dataclass
 class RenderConfig:
     """Renderconfig."""
+
     sr: int = 44100
     bpm: float | None = None
     mood: str | None = None  # None: random at start, redrawn at every transition
@@ -48,6 +49,7 @@ class RenderConfig:
 
 class Renderer:
     """Renderer."""
+
     def __init__(self, cfg: RenderConfig):
         """Initialize."""
         if cfg.mood is not None and cfg.mood not in MOODS:

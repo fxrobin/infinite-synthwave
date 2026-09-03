@@ -42,6 +42,7 @@ MAX_TRACK_SECTIONS = 8  # safety net when sections are forced by hand
 
 class Section(StrEnum):
     """Section."""
+
     INTRO = "intro"
     VERSE = "verse"
     CHORUS = "chorus"
@@ -144,6 +145,7 @@ _DRUM_LEVELS = {
 @dataclass(frozen=True)
 class BarPlan:
     """Barplan."""
+
     bar: int
     section: Section
     section_bar: int
@@ -167,6 +169,7 @@ class BarPlan:
 
 class Arranger:
     """Arranger."""
+
     def __init__(
         self,
         rng: np.random.Generator,
@@ -203,7 +206,8 @@ class Arranger:
     def set_mood(self, mood: Mood | None) -> None:
         """Schedule a mood change (applied after an outro, at the next transition) and lock it.
 
-        None unlocks: every following transition draws a new random mood."""
+        None unlocks: every following transition draws a new random mood.
+        """
         if mood is None:
             self.mood_locked = False
             self.transition_requested = True
@@ -219,7 +223,8 @@ class Arranger:
 
     def draw_bpm(self) -> float:
         """Tempo for the next track: user range -> uniform; else the mood's range, staying as
-        close as possible to the current tempo (smooth transitions)."""
+        close as possible to the current tempo (smooth transitions).
+        """
         if self.bpm_range is not None:
             lo, hi = self.bpm_range
             return round(float(self.rng.uniform(lo, hi)), 1)
@@ -531,7 +536,8 @@ class Arranger:
     def _lead(self, r: np.random.Generator, chord: Chord, active: bool) -> Pattern:
         """The track's theme: question / answer motifs alternate bar by bar in verse and chorus
         (octave up in the second half of a chorus); the counter-melody plays in breaks and
-        as a secondary line late in a verse."""
+        as a secondary line late in a verse.
+        """
         if not active:
             return []
         lo = 55 if self.mood.pad_octave <= 3 else 60
@@ -557,7 +563,8 @@ class Arranger:
 
     def _tweaks(self, predrop: bool) -> dict[str, dict[str, float]]:
         """Section gestures + per-bar sweeps: the filter opens over the 4 bars before a
-        chorus (build-up), closes down in a break, and rises through the intro."""
+        chorus (build-up), closes down in a break, and rises through the intro.
+        """
         out = {k: dict(v) for k, v in self.gestures.items()}
 
         def mul(layer: str, path: str, factor: float) -> None:

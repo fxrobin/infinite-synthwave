@@ -16,6 +16,7 @@ from .renderer import Renderer
 
 class Player:
     """Player."""
+
     def __init__(self, renderer: Renderer, blocksize: int = 1024, prefill: int = 6, device=None):
         """Initialize."""
         self.renderer, self.blocksize, self.prefill = renderer, blocksize, prefill

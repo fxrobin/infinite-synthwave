@@ -30,7 +30,8 @@ def start(
     mood None: drawn at random and redrawn at every transition; a given mood is kept.
     bpm fixes the tempo; bpm_range=[low, high] bounds the random tempo drawn at start
     and at each transition (default: the mood's own range). track_s is the target length of
-    one track (intro -> outro, then a transition to the next track)."""
+    one track (intro -> outro, then a transition to the next track).
+    """
     rng = (float(bpm_range[0]), float(bpm_range[1])) if bpm_range else None
     return SESSION.start(
         RenderConfig(
@@ -60,7 +61,8 @@ def set_tempo(bpm: float) -> dict:
 @mcp.tool()
 def set_mood(mood: str) -> dict:
     """Change mood at the next transition and keep it: dark|noir|dreamy|outrun.
-    'random' releases the lock so every transition draws a new mood."""
+    'random' releases the lock so every transition draws a new mood.
+    """
     return _command(lambda r: r.set_mood(mood))
 
 
@@ -93,14 +95,16 @@ def set_patch_param(layer: str, path: str, value: float | str) -> dict:
 @mcp.tool()
 def set_layer_effects(layer: str, effects: list[dict] | None = None) -> dict:
     """Manual insert effects for a layer or 'master', e.g. [{"type":"gate","rate":"1/16"}],
-    [{"type":"lofi","bits":8}], [{"type":"bitcrush","bits":6,"downsample":4}]. None = auto."""
+    [{"type":"lofi","bits":8}], [{"type":"bitcrush","bits":6,"downsample":4}]. None = auto.
+    """
     return _command(lambda r: r.set_layer_effects(layer, effects))
 
 
 @mcp.tool()
 def set_auto_tweaks(enabled: bool) -> dict:
     """Enable/disable the live composer's patch gestures (filter sweeps before a drop, detune,
-    LFO changes per section). Manual set_patch_param edits are kept underneath."""
+    LFO changes per section). Manual set_patch_param edits are kept underneath.
+    """
     return _command(lambda r: r.set_auto_tweaks(enabled))
 
 

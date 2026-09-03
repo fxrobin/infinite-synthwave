@@ -16,6 +16,7 @@ SNAP, RIDE, SHAKER, TICK, CROLL = 40, 51, 70, 44, 57
 @dataclass(frozen=True)
 class Note:
     """Note."""
+
     step: int
     note: int
     vel: float
@@ -45,7 +46,8 @@ def gen_drums(  # noqa: PLR0913 - drum pattern needs many flags (bundled from ar
 ) -> Pattern:
     """One bar of drums. `snap`: finger snaps take the backbeat (layered with the snare in a
     strong chorus); `ride`: the ride cymbal replaces the closed hats on the 8ths; `shaker`:
-    16th-note shaker underneath."""
+    16th-note shaker underneath.
+    """
     p = _gen_drums(rng, density, fill, snare, crash, halftime, strong)
     if snap and snare:
         keep = strong
@@ -276,7 +278,8 @@ class Motif:
     """A melodic idea as rhythm + contour: (step, scale-step offset from the chord root, length).
 
     Offsets are diatonic (in scale steps), so rendering the same motif on another chord gives a
-    real sequence: same rhythm, same shape, transposed within the key."""
+    real sequence: same rhythm, same shape, transposed within the key.
+    """
 
     notes: tuple[tuple[int, int, int], ...]
 
@@ -284,7 +287,8 @@ class Motif:
 @dataclass(frozen=True)
 class Theme:
     """The melodic material of one track: a question motif, its answer (same rhythm, contour
-    resolving to the root) and a counter-melody (inverted contour, longer notes)."""
+    resolving to the root) and a counter-melody (inverted contour, longer notes).
+    """
 
     question: Motif
     answer: Motif
@@ -340,7 +344,8 @@ def render_motif(
     vel: float = 0.8,
 ) -> Pattern:
     """Play a motif on a chord: offsets are counted in scale steps from the chord root's
-    position in `scale_notes`. `vary` = chance of an ornament (neighbour, dropped, added note)."""
+    position in `scale_notes`. `vary` = chance of an ornament (neighbour, dropped, added note).
+    """
     if not scale_notes:
         return []
     root_pc = chord.root_pc

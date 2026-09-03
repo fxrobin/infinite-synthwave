@@ -37,6 +37,7 @@ _ALLOWED_LAYERS_MASTER = set(LAYERS) | {"master"}
 
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     """Securityheadersmiddleware."""
+
     async def dispatch(self, request, call_next):
         # limite taille requête
         """Dispatch."""

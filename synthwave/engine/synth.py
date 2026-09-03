@@ -50,6 +50,7 @@ def _effects_differ(new: PatchModel, old: PatchModel) -> bool:
 
 class Synth:
     """Synth."""
+
     def __init__(self, patch: PatchModel, sr: int, rng: np.random.Generator, bpm: float):
         """Initialize."""
         self.sr, self.rng, self.bpm = sr, rng, bpm
@@ -66,7 +67,8 @@ class Synth:
         """Apply parameter changes without resetting voices (no click, held notes survive).
 
         Falls back to a full reset when the structure changed (oscillator count, waves,
-        unison, polyphony, filter type or effect chain layout)."""
+        unison, polyphony, filter type or effect chain layout).
+        """
         old = self.patch
         if _has_structural_change(patch, old):
             self.set_patch(patch)

@@ -52,6 +52,7 @@ def render_wave(
 
 class Oscillator:
     """Oscillator."""
+
     def __init__(  # noqa: PLR0913 - DSP voice needs many params (bundled in OscSpec in caller)
         self,
         wave: str,

@@ -9,6 +9,7 @@ IDLE, ATTACK, DECAY, SUSTAIN, RELEASE = range(5)
 
 class ADSR:
     """Adsr."""
+
     def __init__(self, attack: float, decay: float, sustain: float, release: float, sr: int):
         """Initialize."""
         self.a = max(1, int(attack * sr))
