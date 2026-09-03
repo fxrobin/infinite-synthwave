@@ -8,6 +8,7 @@ STEPS_PER_BAR = 16
 @dataclass(frozen=True)
 class StepTick:
     """Steptick."""
+
     bar: int
     step: int
     offset: int
@@ -15,6 +16,7 @@ class StepTick:
 
 class Transport:
     """Transport."""
+
     def __init__(self, sr: int, bpm: float):
         """Initialize."""
         self.sr, self.bpm = sr, float(bpm)

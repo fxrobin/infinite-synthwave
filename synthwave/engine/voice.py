@@ -16,6 +16,7 @@ def midi_to_hz(note: float) -> float:
 
 class Voice:
     """Voice."""
+
     def __init__(self, patch: PatchModel, sr: int, rng: np.random.Generator):
         """Initialize."""
         self.patch, self.sr = patch, sr

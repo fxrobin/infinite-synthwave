@@ -44,6 +44,7 @@ def _sweep_lp(x: np.ndarray, f_start: float, f_end: float, sr: int, chunks: int 
 
 class RiserKit:
     """Riserkit."""
+
     def __init__(self, sr: int, rng: np.random.Generator, bpm: float, volume: float = 0.6):
         """Initialize."""
         self.sr, self.rng, self.volume = sr, rng, volume

@@ -54,6 +54,7 @@ def _is_within_allowed_roots(resolved: Path) -> bool:
 
 class PatchError(Exception):
     """Patcherror."""
+
     pass
 
 
@@ -211,7 +212,8 @@ def apply_tweaks(patch: AnyPatch, tweaks: dict[str, float]) -> AnyPatch:
     """Multiply numeric parameters by factors: {"filter.cutoff": 0.6, "oscillators.0.detune": 1.5}.
 
     Values are clamped to sane bounds; paths that do not exist in this patch are ignored, so
-    one set of gestures can be applied to any patch."""
+    one set of gestures can be applied to any patch.
+    """
     if not tweaks:
         return patch
     data = patch.model_dump()

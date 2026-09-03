@@ -27,6 +27,7 @@ def biquad_coeffs(kind: str, cutoff_hz: float, resonance: float, sr: int):
 
 class Filter:
     """Filter."""
+
     def __init__(self, kind: str, sr: int):
         """Initialize."""
         self.kind, self.sr = kind, sr

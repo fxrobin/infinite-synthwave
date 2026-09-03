@@ -6,6 +6,7 @@ from dataclasses import dataclass, field
 @dataclass(frozen=True)
 class Mood:
     """Mood."""
+
     name: str
     bpm: float
     drum_density: float  # 0..1 hats/kick extras

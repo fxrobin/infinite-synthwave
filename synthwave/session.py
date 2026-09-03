@@ -10,6 +10,7 @@ from .composer.moods import MOODS
 
 class Session:
     """Session."""
+
     def __init__(self) -> None:
         """Initialize."""
         self._lock = threading.Lock()

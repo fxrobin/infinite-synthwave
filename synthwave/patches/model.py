@@ -9,6 +9,7 @@ Wave = Literal["saw", "square", "triangle", "sine", "noise", "fm"]
 
 class OscSpec(BaseModel):
     """Oscspec."""
+
     wave: Wave
     unison: int = Field(1, ge=1, le=8)
     detune: float = Field(0.0, ge=0.0, le=100.0)
@@ -23,6 +24,7 @@ class OscSpec(BaseModel):
 
 class EnvSpec(BaseModel):
     """Envspec."""
+
     attack: float = Field(0.01, ge=0.0)
     decay: float = Field(0.1, ge=0.0)
     sustain: float = Field(1.0, ge=0.0, le=1.0)
@@ -32,6 +34,7 @@ class EnvSpec(BaseModel):
 
 class FilterSpec(BaseModel):
     """Filterspec."""
+
     type: Literal["lp", "hp", "bp"] = "lp"
     cutoff: float = Field(2000.0, ge=20.0, le=20000.0)
     resonance: float = Field(0.0, ge=0.0, le=1.0)
@@ -41,6 +44,7 @@ class FilterSpec(BaseModel):
 
 class LfoSpec(BaseModel):
     """Lfospec."""
+
     wave: Literal["sine", "triangle", "square", "saw"] = "sine"
     rate: float = Field(1.0, gt=0.0)
     target: Literal["pitch", "cutoff", "amp", "pwm"] = "cutoff"
@@ -49,6 +53,7 @@ class LfoSpec(BaseModel):
 
 class EffectSpec(BaseModel):
     """Effectspec."""
+
     model_config = ConfigDict(extra="allow")
     type: Literal[
         "chorus",
@@ -68,6 +73,7 @@ class EffectSpec(BaseModel):
 
 class PatchModel(BaseModel):
     """Patchmodel."""
+
     name: str
     kind: Literal["synth"] = "synth"
     polyphony: int = Field(8, ge=1, le=16)
@@ -82,6 +88,7 @@ class PatchModel(BaseModel):
 
 class KickSpec(BaseModel):
     """Kickspec."""
+
     pitch_start: float = 160.0
     pitch_end: float = 45.0
     pitch_decay: float = 0.05
@@ -96,6 +103,7 @@ class KickSpec(BaseModel):
 
 class SnareSpec(BaseModel):
     """Snarespec."""
+
     tone: float = 180.0
     tone_decay: float = 0.08
     noise_decay: float = 0.18
@@ -107,6 +115,7 @@ class SnareSpec(BaseModel):
 
 class HatSpec(BaseModel):
     """Hatspec."""
+
     closed_decay: float = 0.05
     open_decay: float = 0.35
     cutoff: float = 8000.0
@@ -115,6 +124,7 @@ class HatSpec(BaseModel):
 
 class ClapSpec(BaseModel):
     """Clapspec."""
+
     decay: float = 0.25
     gate_hold: float = 0.2
     reverb_mix: float = 0.5
@@ -123,6 +133,7 @@ class ClapSpec(BaseModel):
 
 class TomSpec(BaseModel):
     """Tomspec."""
+
     pitch_low: float = 110.0
     pitch_mid: float = 160.0
     decay: float = 0.3
@@ -131,6 +142,7 @@ class TomSpec(BaseModel):
 
 class SnapSpec(BaseModel):
     """Snapspec."""
+
     tone: float = 1900.0  # bandpass centre of the snap
     decay: float = 0.07
     body: float = 0.35  # low "knuckle" thump level
@@ -140,6 +152,7 @@ class SnapSpec(BaseModel):
 
 class RideSpec(BaseModel):
     """Ridespec."""
+
     decay: float = 0.9
     cutoff: float = 5000.0
     ping: float = 0.5  # metallic partials level
@@ -156,6 +169,7 @@ class TickSpec(BaseModel):
 
 class ShakerSpec(BaseModel):
     """Shakerspec."""
+
     decay: float = 0.06
     cutoff: float = 6500.0
     gain: float = 0.3
@@ -163,6 +177,7 @@ class ShakerSpec(BaseModel):
 
 class DrumPatchModel(BaseModel):
     """Drumpatchmodel."""
+
     name: str
     kind: Literal["drums"]
     volume: float = Field(0.9, ge=0.0, le=2.0)

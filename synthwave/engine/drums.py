@@ -47,6 +47,7 @@ def _filt(kind: str, x: np.ndarray, cutoff: float, res: float, sr: int) -> np.nd
 
 class DrumKit:
     """Drumkit."""
+
     def __init__(
         self, patch: DrumPatchModel, sr: int, rng: np.random.Generator, bpm: float = 120.0
     ):
@@ -65,7 +66,8 @@ class DrumKit:
 
     def _crash_roll(self, bpm: float) -> np.ndarray:
         """One bar of mallet roll on the crash: dense strokes (~14/s) whose level swells
-        towards the downbeat, then a final crash-length tail."""
+        towards the downbeat, then a final crash-length tail.
+        """
         sr = self.sr
         bar = 4.0 * 60.0 / bpm
         t = _t(sr, bar + 0.8)
