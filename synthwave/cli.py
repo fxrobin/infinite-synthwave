@@ -7,7 +7,7 @@ import typer
 
 from .audio.export import export_wav
 from .audio.output import Player
-from .audio.renderer import LAYERS, RenderConfig, Renderer
+from .audio.renderer import LAYERS, MASTER_COLORS, RenderConfig, Renderer
 from .composer.moods import MOODS
 from .engine.effects import _REGISTRY
 from .patches.loader import list_patches
@@ -136,12 +136,19 @@ def _build_renderer(  # noqa: PLR0913 - renderer wiring bundles CLI options
     rng: tuple[float, float] | None,
     track_s: float,
     fx: list[str] | None,
+    master_color: str,
 ) -> Renderer:
     """Build renderer."""
     try:
         renderer = Renderer(
             RenderConfig(
-                bpm=bpm, mood=mood, seed=seed, duration_s=seconds, bpm_range=rng, track_s=track_s
+                bpm=bpm,
+                mood=mood,
+                seed=seed,
+                duration_s=seconds,
+                bpm_range=rng,
+                track_s=track_s,
+                master_color=master_color,
             )
         )
     except ValueError as e:
@@ -208,13 +215,16 @@ def play(  # noqa: PLR0913 - CLI entry point bundles user options
     blocksize: int = typer.Option(1024),
     device: str | None = typer.Option(None, help="Nom ou index du périphérique"),
     fx: list[str] | None = FX_OPTION,
+    master_color: str = typer.Option(
+        "tape", help="Couleur master permanente : " + "|".join(MASTER_COLORS)
+    ),
 ):
     """Joue de la synthwave sur la sortie audio (ou exporte en WAV)."""
     _validate_play_head(blocksize, device, mood)
     seconds, rng, track_s = _parse_play_timings(duration, bpm_range, track)
     if export and seconds is None:
         raise typer.BadParameter("--export requires --duration")
-    renderer = _build_renderer(bpm, mood, seed, seconds, rng, track_s, fx)
+    renderer = _build_renderer(bpm, mood, seed, seconds, rng, track_s, fx, master_color)
     typer.echo(
         f"seed={renderer.seed} bpm={renderer.bpm:g} mood={renderer.mood.name}"
         f"{'' if mood else ' (random)'} key={renderer.arranger.harmony.key_name}"

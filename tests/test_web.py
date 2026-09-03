@@ -30,3 +30,12 @@ def test_websocket_feed_sends_status():
     with client.websocket_connect("/ws") as ws:
         msg = ws.receive_json()
         assert msg["running"] is False and "moods" in msg
+
+
+def test_master_color_route_and_meta():
+    with TestClient(app) as c:
+        assert "tape" in c.get("/api/meta").json()["master_colors"]
+        bad = c.post("/api/master_color", json={"color": "nope"})
+        assert bad.status_code == 400
+        off = c.post("/api/master_color", json={"color": "vhs"})
+        assert off.status_code == 409  # valid colour, but no player running

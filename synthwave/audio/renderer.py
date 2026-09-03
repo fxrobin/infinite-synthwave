@@ -31,6 +31,46 @@ DEFAULT_PATCHES = {
     "ambient": "ambient_drone",
     "riser": "builtin",
 }
+# Master "colour": always-on console/tape stage between the master inserts and the limiter.
+# Applied after the master volume, so the saturation always sees the same level.
+MASTER_COLORS: dict[str, list[dict]] = {
+    "clean": [],
+    # `lofi` only ever appears fully wet: its wobble delays the whole wet path, so a
+    # partial mix would comb-filter the master instead of colouring it.
+    "tape": [  # default: gentle tape saturation plus a little quantisation grit
+        {"type": "distortion", "drive": 1.7, "tone": 14000, "mix": 0.35},
+        {"type": "bitcrush", "bits": 13, "downsample": 1, "mix": 0.25},
+    ],
+    "vhs": [  # worn tape: darker, noisier, audibly crushed
+        {"type": "distortion", "drive": 2.2, "tone": 7000, "mix": 0.5},
+        {
+            "type": "lofi",
+            "bits": 10,
+            "downsample": 2,
+            "cutoff": 7000,
+            "wobble": 0.003,
+            "noise": 0.0025,
+            "mix": 1.0,
+        },
+    ],
+    "mic": [  # saturated microphone: narrow band, driven hard, room hiss
+        {"type": "distortion", "drive": 3.2, "tone": 4500, "mix": 0.6},
+        {
+            "type": "lofi",
+            "bits": 11,
+            "downsample": 2,
+            "cutoff": 5500,
+            "wobble": 0.0015,
+            "noise": 0.0035,
+            "mix": 1.0,
+        },
+    ],
+    "crush": [  # heaviest: bitcrushed and distorted, for a full lo-fi mix
+        {"type": "bitcrush", "bits": 8, "downsample": 2, "mix": 0.6},
+        {"type": "distortion", "drive": 3.5, "tone": 5000, "mix": 0.6},
+    ],
+}
+
 DUCKED = {"pad": 1.0, "bass": 0.6, "ambient": 0.6, "arp": 0.5}
 LAYER_TRIM = {"lead": 2.5}  # static make-up gain per layer, applied before the mix
 
@@ -47,6 +87,7 @@ class RenderConfig:
     patches: dict[str, str] = field(default_factory=dict)
     bpm_range: tuple[float, float] | None = None  # overrides the mood's range when set
     track_s: float = TRACK_SECONDS  # target length of one track (intro -> outro)
+    master_color: str = "tape"  # always-on master stage, see MASTER_COLORS
 
 
 class Renderer:
@@ -102,6 +143,12 @@ class Renderer:
         self.current_gain = {layer: 0.0 for layer in LAYERS}
         self.sidechain = Sidechain(self.sr, depth=0.45, release=0.22)
         self.limiter = Limiter(self.sr, self.bpm, threshold=0.95)
+        if cfg.master_color not in MASTER_COLORS:
+            raise ValueError(f"unknown master colour: {cfg.master_color}")
+        self.master_color = cfg.master_color
+        self.master_color_fx: list[Effect] = build_effects(
+            MASTER_COLORS[self.master_color], self.sr, self.bpm
+        )
         self.master_volume = 0.7
         self.fade_target, self.fade, self.fade_rate = 1.0, 1.0, 0.0
         self.commands: queue.SimpleQueue = queue.SimpleQueue()
@@ -271,6 +318,14 @@ class Renderer:
             specs = self.manual_fx.get(layer, self.auto_fx.get(layer, []))
             if specs:
                 self.inserts[layer] = build_effects(specs, self.sr, self.bpm)
+        self.master_color_fx = build_effects(MASTER_COLORS[self.master_color], self.sr, self.bpm)
+
+    def set_master_color(self, name: str) -> None:
+        """Pick the always-on master stage (see `MASTER_COLORS`)."""
+        if name not in MASTER_COLORS:
+            raise ValueError(f"unknown master colour: {name}")
+        self.master_color = name
+        self._rebuild_inserts()
 
     def status(self) -> dict:  # noqa: C901 - status aggregates many fields
         """Status."""
@@ -280,6 +335,7 @@ class Renderer:
             "mood": self.arranger.mood.name,
             "seed": self.seed,
             "mood_locked": self.arranger.mood_locked,
+            "master_color": self.master_color,
             "bpm_range": list(self.arranger.bpm_range or self.arranger.mood.bpm_range),
             "pending_mood": (
                 self.arranger.pending_mood.name if self.arranger.pending_mood else None
@@ -388,6 +444,8 @@ class Renderer:
         for fx in self.inserts.get("master", ()):
             mix = fx.process(mix)
         mix *= (self.master_volume * fade)[:, None]
+        for fx in self.master_color_fx:
+            mix = fx.process(mix)
         return mix
 
     def render(self, n: int) -> np.ndarray:
