@@ -505,7 +505,7 @@ Enchaînement : `intro→verse→(chorus 2×/break pondéré)→…→outro→tr
 ## Interface web
 
 `uv run synthwave ui` sert une page unique (Starlette + WebSocket, aucun build) sur
-http://127.0.0.1:8765 et ouvre le navigateur. Elle affiche en direct : section (avec DROP),
+<http://127.0.0.1:8765> et ouvre le navigateur. Elle affiche en direct : section (avec DROP),
 morceau et progression (mesures de la section / du morceau), tonalité, accord, tempo, mood et
 mood en attente, oscilloscope du master, VU-mètre par couche et gain courant de l'arrangeur.
 Contrôles live : Start (mood/BPM/seed/durée de morceau), Stop, section suivante, tempo,

@@ -76,7 +76,8 @@ def _parse_fx_params(spec: dict, params: str) -> None:
 
 
 def parse_fx(text: str) -> tuple[str, dict]:  # noqa: C901 - fx parsing needs branches
-    """'pad:gate:rate=1/16,depth=0.8' -> ('pad', {'type': 'gate', 'rate':
+    """
+    'pad:gate:rate=1/16,depth=0.8' -> ('pad', {'type': 'gate', 'rate':
 
     '1/16', 'depth': 0.8}).
     """
@@ -230,9 +231,7 @@ def play(  # noqa: PLR0913 - CLI entry point bundles user options
 
 @app.command()
 def patches():
-    """Liste les patches disponibles (bibliothèque +
-    ~/.config/synthwave/patches).
-    """
+    """Liste les patches disponibles (bibliothèque + ~/.config/synthwave/patches)."""
     for name in list_patches():
         typer.echo(name)
 

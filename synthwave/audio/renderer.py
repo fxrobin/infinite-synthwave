@@ -116,7 +116,8 @@ class Renderer:
 
     # ----- instruments -----
     def _install(self, layer: str, name: str, patch, live: bool = False) -> None:
-        """Load `patch` into a layer.
+        """
+        Load `patch` into a layer.
 
         `live`: parameter-only change, keep voices running.
         """
@@ -172,8 +173,8 @@ class Renderer:
         self._rebuild_inserts()
 
     def set_mood(self, name: str) -> None:
-        """Request a mood change through an ambient transition; 'random'
-        unlocks the draw.
+        """Request a mood change through an ambient transition; 'random' unlocks the
+        draw.
         """
         if name == "random":
             self.arranger.set_mood(None)
@@ -251,8 +252,8 @@ class Renderer:
         self.arranger.force_next_section()
 
     def set_layer_effects(self, layer: str, specs: list[dict] | None) -> None:
-        """Manual insert chain for a layer or 'master'; None restores the
-        arranger's choice.
+        """Manual insert chain for a layer or 'master'; None restores the arranger's
+        choice.
         """
         if layer not in LAYERS and layer != "master":
             raise ValueError(f"unknown layer {layer!r}, choose from {LAYERS + ('master',)}")

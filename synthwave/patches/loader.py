@@ -207,12 +207,12 @@ def _get_nested(data: dict, path: str):
 
 
 def apply_tweaks(patch: AnyPatch, tweaks: dict[str, float]) -> AnyPatch:
-    """Multiply numeric parameters by factors: {"filter.cutoff": 0.6,
+    """
+    Multiply numeric parameters by factors: {"filter.cutoff": 0.6,
     "oscillators.0.detune": 1.5}.
 
-    Values are clamped to sane bounds; paths that do not exist in this
-    patch are ignored, so one set of gestures can be applied to any
-    patch.
+    Values are clamped to sane bounds; paths that do not exist in this patch are
+    ignored, so one set of gestures can be applied to any patch.
     """
     if not tweaks:
         return patch

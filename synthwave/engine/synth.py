@@ -64,12 +64,11 @@ class Synth:
         self.effects = build_effects([e.model_dump() for e in patch.effects], self.sr, self.bpm)
 
     def update_patch(self, patch: PatchModel) -> None:
-        """Apply parameter changes without resetting voices (no click, held
-        notes survive).
+        """
+        Apply parameter changes without resetting voices (no click, held notes survive).
 
-        Falls back to a full reset when the structure changed
-        (oscillator count, waves, unison, polyphony, filter type or
-        effect chain layout).
+        Falls back to a full reset when the structure changed (oscillator count, waves,
+        unison, polyphony, filter type or effect chain layout).
         """
         old = self.patch
         if _has_structural_change(patch, old):

@@ -1,4 +1,5 @@
-"""MCP server (stdio) piloting a live Player.
+"""
+MCP server (stdio) piloting a live Player.
 
 Run with: synthwave mcp
 """
@@ -28,7 +29,8 @@ def start(
     bpm_range: list[float] | None = None,
     track_s: float = 210.0,
 ) -> dict:
-    """Start synthwave on the audio output (infinite unless duration_s given).
+    """
+    Start synthwave on the audio output (infinite unless duration_s given).
 
     mood None: drawn at random and redrawn at every transition; a given mood is kept.
     bpm fixes the tempo; bpm_range=[low, high] bounds the random tempo drawn at start
@@ -63,7 +65,8 @@ def set_tempo(bpm: float) -> dict:
 
 @mcp.tool()
 def set_mood(mood: str) -> dict:
-    """Change mood at the next transition and keep it: dark|noir|dreamy|outrun.
+    """
+    Change mood at the next transition and keep it: dark|noir|dreamy|outrun.
 
     'random' releases the lock so every transition draws a new mood.
     """
@@ -80,9 +83,7 @@ def set_layer(
 
 @mcp.tool()
 def list_patches() -> dict:
-    """List available synth/drum patches (library +
-    ~/.config/synthwave/patches).
-    """
+    """List available synth/drum patches (library + ~/.config/synthwave/patches)."""
     return {"patches": loader.list_patches()}
 
 
@@ -110,8 +111,9 @@ def set_layer_effects(layer: str, effects: list[dict] | None = None) -> dict:
 
 @mcp.tool()
 def set_auto_tweaks(enabled: bool) -> dict:
-    """Enable/disable the live composer's patch gestures (filter sweeps before
-    a drop, detune, LFO changes per section).
+    """
+    Enable/disable the live composer's patch gestures (filter sweeps before a drop,
+    detune, LFO changes per section).
 
     Manual set_patch_param edits are kept underneath.
     """
