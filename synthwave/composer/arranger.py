@@ -22,6 +22,7 @@ from .patterns import (
     Note,
     Pattern,
     add_roll,
+    add_straight_fill,
     cut_after,
     drum_layer,
     gen_ambient,
@@ -276,6 +277,7 @@ class Arranger:
             ride=r.random() < m.ride_prob,
             shaker=r.random() < m.shaker_prob,
             tick=r.random() < m.tick_prob,
+            straight=m.straight,
         )
         self.mid_drop = False
         self.gestures: dict[str, dict[str, float]] = {}
@@ -487,13 +489,15 @@ class Arranger:
             return gen_predrop(r, self.drums_base)
         base = drum_layer(self.drums_base, self._drum_level())
         if last and self.section != Section.OUTRO:
-            drums = add_roll(r, base, 12, 4)  # fill: groove + roll on the 4
+            # fill on the 4: a plain snare crescendo for a straight groove, a tom roll otherwise
+            drums = add_straight_fill(base) if self.mood.straight else add_roll(r, base, 12, 4)
             if r.random() < 0.4:
                 drums.append(Note(0, CROLL, 0.8, 16))  # cymbal roll into the next section
             return drums
         drums = list(base)  # groove stays fixed per section
         if (
-            self.section in _ROLL_SECTIONS
+            not self.mood.straight  # a straight groove never breaks mid-section
+            and self.section in _ROLL_SECTIONS
             and self.section_bar % 4 == 3
             and r.random() < 0.3 + density * 0.5
         ):

@@ -1,0 +1,14 @@
+# Oberheim DMX / LinnDrum : sons purs et secs, kick court, snare peu réverbérée, aucun delay.
+name: drums_dmx
+kind: drums
+volume: 0.5
+kick: {pitch_start: 145, pitch_end: 51, pitch_decay: 0.03, decay: 0.26, click: 0.35, sub: 0.45, sub_decay: 0.3, drive: 1.15, beater: 0.25, gain: 1.4}
+snare: {tone: 205, tone_decay: 0.07, noise_decay: 0.14, gate_hold: 0.16, reverb_size: 0.72, reverb_mix: 0.22, gain: 0.65}
+hat: {closed_decay: 0.03, open_decay: 0.2, cutoff: 9200, gain: 0.47}
+clap: {decay: 0.18, gate_hold: 0.16, reverb_mix: 0.28, gain: 0.6}
+tom: {pitch_low: 115, pitch_mid: 165, decay: 0.24, gain: 0.8}
+snap: {tone: 1950, decay: 0.06, body: 0.3, reverb_mix: 0.15, gain: 0.7}
+ride: {decay: 0.85, cutoff: 5200, ping: 0.55, gain: 0.3}
+tick: {decay: 0.011, cutoff: 9500, gain: 0.3}
+crash_gain: 0.35
+crash_roll_gain: 0.45

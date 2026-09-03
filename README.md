@@ -71,16 +71,16 @@ uv run synthwave ui --port 8765 --no-browser   # interface web
 |---|---|---|---|---|---|---|---|---|---|
 | `dark` | 82–100 | phrygien | non | half‑time | 0.35 / 0.45 / 0.2 | 0.6 | `*_dark` | bass: dark/indus/sub/growl/reese · lead: dark/indus/scream | eighths 2, riff 3, sixteenths 2, sync 1, oct 1 |
 | `noir` | 86–104 | mineur harmonique | non | half‑time | 0.4 / 0.5 / 0.3 | 0.7 | `*_dark` | idem dark | idem dark |
-| `dreamy` | 98–114 | mineur→majeur* | oui | 4/4 | 0.5 / 0.75 / 0.4 | 1.0 | bright | bass: moog/sub/pulse/reese · lead: saw/pulse/indus | eighths 3, oct 2, sync 1, walk 1, sixteenths 1 |
-| `outrun` | 110–128 | mineur | oui | 4/4 dense | 0.85 / 0.95 / 0.55 | 1.2 | bright | idem dreamy | idem dreamy |
+| `dreamy` | 98–114 | mineur→majeur* | oui | 4/4 droit² | 0.5 / 0.75 / 0.4 | 1.0 | bright | bass: moog/sub/pulse/reese · lead: saw/pulse/indus | eighths 3, oct 2, sync 1, walk 1, sixteenths 1 |
+| `outrun` | 110–128 | mineur | oui | 4/4 droit² dense | 0.85 / 0.95 / 0.55 | 1.2 | bright | idem dreamy | idem dreamy |
 | `cyberpunk` | 118–132 | mineur | non | 4/4, pad_oct 3 | 0.9 / 0.9 / 0.5 | 0.8 | `*_dark` | bass: indus/growl/reese · lead: indus/scream/dark | sixteenths 3, riff 3, eighths 2, oct 1 |
 | `horror` | 66–80 | locrien | non | half‑time très lent | 0.2 / 0.3 / 0.15 | 0.5 | `*_dark` | dark pools | dark bass |
 | `desert` | 88–104 | phrygien dominant | non | half‑time | 0.45 / 0.6 / 0.35 | 0.7 | `*_dark` | dark pools | dark bass |
-| `chill` | 84–96 | dorien | oui | 4/4 | 0.4 / 0.6 / 0.3 | 0.9 | bright | bright pools | eighths 2, walk 3, sync 2, oct 1 |
-| `retro` | 104–118 | mixolydien (major 50%) | oui | 4/4 | 0.6 / 0.8 / 0.45 | 1.1 | bright | bright pools | bright bass |
-| `drive` | 122–136 | mineur | oui | 4/4 très dense | 1.0 / 1.0 / 0.5 | 1.2 | drive† | bass: moog/sub/pulse/reese · lead: saw/pulse/scream | eighths 3, sixteenths 3, oct 2, sync 1 |
+| `chill` | 84–96 | dorien | oui | 4/4 droit² | 0.4 / 0.6 / 0.3 | 0.9 | bright | bright pools | eighths 2, walk 3, sync 2, oct 1 |
+| `retro` | 104–118 | mixolydien (major 50%) | oui | 4/4 droit² | 0.6 / 0.8 / 0.45 | 1.1 | bright | bright pools | bright bass |
+| `drive` | 122–136 | mineur | oui | 4/4 droit² très dense | 1.0 / 1.0 / 0.5 | 1.2 | drive† | bass: moog/sub/pulse/reese · lead: saw/pulse/scream | eighths 3, sixteenths 3, oct 2, sync 1 |
 
-*`major_prob` : dreamy 0.35, retro 0.5, les autres 0.0. `†drive` pools = moog/sub/pulse/reese + saw/pulse/scream. `pad_octave` 3 (dark/cyberpunk/horror/desert) vs 4 (les autres).
+*`major_prob` : dreamy 0.35, retro 0.5, les autres 0.0. `²4/4 droit` = `Mood.straight` : groove années 80 figé sur la grille, kits de percussion secs (voir « Batterie synthétisée »). `†drive` pools = moog/sub/pulse/reese + saw/pulse/scream. `pad_octave` 3 (dark/cyberpunk/horror/desert) vs 4 (les autres).
 
 Sans `--mood`, le mood est tiré au hasard au démarrage et retiré à chaque transition ;
 `--mood X` le fige (en MCP, `set_mood("random")` rend la main au hasard).
@@ -246,7 +246,7 @@ Notes :
 
 ## Patches YAML
 
-Bibliothèque : `synthwave/patches/library/` (88 patches). Les fichiers placés dans
+Bibliothèque : `synthwave/patches/library/` (89 patches). Les fichiers placés dans
 `~/.config/synthwave/patches/` sont aussi listés et priment sur la bibliothèque.
 
 ```yaml
@@ -282,7 +282,7 @@ Patch batterie (`kind: drums`) : `kick` (pitch, `sub`, `drive` saturation, `gain
 d'effets appliquée à toutes les percussions sauf le kick (écho ping‑pong + reverb dans
 `drums_dark.yaml`). Voir `drums_808.yaml`.
 
-### Bibliothèque livrée (88 patches)
+### Bibliothèque livrée (89 patches)
 
 | Catégorie | Patch | Caractère |
 |---|---|---|
@@ -374,6 +374,7 @@ d'effets appliquée à toutes les percussions sauf le kick (écho ping‑pong + 
 | | `drums_acoustic` | Kick propre (drive 1.0, battant 0.8, 120→55 Hz), snare tonique, reverb légère |
 | | `drums_soft80` | Kick doux 80s (drive 1.1, battant 0.5), gated reverb moyenne |
 | | `drums_breaks` | Kick vintage court (drive 1.0, battant 0.9), lofi 10 bits sur les percussions |
+| | `drums_dmx` | Oberheim DMX / LinnDrum : sons purs et secs, snare peu réverbérée, aucun delay |
 
 ---
 
@@ -397,6 +398,15 @@ Chaque hit est rendu une fois à l'init en buffer stéréo, puis mixé à la dem
 | `perc_effects` | Chaîne post-mix hors kick | `perc_effects: [delay, reverb, …]` |
 
 Notes MIDI : `kick 36`, `snare 38`, `clap 39`, `snap 40`, `hat_closed 42`, `hat_open 46`, `tom_low 45`, `tom_mid 47`, `tick 44`, `crash 49`, `ride 51`, `crash_roll 57`, `shaker 70`.
+
+**Groove droit années 80** (`Mood.straight`, moods `dreamy`, `outrun`, `chill`, `retro`, `drive`) : la
+grille ne bouge jamais d'une mesure à l'autre — kick sur les quatre temps (sans kick syncopé
+aléatoire), snare **et** clap superposés sur 2 et 4, charleys fermés sur les croches (doubles en
+chorus), open hat sur 14, aucun roll en milieu de section, fill de fin de phrase = quatre doubles
+de snare crescendo sous un kick qui ne s'interrompt pas. Les pools de ces moods n'utilisent que des
+kits secs (pas de `delay` sur le bus percussions : `drums_808`, `drums_linn`, `drums_dmx`,
+`drums_tight`, `drums_acoustic`, `drums_soft80`). Les moods sombres (`dark`, `noir`, `cyberpunk`,
+`horror`, `desert`) gardent le groove génératif avec kicks syncopés, rolls et kits humides.
 
 Couleurs de percussion par mood (tirées par section) : `snap_prob` (claquements de doigts sur le backbeat, remplacent la snare hors chorus, s'y superposent en chorus), `ride_prob` (ride à la place des charleys sur les croches), `shaker_prob` (shaker en doubles). chill 0.8/0.4/0.6, dreamy 0.4/0.3/0.3, retro 0.35/0.5/0.2, noir 0.5/0.3/0, desert 0.2/0/0.5, outrun ride 0.3, drive ride 0.35. `tick_prob` (défaut 0.5, chill/retro 0.8) : charley fermé sec sur toutes les croches à la place des hats bruités. Charleys : croches accentuées + off-beats selon la densité, open hat sur 6/10/14, gains ×1.45 sur tous les kits. Cymbales : crash au début de verse/chorus/break, 60 % aux mesures 9 et 13 du chorus ; **roulement de cymbale** systématique sur la mesure de pre-drop (monte jusqu'au drop) et 40 % sur les fills de fin de section.
 
@@ -494,7 +504,7 @@ Markov : poids par mood, anti-répétition `×0.25` si même progression que pr�
 
 | Couche | Générateur | Variations |
 |---|---|---|
-| `drums` | `gen_drums` + `add_roll` | Groove tiré **une fois par section** puis figé (`strong` chorus 4/4 dense, `halftime` kick syncopé / snare beat 3, `density` hats off-beat, open hat 14, `crash` downbeat verse/chorus). Ornements superposés sans toucher le kick : **roll sur le 3** (4e mesure de chaque phrase, 30 %+densité×50 % : 4 doubles snare/toms crescendo sur 8–11, ou pickup 6–7 en half-time), **fill** en fin de section = groove + roll 12–15 (voix `snare`, `toms_down`, `toms_up`, `alternate`) |
+| `drums` | `gen_drums` + `add_roll` / `add_straight_fill` | Groove tiré **une fois par section** puis figé (`strong` chorus 4/4 dense, `halftime` kick syncopé / snare beat 3, `density` hats off-beat, open hat 14, `crash` downbeat verse/chorus). Ornements superposés sans toucher le kick : **roll sur le 3** (4e mesure de chaque phrase, 30 %+densité×50 % : 4 doubles snare/toms crescendo sur 8–11, ou pickup 6–7 en half-time), **fill** en fin de section = groove + roll 12–15 (voix `snare`, `toms_down`, `toms_up`, `alternate`) |
 | `bass` | `gen_bass` | 6 styles : `eighths` (croches), `octaves` (alterné), `sixteenths` (doubles + oct. aléat.), `walk` (root-5th-oct), `riff` (b2/triton chromatique), `syncopated` (0 3 6 8 11 14). + mutation 20% une mesure sur deux, octave pop fin de pattern 30% |
 | `arp` | `gen_arp` | 3 modes : `up`, `updown`, `random` ; 2 octaves ; 16 doubles par bar |
 | `pad` | `gen_pad` | Tenue `STEPS` sur notes de l'accord, voicing grave si root≥6, octave ajoutée si triade |

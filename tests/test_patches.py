@@ -79,3 +79,14 @@ def test_apply_tweaks_multiplies_and_clamps():
     assert t.filter.resonance == 1.0  # clamped
     assert t.oscillators[0].detune == pad.oscillators[0].detune * 2
     assert t.name == pad.name and apply_tweaks(pad, {}) is pad
+
+
+def test_straight_moods_use_dry_kits_without_delay():
+    """Eighties moods: pure percussion, no echo on the drum bus."""
+    from synthwave.composer.moods import MOODS
+
+    for mood in (m for m in MOODS.values() if m.straight):
+        for name in mood.pools.get("drums", []):
+            kit = load_patch(name)
+            types = [e.type for e in kit.perc_effects]
+            assert "delay" not in types, f"{mood.name}: {name} has a delay on the percussion"
