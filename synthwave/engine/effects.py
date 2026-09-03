@@ -1,4 +1,5 @@
 """Block-vectorised effects. Delay lines are processed in chunks no longer than their delay."""
+
 from __future__ import annotations
 
 import numpy as np
@@ -51,8 +52,9 @@ class Effect:
 
 
 class Chorus(Effect):
-    def __init__(self, sr: int, bpm: float, rate: float = 0.5, depth: float = 0.003,
-                 mix: float = 0.4):
+    def __init__(
+        self, sr: int, bpm: float, rate: float = 0.5, depth: float = 0.003, mix: float = 0.4
+    ):
         self.size = int(sr * 0.2)
         self.buf = np.zeros((self.size, 2))
         self.pos = 0
@@ -76,8 +78,15 @@ class Chorus(Effect):
 
 
 class Delay(Effect):
-    def __init__(self, sr: int, bpm: float, time: float | str = "1/8", feedback: float = 0.4,
-                 mix: float = 0.3, pingpong: bool = True):
+    def __init__(
+        self,
+        sr: int,
+        bpm: float,
+        time: float | str = "1/8",
+        feedback: float = 0.4,
+        mix: float = 0.3,
+        pingpong: bool = True,
+    ):
         sec = note_to_seconds(time, bpm)
         # clamp final pour rester < _MAX_DELAY_SEC (défense en profondeur)
         sec = float(np.clip(sec, 0.001, _MAX_DELAY_SEC))
@@ -98,7 +107,7 @@ class Delay(Effect):
         start = 0
         while start < n:
             k = min(self.d, n - start)
-            xs = x[start:start + k]
+            xs = x[start : start + k]
             ridx = (self.pos + np.arange(k) - self.d) % self.size
             y = self.buf[ridx]
             widx = (self.pos + np.arange(k)) % self.size
@@ -108,7 +117,7 @@ class Delay(Effect):
                 self.buf[widx, 1] = y[:, 0] * self.feedback
             else:
                 self.buf[widx] = xs + y * self.feedback
-            out[start:start + k] = xs * (1 - self.mix) + y * self.mix
+            out[start : start + k] = xs * (1 - self.mix) + y * self.mix
             self.pos = (self.pos + k) % self.size
             start += k
         return out.astype(np.float32)
@@ -127,8 +136,15 @@ class _Line:
 class Reverb(Effect):
     """Freeverb-style Schroeder reverb: 8 lowpass-feedback combs + 4 allpasses per channel."""
 
-    def __init__(self, sr: int, bpm: float, size: float = 0.8, damping: float = 0.5,
-                 mix: float = 0.3, predelay: float = 0.02):
+    def __init__(
+        self,
+        sr: int,
+        bpm: float,
+        size: float = 0.8,
+        damping: float = 0.5,
+        mix: float = 0.3,
+        predelay: float = 0.02,
+    ):
         scale = sr / 44100.0
         self.fb = 0.7 + 0.28 * float(np.clip(size, 0, 1))
         self.damp = float(np.clip(damping, 0, 0.95))
@@ -147,8 +163,8 @@ class Reverb(Effect):
             idx = (c.pos + np.arange(k)) % c.len
             y = c.buf[idx]
             lp, c.zi = lfilter([1 - self.damp], [1, -self.damp], y, zi=c.zi)
-            c.buf[idx] = x[start:start + k] + lp * self.fb
-            out[start:start + k] = y
+            c.buf[idx] = x[start : start + k] + lp * self.fb
+            out[start : start + k] = y
             c.pos = (c.pos + k) % c.len
             start += k
         return out
@@ -161,9 +177,9 @@ class Reverb(Effect):
             k = min(a.len, len(x) - start)
             idx = (a.pos + np.arange(k)) % a.len
             z = a.buf[idx]
-            xs = x[start:start + k]
+            xs = x[start : start + k]
             a.buf[idx] = xs + z * 0.5
-            out[start:start + k] = z - xs
+            out[start : start + k] = z - xs
             a.pos = (a.pos + k) % a.len
             start += k
         return out
@@ -179,8 +195,8 @@ class Reverb(Effect):
             k = min(self.pre, n - start)
             widx = (p.pos + np.arange(k)) % p.len
             ridx = (p.pos + np.arange(k) - self.pre) % p.len
-            out[start:start + k] = p.buf[ridx]
-            p.buf[widx] = x[start:start + k]
+            out[start : start + k] = p.buf[ridx]
+            p.buf[widx] = x[start : start + k]
             p.pos = (p.pos + k) % p.len
             start += k
         return out
@@ -197,8 +213,15 @@ class Reverb(Effect):
 
 
 class GatedReverb(Effect):
-    def __init__(self, sr: int, bpm: float, size: float = 0.85, hold: float = 0.25,
-                 threshold: float = 0.1, mix: float = 0.5):
+    def __init__(
+        self,
+        sr: int,
+        bpm: float,
+        size: float = 0.85,
+        hold: float = 0.25,
+        threshold: float = 0.1,
+        mix: float = 0.5,
+    ):
         self.rev = Reverb(sr, bpm, size=size, damping=0.3, mix=1.0, predelay=0.0)
         # hold borné à 2s max pour éviter buffer/état géant
         hold = float(np.clip(hold, 0.01, _MAX_DELAY_SEC))
@@ -211,14 +234,14 @@ class GatedReverb(Effect):
         wet = self.rev.process(x)
         gate = np.zeros(n)
         if self.open_left > 0:
-            gate[:min(n, self.open_left)] = 1.0
+            gate[: min(n, self.open_left)] = 1.0
         hits = np.flatnonzero(np.abs(x).max(axis=1) > self.thr)
         end = -1
         for h in hits:
             if h < end:
                 continue
             end = h + self.hold
-            gate[h:min(n, end)] = 1.0
+            gate[h : min(n, end)] = 1.0
         self.open_left = max(self.open_left - n, end - n, 0)
         return (x * (1 - self.mix) + wet * gate[:, None] * self.mix).astype(np.float32)
 
@@ -235,7 +258,7 @@ class Limiter(Effect):
             self.gain = target
             ramp = np.full(n, target)
         else:
-            new = target + (self.gain - target) * self.coef ** n
+            new = target + (self.gain - target) * self.coef**n
             ramp = np.linspace(self.gain, new, n, endpoint=False)
             self.gain = new
         return np.clip(x * ramp[:, None], -1.0, 1.0).astype(np.float32)
@@ -245,7 +268,7 @@ class Sidechain:
     """Ducking envelope triggered at sample offsets; gain = 1 - depth * exp(-t/release)."""
 
     def __init__(self, sr: int, depth: float = 0.5, release: float = 0.25):
-        self.depth, self.rel, self.t = depth, max(1.0, release * sr), 10 ** 9
+        self.depth, self.rel, self.t = depth, max(1.0, release * sr), 10**9
 
     def gain(self, n: int, triggers: list[int]) -> np.ndarray:
         g = np.empty(n)
@@ -265,8 +288,15 @@ class Sidechain:
 class Gate(Effect):
     """Tempo-synced trance gate / stutter: rate '1/16', duty cycle, depth, smoothed edges."""
 
-    def __init__(self, sr: int, bpm: float, rate: float | str = "1/16", depth: float = 1.0,
-                 duty: float = 0.5, smooth: float = 0.002):
+    def __init__(
+        self,
+        sr: int,
+        bpm: float,
+        rate: float | str = "1/16",
+        depth: float = 1.0,
+        duty: float = 0.5,
+        smooth: float = 0.002,
+    ):
         self.period = max(2.0, note_to_seconds(rate, bpm) * sr)
         self.depth, self.duty = float(np.clip(depth, 0, 1)), float(np.clip(duty, 0.05, 0.95))
         self.coef = float(np.exp(-1.0 / max(1.0, smooth * sr)))
@@ -285,8 +315,7 @@ class Gate(Effect):
 class Bitcrush(Effect):
     """Bit-depth reduction + sample-and-hold downsampling."""
 
-    def __init__(self, sr: int, bpm: float, bits: float = 8, downsample: int = 4,
-                 mix: float = 1.0):
+    def __init__(self, sr: int, bpm: float, bits: float = 8, downsample: int = 4, mix: float = 1.0):
         self.levels = 2.0 ** (float(np.clip(bits, 2, 16)) - 1)
         self.k = max(1, int(downsample))
         self.mix = mix
@@ -308,9 +337,17 @@ class Bitcrush(Effect):
 class LoFi(Effect):
     """Lo-fi chain: bitcrush -> lowpass -> tape wobble -> hiss."""
 
-    def __init__(self, sr: int, bpm: float, bits: float = 10, downsample: int = 3,
-                 cutoff: float = 5000, wobble: float = 0.002, noise: float = 0.004,
-                 mix: float = 1.0):
+    def __init__(
+        self,
+        sr: int,
+        bpm: float,
+        bits: float = 10,
+        downsample: int = 3,
+        cutoff: float = 5000,
+        wobble: float = 0.002,
+        noise: float = 0.004,
+        mix: float = 1.0,
+    ):
         self.crush = Bitcrush(sr, bpm, bits, downsample)
         self.lp, self.cutoff = Filter("lp", sr), cutoff
         self.wob = Chorus(sr, bpm, rate=0.4, depth=wobble, mix=1.0)
@@ -329,8 +366,9 @@ class LoFi(Effect):
 class Distortion(Effect):
     """tanh drive with a post lowpass 'tone' and level compensation."""
 
-    def __init__(self, sr: int, bpm: float, drive: float = 4.0, tone: float = 4000,
-                 mix: float = 1.0):
+    def __init__(
+        self, sr: int, bpm: float, drive: float = 4.0, tone: float = 4000, mix: float = 1.0
+    ):
         self.drive = max(1.0, float(drive))
         self.lp, self.tone, self.mix = Filter("lp", sr), tone, mix
         self.comp = 1.0 / np.tanh(self.drive * 0.5)
@@ -344,8 +382,9 @@ class Distortion(Effect):
 class AutoPan(Effect):
     """Constant-power stereo auto-pan; rate in Hz or tempo-synced ('1/2', '1/4'...)."""
 
-    def __init__(self, sr: int, bpm: float, rate: float | str = "1/2", depth: float = 0.8,
-                 wave: str = "sine"):
+    def __init__(
+        self, sr: int, bpm: float, rate: float | str = "1/2", depth: float = 0.8, wave: str = "sine"
+    ):
         hz = 1.0 / note_to_seconds(rate, bpm) if isinstance(rate, str) else float(rate)
         self.lfo, self.depth = LFO(wave, hz, sr), float(np.clip(depth, 0, 1))
 
@@ -353,16 +392,25 @@ class AutoPan(Effect):
         pan = self.depth * self.lfo.render(len(x))
         angle = (pan + 1.0) * np.pi / 4.0
         mono = x.mean(axis=1)
-        out = np.stack([mono * np.cos(angle) * np.sqrt(2), mono * np.sin(angle) * np.sqrt(2)],
-                       axis=1)
+        out = np.stack(
+            [mono * np.cos(angle) * np.sqrt(2), mono * np.sin(angle) * np.sqrt(2)], axis=1
+        )
         return out.astype(np.float32)
 
 
 class Phaser(Effect):
     """Cascade of first-order allpass stages swept by an LFO; coefficients updated per chunk."""
 
-    def __init__(self, sr: int, bpm: float, rate: float | str = 0.3, depth: float = 0.8,
-                 stages: int = 4, mix: float = 0.5, feedback: float = 0.3):
+    def __init__(
+        self,
+        sr: int,
+        bpm: float,
+        rate: float | str = 0.3,
+        depth: float = 0.8,
+        stages: int = 4,
+        mix: float = 0.5,
+        feedback: float = 0.3,
+    ):
         hz = 1.0 / note_to_seconds(rate, bpm) if isinstance(rate, str) else float(rate)
         self.sr, self.lfo = sr, LFO("triangle", hz, sr)
         self.depth, self.mix = float(np.clip(depth, 0, 1)), mix
@@ -379,7 +427,7 @@ class Phaser(Effect):
         for start in range(0, n, chunk):
             end = min(n, start + chunk)
             sweep = 0.5 + 0.5 * float(lfo[start:end].mean())
-            fc = 300.0 * (8.0 ** (sweep * self.depth))        # 300 Hz .. 2.4 kHz
+            fc = 300.0 * (8.0 ** (sweep * self.depth))  # 300 Hz .. 2.4 kHz
             g = (1.0 - np.tan(np.pi * fc / self.sr)) / (1.0 + np.tan(np.pi * fc / self.sr))
             for ch in (0, 1):
                 seg = x[start:end, ch].astype(np.float64)
@@ -394,8 +442,16 @@ class Phaser(Effect):
 class Flanger(Effect):
     """Short modulated delay with feedback, processed in chunks no longer than the delay."""
 
-    def __init__(self, sr: int, bpm: float, rate: float | str = 0.25, depth: float = 0.002,
-                 base: float = 0.003, feedback: float = 0.5, mix: float = 0.5):
+    def __init__(
+        self,
+        sr: int,
+        bpm: float,
+        rate: float | str = 0.25,
+        depth: float = 0.002,
+        base: float = 0.003,
+        feedback: float = 0.5,
+        mix: float = 0.5,
+    ):
         hz = 1.0 / note_to_seconds(rate, bpm) if isinstance(rate, str) else float(rate)
         if not 0.01 <= hz <= 20:
             raise ValueError(f"flanger rate out of range: {hz}")
@@ -430,10 +486,20 @@ class Flanger(Effect):
         return (x * (1 - self.mix) + out * self.mix).astype(np.float32)
 
 
-_REGISTRY = {"chorus": Chorus, "delay": Delay, "reverb": Reverb,
-             "gated_reverb": GatedReverb, "limiter": Limiter,
-             "gate": Gate, "bitcrush": Bitcrush, "lofi": LoFi, "distortion": Distortion,
-             "autopan": AutoPan, "phaser": Phaser, "flanger": Flanger}
+_REGISTRY = {
+    "chorus": Chorus,
+    "delay": Delay,
+    "reverb": Reverb,
+    "gated_reverb": GatedReverb,
+    "limiter": Limiter,
+    "gate": Gate,
+    "bitcrush": Bitcrush,
+    "lofi": LoFi,
+    "distortion": Distortion,
+    "autopan": AutoPan,
+    "phaser": Phaser,
+    "flanger": Flanger,
+}
 
 
 def build_effects(specs: list[dict], sr: int, bpm: float) -> list[Effect]:

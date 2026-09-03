@@ -93,7 +93,7 @@ def test_new_bass_styles():
         p = gen_bass(np.random.default_rng(3), AM7, style)
         assert p and in_range(p)
     riff = gen_bass(np.random.default_rng(3), AM7, "riff")
-    assert any(n.note % 12 in (10, 3) for n in riff)      # b2 or tritone of A
+    assert any(n.note % 12 in (10, 3) for n in riff)  # b2 or tritone of A
     six = gen_bass(np.random.default_rng(3), AM7, "sixteenths")
     assert len(six) == STEPS
 
@@ -102,11 +102,11 @@ def test_roll_on_beat_three_replaces_snare_and_hats_but_keeps_kick():
     base = gen_drums(np.random.default_rng(0), 0.5)
     p = add_roll(np.random.default_rng(1), base, 8, 4)
     window = [n for n in p if 8 <= n.step < 12]
-    assert 8 in {n.step for n in window if n.note == 36}          # kick on the 3 kept
-    assert not any(n.note == 42 for n in window)                  # hats stripped
+    assert 8 in {n.step for n in window if n.note == 36}  # kick on the 3 kept
+    assert not any(n.note == 42 for n in window)  # hats stripped
     roll = [n for n in window if n.note in (38, 45, 47)]
     assert [n.step for n in roll] == [8, 9, 10, 11]
-    assert roll[0].vel < roll[-1].vel                              # crescendo
+    assert roll[0].vel < roll[-1].vel  # crescendo
     assert [n for n in p if n.step < 8] == [n for n in base if n.step < 8]
     assert [n for n in p if n.step >= 12] == [n for n in base if n.step >= 12]
 
@@ -120,16 +120,16 @@ def test_fill_roll_keeps_groove_before_beat_four():
 
 
 def _scale():
-    return [n for n in range(60, 80) if n % 12 in {0, 2, 3, 5, 7, 8, 10}]      # C minor
+    return [n for n in range(60, 80) if n % 12 in {0, 2, 3, 5, 7, 8, 10}]  # C minor
 
 
 def test_theme_motifs_share_rhythm_and_answer_resolves():
     t = gen_theme(np.random.default_rng(3), 0.8)
     q_steps = [n[0] for n in t.question.notes]
     assert q_steps == [n[0] for n in t.answer.notes] and q_steps[0] == 0
-    assert t.answer.notes[-1][1] == 0                                # resolves to the root
-    assert t.question.notes[0][1] in (0, 2, 4)                       # chord tone on the 1
-    assert all(s % 4 == 0 for s, _, _ in t.counter.notes)            # counter: long notes
+    assert t.answer.notes[-1][1] == 0  # resolves to the root
+    assert t.question.notes[0][1] in (0, 2, 4)  # chord tone on the 1
+    assert all(s % 4 == 0 for s, _, _ in t.counter.notes)  # counter: long notes
     assert len(t.counter.notes) <= len(t.question.notes)
 
 
@@ -139,8 +139,8 @@ def test_render_motif_is_a_diatonic_sequence():
     fm = Chord(5, 3, (0, 3, 7))
     a = render_motif(np.random.default_rng(0), t.question, cm, _scale())
     b = render_motif(np.random.default_rng(0), t.question, fm, _scale())
-    assert [n.step for n in a] == [n.step for n in b]                # same rhythm
-    assert a[0].note % 12 == 0 and b[0].note % 12 == 5               # starts on each root
+    assert [n.step for n in a] == [n.step for n in b]  # same rhythm
+    assert a[0].note % 12 == 0 and b[0].note % 12 == 5  # starts on each root
     assert all(n.note in _scale() for n in a + b) and in_range(a)
     # the contour (up / down between notes) is kept across chords
     sign = lambda xs: [np.sign(y.note - x.note) for x, y in zip(xs, xs[1:], strict=False)]  # noqa: E731

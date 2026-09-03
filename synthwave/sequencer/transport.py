@@ -37,9 +37,13 @@ class Transport:
         ticks = []
         end = self.clock + n
         while self.next_step_time < end:
-            ticks.append(StepTick(self.step_index // STEPS_PER_BAR,
-                                  self.step_index % STEPS_PER_BAR,
-                                  int(self.next_step_time - self.clock)))
+            ticks.append(
+                StepTick(
+                    self.step_index // STEPS_PER_BAR,
+                    self.step_index % STEPS_PER_BAR,
+                    int(self.next_step_time - self.clock),
+                )
+            )
             self.step_index += 1
             self.next_step_time += self.samples_per_step
         self.clock = end

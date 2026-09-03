@@ -13,7 +13,7 @@ def test_samples_exist_and_reverse_cymbal_swells_to_bar_end():
         s = k.samples[name]
         assert np.isfinite(s).all() and np.abs(s).max() <= 1.0
     rev = np.abs(k.samples["reverse_cymbal"][:, 0])
-    assert len(rev) == bar and rev[-bar // 8:].mean() > rev[:bar // 8].mean() * 10
+    assert len(rev) == bar and rev[-bar // 8 :].mean() > rev[: bar // 8].mean() * 10
     assert len(k.samples["uplifter"]) == 2 * bar
 
 

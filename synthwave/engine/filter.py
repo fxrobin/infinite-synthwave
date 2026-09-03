@@ -1,4 +1,5 @@
 """RBJ biquad filter, coefficients per block, state carried by scipy lfilter."""
+
 from __future__ import annotations
 
 import numpy as np

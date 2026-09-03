@@ -11,7 +11,7 @@ def tone(f, n=SR):
 
 
 def rms(x):
-    return float(np.sqrt(np.mean(x[SR // 2:, 0] ** 2)))
+    return float(np.sqrt(np.mean(x[SR // 2 :, 0] ** 2)))
 
 
 def test_lowpass_attenuates_above_cutoff():

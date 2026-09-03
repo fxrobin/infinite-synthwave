@@ -9,8 +9,12 @@ SR = 44100
 
 
 def simple_patch(**kw):
-    d = {"name": "t", "polyphony": 2, "oscillators": [{"wave": "sine"}],
-         "amp_env": {"attack": 0.001, "decay": 0.01, "sustain": 1.0, "release": 0.01}}
+    d = {
+        "name": "t",
+        "polyphony": 2,
+        "oscillators": [{"wave": "sine"}],
+        "amp_env": {"attack": 0.001, "decay": 0.01, "sustain": 1.0, "release": 0.01},
+    }
     d.update(kw)
     return patch_from_dict(d)
 
@@ -63,6 +67,7 @@ def test_update_patch_keeps_voices_playing():
     from synthwave.engine.events import NoteEvent
     from synthwave.engine.synth import Synth
     from synthwave.patches.loader import apply_tweaks, load_patch
+
     patch = load_patch("pad_juno")
     s = Synth(patch, 44100, np.random.default_rng(0), 120.0)
     s.render(4096, [NoteEvent(0, 60, 0.9, True)])
@@ -71,6 +76,6 @@ def test_update_patch_keeps_voices_playing():
     assert s.voices == voices and any(v.active for v in s.voices)
     assert s.patch.filter.cutoff == patch.filter.cutoff * 0.5
     out = s.render(4096, [])
-    assert np.abs(out).max() > 0.001                     # note still sounding
-    s.update_patch(load_patch("pad_dark"))               # structural change -> reset
+    assert np.abs(out).max() > 0.001  # note still sounding
+    s.update_patch(load_patch("pad_dark"))  # structural change -> reset
     assert s.voices != voices

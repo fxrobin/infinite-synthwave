@@ -43,14 +43,17 @@ def test_set_param_returns_new_validated_patch():
 
 def test_load_from_path(tmp_path):
     f = tmp_path / "x.yaml"
-    f.write_text("name: x\noscillators:\n  - wave: sine\n"
-                 "amp_env: {attack: 0.01, decay: 0.1, sustain: 0.5, release: 0.2}\n")
+    f.write_text(
+        "name: x\noscillators:\n  - wave: sine\n"
+        "amp_env: {attack: 0.01, decay: 0.1, sustain: 0.5, release: 0.2}\n"
+    )
     assert load_patch(str(f)).name == "x"
 
 
 def test_every_library_patch_is_in_a_pool_and_every_pool_patch_exists():
     from synthwave.composer.moods import MOODS
     from synthwave.patches.loader import list_patches
+
     pooled = {name for m in MOODS.values() for names in m.pools.values() for name in names}
     library = set(list_patches())
     assert pooled <= library
@@ -60,10 +63,19 @@ def test_every_library_patch_is_in_a_pool_and_every_pool_patch_exists():
 
 def test_apply_tweaks_multiplies_and_clamps():
     from synthwave.patches.loader import apply_tweaks
+
     pad = load_patch("pad_juno")
-    t = apply_tweaks(pad, {"filter.cutoff": 0.5, "filter.resonance": 50.0,
-                           "oscillators.0.detune": 2.0, "nope.path": 3.0, "name": 2.0})
+    t = apply_tweaks(
+        pad,
+        {
+            "filter.cutoff": 0.5,
+            "filter.resonance": 50.0,
+            "oscillators.0.detune": 2.0,
+            "nope.path": 3.0,
+            "name": 2.0,
+        },
+    )
     assert t.filter.cutoff == pad.filter.cutoff * 0.5
-    assert t.filter.resonance == 1.0                     # clamped
+    assert t.filter.resonance == 1.0  # clamped
     assert t.oscillators[0].detune == pad.oscillators[0].detune * 2
     assert t.name == pad.name and apply_tweaks(pad, {}) is pad

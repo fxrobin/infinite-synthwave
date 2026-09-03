@@ -65,6 +65,7 @@ def test_noir_mood_has_major_dominant():
 
 def test_all_moods_progressions_exist_and_scales_valid():
     from synthwave.composer.harmony import SCALES
+
     for mood in MOODS.values():
         assert mood.scale in SCALES
         for name, w in mood.progressions.items():
@@ -85,6 +86,7 @@ def test_new_scale_key_names():
 
 def test_change_key_keeps_common_tones_and_pivot_chord():
     from synthwave.composer.moods import MOODS
+
     for seed in range(6):
         rng = np.random.default_rng(seed)
         h = Harmony(rng, MOODS["outrun"])
@@ -93,6 +95,11 @@ def test_change_key_keeps_common_tones_and_pivot_chord():
         h.change_key(MOODS["dark"], last)
         assert len(old & h.pitch_classes()) >= 5
         piv = h.pivot_chord(last)
-        assert piv.root_pc == last.root_pc or len(
-            {(piv.root_pc + i) % 12 for i in piv.intervals}
-            & {(last.root_pc + i) % 12 for i in last.intervals}) >= 2
+        assert (
+            piv.root_pc == last.root_pc
+            or len(
+                {(piv.root_pc + i) % 12 for i in piv.intervals}
+                & {(last.root_pc + i) % 12 for i in last.intervals}
+            )
+            >= 2
+        )

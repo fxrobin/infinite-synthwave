@@ -1,4 +1,5 @@
 """Transition one-shots (reverse cymbal, uplifter, scream, impact) synthesised per tempo."""
+
 from __future__ import annotations
 
 import numpy as np
@@ -7,8 +8,13 @@ from scipy.signal import lfilter
 from .events import NoteEvent
 from .filter import biquad_coeffs
 
-RISER_NOTES = {"reverse_cymbal": 60, "uplifter": 61, "scream": 62, "impact": 63,
-               "reverse_short": 64}
+RISER_NOTES = {
+    "reverse_cymbal": 60,
+    "uplifter": 61,
+    "scream": 62,
+    "impact": 63,
+    "reverse_short": 64,
+}
 NOTE_TO_RISER = {v: k for k, v in RISER_NOTES.items()}
 
 
@@ -32,7 +38,7 @@ def _sweep_lp(x: np.ndarray, f_start: float, f_end: float, sr: int, chunks: int 
     for i in range(chunks):
         fc = f_start * (f_end / f_start) ** ((i + 0.5) / chunks)
         b, a = biquad_coeffs("lp", fc, 0.3, sr)
-        out[edges[i]:edges[i + 1]], zi = lfilter(b, a, x[edges[i]:edges[i + 1]], zi=zi)
+        out[edges[i] : edges[i + 1]], zi = lfilter(b, a, x[edges[i] : edges[i + 1]], zi=zi)
     return out
 
 
@@ -51,7 +57,7 @@ class RiserKit:
         noise = rng.uniform(-1, 1, bar)
         rev = _sweep_lp(noise, 800, 9000, sr) * np.exp((t - 1.0) * 5.0)
         # short version: half a bar
-        short = rev[bar // 2:] if bar // 2 > 0 else rev
+        short = rev[bar // 2 :] if bar // 2 > 0 else rev
         short = short * np.linspace(0.3, 1.0, len(short))
         # uplifter: two bars, saw rising one octave + noise, filter opening
         n = 2 * bar
@@ -67,11 +73,11 @@ class RiserKit:
         ph = 2 * np.pi * np.cumsum(f0) / sr
         scr = np.zeros(bar)
         for h in range(1, 7):
-            if 220.0 * 4.0 * h < sr * 0.45:            # keep every partial below Nyquist
+            if 220.0 * 4.0 * h < sr * 0.45:  # keep every partial below Nyquist
                 scr += np.sin(h * ph) / h
         scr = _sweep_lp(scr, 900, 6000, sr)
         scr = np.tanh(1.4 * scr / max(1e-9, float(np.abs(scr).max())))
-        scr = scr * np.minimum(1.0, t3 * 4.0) * (0.35 + 0.65 * t3 ** 2)
+        scr = scr * np.minimum(1.0, t3 * 4.0) * (0.35 + 0.65 * t3**2)
         # impact: sub boom + noise burst, decaying
         n4 = int(sr * 1.2)
         t4 = np.arange(n4) / sr
@@ -79,8 +85,10 @@ class RiserKit:
         burst = _sweep_lp(rng.uniform(-1, 1, n4), 6000, 200, sr) * np.exp(-t4 / 0.25)
         imp = np.tanh(2.0 * (boom + 0.5 * burst))
         self.samples = {
-            "reverse_cymbal": _stereo(rev, 0.7, sr), "reverse_short": _stereo(short, 0.6, sr),
-            "uplifter": _stereo(up, 0.55, sr), "scream": _stereo(scr, 0.4, sr),
+            "reverse_cymbal": _stereo(rev, 0.7, sr),
+            "reverse_short": _stereo(short, 0.6, sr),
+            "uplifter": _stereo(up, 0.55, sr),
+            "scream": _stereo(scr, 0.4, sr),
             "impact": _stereo(imp, 0.9, sr),
         }
 
@@ -95,7 +103,7 @@ class RiserKit:
             start, src = max(0, -pos), max(0, pos)
             k = min(n - start, len(sample) - src)
             if k > 0:
-                out[start:start + k] += sample[src:src + k] * gain
+                out[start : start + k] += sample[src : src + k] * gain
             pos += n
             if pos < len(sample):
                 still.append((sample, pos, gain))

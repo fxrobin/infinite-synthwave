@@ -1,4 +1,5 @@
 """ADSR envelope rendered per block, segment by segment (no per-sample Python loop)."""
+
 from __future__ import annotations
 
 import numpy as np
@@ -51,7 +52,7 @@ class ADSR:
                 seg = self.s + (1.0 - self.s) * np.exp(-5.0 * ts / length)
             else:
                 seg = self.start * np.exp(-6.0 * ts / length)
-            out[filled:filled + k] = seg
+            out[filled : filled + k] = seg
             self.level = float(seg[-1])
             self.t += k
             filled += k

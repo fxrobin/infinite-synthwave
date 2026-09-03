@@ -53,7 +53,7 @@ def test_commands_and_status():
     r.set_mood("dreamy")
     assert r.status()["pending_mood"] == "dreamy"
     bars = int(16 * r.transport.samples_per_step)
-    for _ in range(9 * bars // 4096 + 2):      # intro (8 bars) then the transition
+    for _ in range(9 * bars // 4096 + 2):  # intro (8 bars) then the transition
         r.render(4096)
     assert r.status()["mood"] == "dreamy" and r.status()["section"] == "transition"
 
@@ -102,9 +102,10 @@ def test_mood_patches_swap_on_transition():
         r.render(4096)
     st = r.status()
     from synthwave.composer.moods import DARK_POOLS
+
     assert st["mood"] == "dark" and st["layers"]["pad"]["patch"] in DARK_POOLS["pad"]
     assert st["layers"]["drums"]["patch"] in DARK_POOLS["drums"]
-    assert st["layers"]["lead"]["patch"] == "lead_saw"   # manual choice kept
+    assert st["layers"]["lead"]["patch"] == "lead_saw"  # manual choice kept
 
 
 def test_dark_mood_renders():
@@ -125,7 +126,7 @@ def test_section_patches_applied_by_renderer():
     r = Renderer(RenderConfig(seed=3, mood="dark"))
     seen = set()
     bars = int(16 * r.transport.samples_per_step)
-    for _ in range(8):                      # force eight section changes
+    for _ in range(8):  # force eight section changes
         r.next_section()
         for _ in range(2 * bars // 4096 + 1):
             r.render(4096)
@@ -139,7 +140,7 @@ def test_bpm_drawn_from_range_at_start_and_transitions():
     r = Renderer(RenderConfig(seed=4, mood="dark", bpm_range=(70, 75)))
     assert 70 <= r.bpm <= 75 and r.status()["bpm_range"] == [70, 75]
     seen = {r.bpm}
-    r.set_mood("noir")                       # forces a transition, which redraws the tempo
+    r.set_mood("noir")  # forces a transition, which redraws the tempo
     bars = int(16 * r.transport.samples_per_step)
     for _ in range(14 * bars // 4096):
         r.render(4096)
@@ -176,6 +177,7 @@ def test_random_mood_at_start_and_at_transitions():
 
 def test_every_mood_renders_finite_audio():
     from synthwave.composer.moods import MOODS
+
     for name in MOODS:
         r = Renderer(RenderConfig(seed=3, mood=name))
         r.arranger.force_next_section()
@@ -197,6 +199,6 @@ def test_auto_tweaks_apply_and_can_be_disabled():
             assert abs(r.instruments["pad"].patch.filter.cutoff - 1000 * factor) < 1e-3
             seen = True
             break
-    assert seen and r.base_patch["pad"].filter.cutoff == 1000    # manual edit kept underneath
+    assert seen and r.base_patch["pad"].filter.cutoff == 1000  # manual edit kept underneath
     r.set_auto_tweaks(False)
     assert r.instruments["pad"].patch.filter.cutoff == 1000 and not r.status()["auto_tweaks"]
