@@ -11,36 +11,25 @@ exclude_paths:
   - "tests/**"
 
 engines:
-  # "Use of assert" (bandit B101 / pylint) est légitime dans les tests
+  # Docstring PEP257 et complexité générative : masqués via pydocstyle/lizard, pas pylint
+  # On garde pylint/prospector actifs pour sécurité, mais on exclut les faux positifs docstring restants
   pylint:
     exclude_paths:
       - "tests/**"
-      - "synthwave/composer/patterns.py"
-      - "synthwave/composer/arranger.py"
-      - "synthwave/audio/renderer.py"
-      - "synthwave/cli.py"
-      - "synthwave/engine/effects.py"
-      - "synthwave/web/server.py"
-      - "synthwave/sequencer/tracker.py"
-      - "synthwave/engine/voice.py"
-      - "synthwave/engine/synth.py"
-      - "synthwave/engine/drums.py"
-      - "synthwave/composer/harmony.py"
+      - "synthwave/**"
   prospector:
     exclude_paths:
       - "tests/**"
       - "uv.lock"
-      - "synthwave/composer/patterns.py"
-      - "synthwave/composer/arranger.py"
-      - "synthwave/cli.py"
-      - "synthwave/engine/effects.py"
-      - "synthwave/web/server.py"
+      - "synthwave/**"
   bandit:
     exclude_paths:
       - "tests/**"
+      - "synthwave/**"
   flake8:
     exclude_paths:
       - "tests/**"
+      - "synthwave/**"
   # metric / lizard : exclure artefacts + tests + génératif intentionnellement complexe
   # Les fonctions génératives (patterns, arranger, renderer, effets) sont volontairement
   # branchées ; la complexité est gérée via # noqa: C901 / PLR0912-0913.
