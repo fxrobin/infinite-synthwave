@@ -1,4 +1,7 @@
-"""MCP server (stdio) piloting a live Player. Run with: synthwave mcp"""
+"""MCP server (stdio) piloting a live Player.
+
+Run with: synthwave mcp
+"""
 
 from __future__ import annotations
 
@@ -61,6 +64,7 @@ def set_tempo(bpm: float) -> dict:
 @mcp.tool()
 def set_mood(mood: str) -> dict:
     """Change mood at the next transition and keep it: dark|noir|dreamy|outrun.
+
     'random' releases the lock so every transition draws a new mood.
     """
     return _command(lambda r: r.set_mood(mood))
@@ -76,7 +80,8 @@ def set_layer(
 
 @mcp.tool()
 def list_patches() -> dict:
-    """List available synth/drum patches (library + ~/.config/synthwave/patches)."""
+    """List available synth/drum patches (library +
+    ~/.config/synthwave/patches)."""
     return {"patches": loader.list_patches()}
 
 
@@ -88,7 +93,8 @@ def load_patch(layer: str, name: str) -> dict:
 
 @mcp.tool()
 def set_patch_param(layer: str, path: str, value: float | str) -> dict:
-    """Set one patch parameter, e.g. path='filter.cutoff' value=800, 'oscillators.0.detune' 20."""
+    """Set one patch parameter, e.g. path='filter.cutoff' value=800,
+    'oscillators.0.detune' 20."""
     return _command(lambda r: r.set_patch_param(layer, path, value))
 
 
@@ -102,8 +108,10 @@ def set_layer_effects(layer: str, effects: list[dict] | None = None) -> dict:
 
 @mcp.tool()
 def set_auto_tweaks(enabled: bool) -> dict:
-    """Enable/disable the live composer's patch gestures (filter sweeps before a drop, detune,
-    LFO changes per section). Manual set_patch_param edits are kept underneath.
+    """Enable/disable the live composer's patch gestures (filter sweeps before
+    a drop, detune, LFO changes per section).
+
+    Manual set_patch_param edits are kept underneath.
     """
     return _command(lambda r: r.set_auto_tweaks(enabled))
 
@@ -118,7 +126,8 @@ def next_section() -> dict:
 def export_wav(
     path: str, seconds: float, mood: str = "dark", bpm: float | None = None, seed: int | None = None
 ) -> dict:
-    """Render a standalone track offline to a WAV file (does not disturb live playback)."""
+    """Render a standalone track offline to a WAV file (does not disturb live
+    playback)."""
     from .audio.export import export_wav as _export
 
     try:

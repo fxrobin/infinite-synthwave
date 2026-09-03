@@ -1,4 +1,7 @@
-"""Block-vectorised effects. Delay lines are processed in chunks no longer than their delay."""
+"""Block-vectorised effects.
+
+Delay lines are processed in chunks no longer than their delay.
+"""
 
 from __future__ import annotations
 
@@ -149,7 +152,8 @@ class _Line:
 
 
 class Reverb(Effect):
-    """Freeverb-style Schroeder reverb: 8 lowpass-feedback combs + 4 allpasses per channel."""
+    """Freeverb-style Schroeder reverb: 8 lowpass-feedback combs + 4 allpasses
+    per channel."""
 
     def __init__(
         self,
@@ -316,7 +320,8 @@ class Sidechain:
 
 
 class Gate(Effect):
-    """Tempo-synced trance gate / stutter: rate '1/16', duty cycle, depth, smoothed edges."""
+    """Tempo-synced trance gate / stutter: rate '1/16', duty cycle, depth,
+    smoothed edges."""
 
     def __init__(
         self,
@@ -400,7 +405,7 @@ class LoFi(Effect):
 
 
 class Distortion(Effect):
-    """tanh drive with a post lowpass 'tone' and level compensation."""
+    """Tanh drive with a post lowpass 'tone' and level compensation."""
 
     def __init__(
         self, sr: int, bpm: float, drive: float = 4.0, tone: float = 4000, mix: float = 1.0
@@ -418,7 +423,8 @@ class Distortion(Effect):
 
 
 class AutoPan(Effect):
-    """Constant-power stereo auto-pan; rate in Hz or tempo-synced ('1/2', '1/4'...)."""
+    """Constant-power stereo auto-pan; rate in Hz or tempo-synced ('1/2',
+    '1/4'...)."""
 
     def __init__(
         self, sr: int, bpm: float, rate: float | str = "1/2", depth: float = 0.8, wave: str = "sine"
@@ -439,7 +445,8 @@ class AutoPan(Effect):
 
 
 class Phaser(Effect):
-    """Cascade of first-order allpass stages swept by an LFO; coefficients updated per chunk."""
+    """Cascade of first-order allpass stages swept by an LFO; coefficients
+    updated per chunk."""
 
     def __init__(
         self,
@@ -482,7 +489,8 @@ class Phaser(Effect):
 
 
 class Flanger(Effect):
-    """Short modulated delay with feedback, processed in chunks no longer than the delay."""
+    """Short modulated delay with feedback, processed in chunks no longer than
+    the delay."""
 
     def __init__(
         self,

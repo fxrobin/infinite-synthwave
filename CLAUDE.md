@@ -5,7 +5,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Projet
 
 Générateur procédural de synthwave infini (ou à durée fixe) : synthèse 100 % numpy/scipy, sortie
-audio via sounddevice (PortAudio), CLI typer et serveur MCP. Python ≥ 3.13, géré par `uv`.
+audio via sounddevice (PortAudio), CLI typer et serveur MCP (Model Context Protocol). Python ≥ 3.13,
+géré par `uv`.
+
+**Glossaire** : BPM (Beats Per Minute), FX (Effects), MCP (Model Context Protocol), FM (Frequency
+Modulation), ADSR (Attack Decay Sustain Release), LFO (Low-Frequency Oscillator), RMS (Root Mean
+Square), WAV (Waveform Audio File Format), UP (Update).
 Le README (en français) est la référence exhaustive des moods, effets, patches et paramètres :
 le tenir à jour à chaque nouveauté (nouvel effet, mood, gamme, progression, patch).
 

@@ -1,4 +1,5 @@
-"""Drum kit: every hit is synthesised once at init into a stereo buffer, then mixed on demand."""
+"""Drum kit: every hit is synthesised once at init into a stereo buffer, then
+mixed on demand."""
 
 from __future__ import annotations
 
@@ -65,9 +66,8 @@ class DrumKit:
         self.samples["crash_roll"] = self._crash_roll(bpm)
 
     def _crash_roll(self, bpm: float) -> np.ndarray:
-        """One bar of mallet roll on the crash: dense strokes (~14/s) whose level swells
-        towards the downbeat, then a final crash-length tail.
-        """
+        """One bar of mallet roll on the crash: dense strokes (~14/s) whose
+        level swells towards the downbeat, then a final crash-length tail."""
         sr = self.sr
         bar = 4.0 * 60.0 / bpm
         t = _t(sr, bar + 0.8)

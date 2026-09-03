@@ -76,7 +76,8 @@ def _parse_fx_params(spec: dict, params: str) -> None:
 
 
 def parse_fx(text: str) -> tuple[str, dict]:
-    """'pad:gate:rate=1/16,depth=0.8' -> ('pad', {'type': 'gate', 'rate': '1/16', 'depth': 0.8})."""
+    """'pad:gate:rate=1/16,depth=0.8' -> ('pad', {'type': 'gate', 'rate':
+    '1/16', 'depth': 0.8})."""
     if not isinstance(text, str) or len(text) > 256 or "\x00" in text:
         raise ValueError(f"invalid --fx {text!r}")
     parts = text.split(":", 2)
@@ -227,7 +228,8 @@ def play(
 
 @app.command()
 def patches():
-    """Liste les patches disponibles (bibliothèque + ~/.config/synthwave/patches)."""
+    """Liste les patches disponibles (bibliothèque +
+    ~/.config/synthwave/patches)."""
     for name in list_patches():
         typer.echo(name)
 

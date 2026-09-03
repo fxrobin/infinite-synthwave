@@ -1,4 +1,5 @@
-"""Band-limited oscillators (polyBLEP) with unison, detune and stereo spread."""
+"""Band-limited oscillators (polyBLEP) with unison, detune and stereo
+spread."""
 
 from __future__ import annotations
 
