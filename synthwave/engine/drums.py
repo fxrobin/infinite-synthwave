@@ -1,5 +1,6 @@
 """Drum kit: every hit is synthesised once at init into a stereo buffer, then
-mixed on demand."""
+mixed on demand.
+"""
 
 from __future__ import annotations
 
@@ -67,7 +68,8 @@ class DrumKit:
 
     def _crash_roll(self, bpm: float) -> np.ndarray:
         """One bar of mallet roll on the crash: dense strokes (~14/s) whose
-        level swells towards the downbeat, then a final crash-length tail."""
+        level swells towards the downbeat, then a final crash-length tail.
+        """
         sr = self.sr
         bar = 4.0 * 60.0 / bpm
         t = _t(sr, bar + 0.8)
@@ -171,7 +173,7 @@ class DrumKit:
         }
         self.set_bpm(self.bpm)
 
-    def render(self, n: int, events: list[NoteEvent]) -> np.ndarray:
+    def render(self, n: int, events: list[NoteEvent]) -> np.ndarray:  # noqa: C901 - drum routing branches
         """Render."""
         kick = np.zeros((n, 2), dtype=np.float32)
         perc = np.zeros((n, 2), dtype=np.float32)

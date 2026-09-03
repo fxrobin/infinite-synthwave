@@ -1,5 +1,6 @@
 """ADSR envelope rendered per block, segment by segment (no per-sample Python
-loop)."""
+loop).
+"""
 
 from __future__ import annotations
 

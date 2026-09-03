@@ -139,7 +139,7 @@ async def _body(request: Request) -> dict:
     return data if isinstance(data, dict) else {}
 
 
-async def start(request: Request) -> JSONResponse:
+async def start(request: Request) -> JSONResponse:  # noqa: C901 - request validation branches
     """Start."""
     b = await _body(request)
     try:

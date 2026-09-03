@@ -81,7 +81,8 @@ def set_layer(
 @mcp.tool()
 def list_patches() -> dict:
     """List available synth/drum patches (library +
-    ~/.config/synthwave/patches)."""
+    ~/.config/synthwave/patches).
+    """
     return {"patches": loader.list_patches()}
 
 
@@ -94,7 +95,8 @@ def load_patch(layer: str, name: str) -> dict:
 @mcp.tool()
 def set_patch_param(layer: str, path: str, value: float | str) -> dict:
     """Set one patch parameter, e.g. path='filter.cutoff' value=800,
-    'oscillators.0.detune' 20."""
+    'oscillators.0.detune' 20.
+    """
     return _command(lambda r: r.set_patch_param(layer, path, value))
 
 
@@ -127,7 +129,8 @@ def export_wav(
     path: str, seconds: float, mood: str = "dark", bpm: float | None = None, seed: int | None = None
 ) -> dict:
     """Render a standalone track offline to a WAV file (does not disturb live
-    playback)."""
+    playback).
+    """
     from .audio.export import export_wav as _export
 
     try:

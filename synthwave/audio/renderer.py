@@ -1,5 +1,6 @@
 """Mixes all layers into a stereo block; owns the command queue used by CLI/MCP
-threads."""
+threads.
+"""
 
 from __future__ import annotations
 
@@ -51,7 +52,7 @@ class RenderConfig:
 class Renderer:
     """Renderer."""
 
-    def __init__(self, cfg: RenderConfig):
+    def __init__(self, cfg: RenderConfig):  # noqa: C901 - renderer wiring has many branches
         """Initialize."""
         if cfg.mood is not None and cfg.mood not in MOODS:
             raise ValueError(f"unknown mood {cfg.mood!r}, choose from {list(MOODS)}")
@@ -172,7 +173,8 @@ class Renderer:
 
     def set_mood(self, name: str) -> None:
         """Request a mood change through an ambient transition; 'random'
-        unlocks the draw."""
+        unlocks the draw.
+        """
         if name == "random":
             self.arranger.set_mood(None)
             return
@@ -223,7 +225,8 @@ class Renderer:
 
     def set_auto_tweaks(self, enabled: bool) -> None:
         """Enable / disable the arranger's live patch gestures (filter sweeps,
-        detune...)."""
+        detune...).
+        """
         self.auto_tweaks_enabled = bool(enabled)
         for layer in LAYERS:
             if layer in self.base_patch:
@@ -249,7 +252,8 @@ class Renderer:
 
     def set_layer_effects(self, layer: str, specs: list[dict] | None) -> None:
         """Manual insert chain for a layer or 'master'; None restores the
-        arranger's choice."""
+        arranger's choice.
+        """
         if layer not in LAYERS and layer != "master":
             raise ValueError(f"unknown layer {layer!r}, choose from {LAYERS + ('master',)}")
         if specs is None:
@@ -267,7 +271,7 @@ class Renderer:
             if specs:
                 self.inserts[layer] = build_effects(specs, self.sr, self.bpm)
 
-    def status(self) -> dict:
+    def status(self) -> dict:  # noqa: C901 - status aggregates many fields
         """Status."""
         p = self.plan
         return {

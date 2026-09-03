@@ -171,7 +171,7 @@ class BarPlan:
 class Arranger:
     """Arranger."""
 
-    def __init__(
+    def __init__(  # noqa: PLR0913 - arranger needs RNG, harmony, mood, bars, BPM and track length
         self,
         rng: np.random.Generator,
         harmony: Harmony,
@@ -226,7 +226,8 @@ class Arranger:
     def draw_bpm(self) -> float:
         """Tempo for the next track: user range -> uniform; else the mood's
         range, staying as close as possible to the current tempo (smooth
-        transitions)."""
+        transitions).
+        """
         if self.bpm_range is not None:
             lo, hi = self.bpm_range
             return round(float(self.rng.uniform(lo, hi)), 1)
@@ -369,7 +370,8 @@ class Arranger:
 
     def _pick_mood(self) -> Mood:
         """Next track's mood, weighted towards moods close to the current one
-        (tempo, feel)."""
+        (tempo, feel).
+        """
         others = [m for m in MOODS.values() if m is not self.mood]
         w = []
         for m in others:
@@ -387,7 +389,8 @@ class Arranger:
 
     def _enter_transition(self) -> None:
         """Ambient-only bars bridging two tracks: pivot chord, related key,
-        nearby tempo."""
+        nearby tempo.
+        """
         self.transition_requested = False
         last_chord = self.progression[(self.section_bar - 1) % len(self.progression)]
         new_mood = self.pending_mood
@@ -444,7 +447,8 @@ class Arranger:
 
     def _is_predrop(self) -> bool:
         """Percussion cut before a hit: last bar before a chorus, or mid-chorus
-        (bar 7)."""
+        (bar 7).
+        """
         last = self.section_bar == self.section_len - 1
         if last and self._going_to_chorus():
             return True
@@ -506,7 +510,8 @@ class Arranger:
 
     def _risers(self, predrop: bool) -> Pattern:
         """Announce the coming chorus on the two last bars; drop an impact on
-        its first beat."""
+        its first beat.
+        """
         remaining = self.section_len - self.section_bar  # bars left including this one
         going_to_chorus = self._going_to_chorus()
         p: Pattern = []
@@ -531,7 +536,8 @@ class Arranger:
 
     def _bass(self, r: np.random.Generator, chord: Chord, predrop: bool) -> Pattern:
         """Regenerate on the chord each bar; every second bar apply a light
-        mutation."""
+        mutation.
+        """
         p = gen_bass(r, chord, self.bass_style)
         if predrop:
             return cut_after(p, 12)
@@ -544,7 +550,8 @@ class Arranger:
         """The track's theme: question / answer motifs alternate bar by bar in
         verse and chorus (octave up in the second half of a chorus); the
         counter-melody plays in breaks and as a secondary line late in a
-        verse."""
+        verse.
+        """
         if not active:
             return []
         lo = 55 if self.mood.pad_octave <= 3 else 60
@@ -571,7 +578,8 @@ class Arranger:
     def _tweaks(self, predrop: bool) -> dict[str, dict[str, float]]:
         """Section gestures + per-bar sweeps: the filter opens over the 4 bars
         before a chorus (build-up), closes down in a break, and rises through
-        the intro."""
+        the intro.
+        """
         out = {k: dict(v) for k, v in self.gestures.items()}
 
         def mul(layer: str, path: str, factor: float) -> None:
