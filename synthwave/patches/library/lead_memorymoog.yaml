@@ -1,0 +1,21 @@
+# Moog Memorymoog — 3 VCO saw en unisson large, filtre ladder chaud, glide : énorme et gras.
+name: lead_memorymoog
+polyphony: 1
+glide: 0.08
+volume: 1.05
+oscillators:
+  - {wave: saw, unison: 3, detune: 15, level: 0.6, spread: 0.7}
+  - {wave: saw, semi: 0, level: 0.35}
+  - {wave: square, pwm: 0.5, octave: -1, level: 0.4}
+amp_env: {attack: 0.02, decay: 0.5, sustain: 0.8, release: 0.45}
+filter:
+  type: lp
+  cutoff: 900
+  resonance: 0.3
+  env: {attack: 0.02, decay: 0.7, sustain: 0.5, release: 0.4, amount: 1800}
+lfo: {wave: sine, rate: 5.4, target: pitch, amount: 0.12}
+effects:
+  - {type: distortion, drive: 2.0, tone: 3200, mix: 0.35}
+  - {type: chorus, rate: 0.3, depth: 0.003, mix: 0.25}
+  - {type: delay, time: "1/4", feedback: 0.4, mix: 0.3, pingpong: true}
+  - {type: reverb, size: 0.88, damping: 0.5, mix: 0.3}

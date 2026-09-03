@@ -1,0 +1,21 @@
+# ARP 2600 — semi-modulaire : pulse + saw, LFO carré sur le cutoff (sample & hold), résonance haute.
+name: lead_arp2600
+polyphony: 1
+glide: 0.06
+volume: 0.8
+oscillators:
+  - {wave: square, pwm: 0.35, level: 0.55}
+  - {wave: saw, semi: 0, level: 0.4}
+  - {wave: saw, octave: -1, level: 0.3}
+amp_env: {attack: 0.01, decay: 0.4, sustain: 0.75, release: 0.35}
+filter:
+  type: lp
+  cutoff: 800
+  resonance: 0.5
+  env: {attack: 0.01, decay: 0.5, sustain: 0.4, release: 0.3, amount: 2000}
+lfo: {wave: square, rate: 3.7, target: cutoff, amount: 500}
+effects:
+  - {type: distortion, drive: 2.5, tone: 3500, mix: 0.4}
+  - {type: flanger, rate: 0.15, depth: 0.002, base: 0.004, feedback: 0.5, mix: 0.35}
+  - {type: delay, time: "1/8d", feedback: 0.45, mix: 0.35, pingpong: true}
+  - {type: reverb, size: 0.85, damping: 0.6, mix: 0.25}

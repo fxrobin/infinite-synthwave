@@ -246,7 +246,7 @@ Notes :
 
 ## Patches YAML
 
-Bibliothèque : `synthwave/patches/library/` (74 patches). Les fichiers placés dans
+Bibliothèque : `synthwave/patches/library/` (88 patches). Les fichiers placés dans
 `~/.config/synthwave/patches/` sont aussi listés et priment sur la bibliothèque.
 
 ```yaml
@@ -282,7 +282,7 @@ Patch batterie (`kind: drums`) : `kick` (pitch, `sub`, `drive` saturation, `gain
 d'effets appliquée à toutes les percussions sauf le kick (écho ping‑pong + reverb dans
 `drums_dark.yaml`). Voir `drums_808.yaml`.
 
-### Bibliothèque livrée (74 patches)
+### Bibliothèque livrée (88 patches)
 
 | Catégorie | Patch | Caractère |
 |---|---|---|
@@ -343,6 +343,20 @@ d'effets appliquée à toutes les percussions sauf le kick (écho ping‑pong + 
 | | `lead_ms20` | MS-20 : résonance 0.55, disto 4.5 |
 | | `lead_minimoog` | Minimoog : 3 osc (2 saw + square -1), glide 0.07, disto légère |
 | | `lead_piano_atmos` | Piano « atmos » mélodique, polyphonie 4, longue queue |
+| | `lead_jupiter` | Jupiter-8 : saw 3×12 cts + pulse, chorus stéréo, env 1700 Hz |
+| | `lead_juno` | Juno-106 : DCO saw + sub square, PWM lente (LFO 0.5 Hz), chorus 0.5 |
+| | `lead_dx7` | DX7 « solid lead » : 2 opérateurs FM (1.0×2.2, 2.0×2.5), key-track, pas de résonance |
+| | `lead_sh101` | SH-101 : mono saw + pulse + sub, glide 0.09, résonance 0.45, env 2200 Hz |
+| | `lead_odyssey` | ARP Odyssey : duophonique, pulse fine +7 st, FM sync, résonance 0.5, disto |
+| | `lead_polysix` | Korg Polysix : saw 2×8 cts + sub, ensemble (chorus 0.6), rond |
+| | `lead_arp2600` | ARP 2600 : pulse + saw, LFO carré 3.7 Hz sur cutoff (S&H), résonance 0.5, flanger |
+| | `lead_d50` | Roland D-50 : attaque FM « cloche » + corps saw, polyphonie 2, réverbe 0.45 |
+| | `lead_m1` | Korg M1 : square + sine octave, key-track 0.5, très net, delay 1/8d |
+| | `lead_jx8p` | JX-8P : saws croisées, attaque 40 ms, chorus, cutoff 1200 Hz |
+| | `lead_synthex` | Elka Synthex « Laser Harp » : pulse 12 % + saw, résonance 0.4, delay 1/4d fb 0.55 |
+| | `lead_pro_one` | Pro-One : saw + pulse 25 % + FM, attaque 5 ms, résonance 0.4, disto |
+| | `lead_memorymoog` | Memorymoog : 3 saw unisson 15 cts + sub, glide 0.08, ladder 900 Hz |
+| | `lead_sem` | Oberheim SEM : filtre passe-bande 1100 Hz, nasillard, phaser |
 | **Ambient** | `ambient_drone` | Sine+triangle+noise, LFO cutoff, chorus+reverb |
 | | `ambient_dark` | Noise+FM+sine, LFO triangle 0.05 Hz, reverb 1.0 |
 | | `ambient_wind` | Bruit BP 600 Hz résonant, LFO cutoff, autopan lent |

@@ -1,0 +1,21 @@
+# Korg M1 — lead digital « Universe » : sine + square octave, très net, chorus léger, delay.
+name: lead_m1
+polyphony: 2
+glide: 0.02
+volume: 1.0
+oscillators:
+  - {wave: square, pwm: 0.5, level: 0.5}
+  - {wave: sine, octave: 1, level: 0.35}
+  - {wave: triangle, level: 0.35}
+amp_env: {attack: 0.01, decay: 0.4, sustain: 0.8, release: 0.5}
+filter:
+  type: lp
+  cutoff: 2400
+  resonance: 0.05
+  key_track: 0.5
+  env: {attack: 0.005, decay: 0.3, sustain: 0.5, release: 0.3, amount: 800}
+lfo: {wave: sine, rate: 5.4, target: pitch, amount: 0.1}
+effects:
+  - {type: chorus, rate: 0.3, depth: 0.002, mix: 0.3}
+  - {type: delay, time: "1/8d", feedback: 0.45, mix: 0.35, pingpong: true}
+  - {type: reverb, size: 0.9, damping: 0.5, mix: 0.35}

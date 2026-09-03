@@ -1,0 +1,20 @@
+# Roland SH-101 — mono saw + pulse + sub, glide, enveloppe rapide, résonance : lead acid/synthpop.
+name: lead_sh101
+polyphony: 1
+glide: 0.09
+volume: 0.72
+oscillators:
+  - {wave: saw, level: 0.55}
+  - {wave: square, pwm: 0.3, level: 0.4}
+  - {wave: square, pwm: 0.5, octave: -1, level: 0.35}
+amp_env: {attack: 0.01, decay: 0.3, sustain: 0.8, release: 0.3}
+filter:
+  type: lp
+  cutoff: 900
+  resonance: 0.45
+  env: {attack: 0.005, decay: 0.35, sustain: 0.35, release: 0.3, amount: 2200}
+lfo: {wave: triangle, rate: 5.5, target: pitch, amount: 0.12}
+effects:
+  - {type: distortion, drive: 2.5, tone: 3500, mix: 0.4}
+  - {type: delay, time: "1/8d", feedback: 0.45, mix: 0.35, pingpong: true}
+  - {type: reverb, size: 0.82, damping: 0.55, mix: 0.25}
