@@ -22,7 +22,7 @@ from starlette.responses import HTMLResponse, JSONResponse
 from starlette.routing import Route, WebSocketRoute
 from starlette.websockets import WebSocket, WebSocketDisconnect
 
-from ..audio.renderer import LAYERS, RenderConfig
+from ..audio.renderer import LAYERS, MASTER_COLORS, RenderConfig
 from ..composer.moods import MOODS
 from ..engine.effects import _REGISTRY
 from ..patches import loader
@@ -114,6 +114,7 @@ async def meta(_: Request) -> JSONResponse:
             },
             "patches": loader.list_patches(),
             "layers": list(LAYERS),
+            "master_colors": list(MASTER_COLORS),
             "effects": {k: FX_DEFAULTS.get(k, {}) for k in _REGISTRY if k != "limiter"},
         }
     )
@@ -221,6 +222,19 @@ async def mood(request: Request) -> JSONResponse:
     except ValueError as e:
         return JSONResponse({"ok": False, "error": str(e)}, status_code=400)
     return _cmd(lambda r: r.set_mood(name))
+
+
+async def master_color(request: Request) -> JSONResponse:
+    """Master color."""
+    b = await _body(request)
+    try:
+        name = str(b.get("color", "tape"))
+        _validate_str(name)
+        if name not in MASTER_COLORS:
+            raise ValueError(f"unknown master colour: {name}")
+    except ValueError as e:
+        return JSONResponse({"ok": False, "error": str(e)}, status_code=400)
+    return _cmd(lambda r: r.set_master_color(name))
 
 
 async def layer(request: Request) -> JSONResponse:
@@ -354,6 +368,7 @@ app = Starlette(
         Route("/api/stop", stop, methods=["POST"]),
         Route("/api/tempo", tempo, methods=["POST"]),
         Route("/api/mood", mood, methods=["POST"]),
+        Route("/api/master_color", master_color, methods=["POST"]),
         Route("/api/layer", layer, methods=["POST"]),
         Route("/api/patch", patch, methods=["POST"]),
         Route("/api/patch/{layer}", patch_state),

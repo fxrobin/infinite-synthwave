@@ -64,6 +64,7 @@ uv run synthwave ui --port 8765 --no-browser   # interface web
 | `--device 2` / `hw:0,0` | Index ou nom sounddevice. |
 | `--blocksize 1024` | Taille de bloc audio. |
 | `--fx layer:type:k=v,...` | Insert manuel (répétable). `layer` ou `master`. Ex. `pad:gate:rate=1/16,depth=0.8` `master:lofi:bits=8` `lead:phaser:rate=2/1`. `None` en MCP = retour auto. |
+| `--master-color clean\|tape\|vhs\|mic\|crush` | Couleur permanente du master (défaut `tape`). |
 
 ## Moods — 10 ambiances implémentées (`synthwave/composer/moods.py:43`)
 
@@ -437,7 +438,16 @@ Annonces arrangeur (`synthwave/composer/arranger.py:219`) : `uplifter` à J-2 du
 - **Sidechain** (`engine/effects.py:209`) : ducking `gain = 1 - depth*exp(-t/release)` déclenché sur chaque kick, `depth 0.45 / release 0.22 s`. Atténuation par couche : `pad 100%`, `bass 60%`, `ambient 60%`, `arp 50%`.
 - **Gains de section** : `intro drums 0.6/lead 0.0` → `verse` → `chorus full` → `break drums 0.0/lead 0.0` → `transition drums/bass/arp/lead 0.0` → `outro` avec `fade` linéaire sur 8 bars.
 - **Trim par couche** (`audio/renderer.py:26`) : `LAYER_TRIM = {"lead": 2.5}` — make-up gain statique appliqué avant mix pour compenser le niveau perçu du lead (×2.5, les autres ×1.0).
-- **Master** : `master_volume 0.7` + rampe de gain par couche (`current→target` sur un bloc) + `fade` linéaire + inserts `master` + `Limiter threshold 0.95`.
+- **Master** : rampe de gain par couche (`current→target` sur un bloc, appliquée **avant** les effets de la couche pour que les queues de delay/reverb continuent de sonner) → inserts `master` (auto/manuels) → `master_volume 0.7` × `fade` linéaire → **couleur master** → `Limiter threshold 0.95`.
+- **Couleur master** (`MASTER_COLORS`, `--master-color`, MCP `set_master_color`, `POST /api/master_color`) : étage de saturation permanent placé après le volume, donc toujours attaqué au même niveau. `clean` (aucun), `tape` (défaut : saturation douce + bitcrush 13 bits), `vhs` (bande usée : disto + lofi 10 bits, wobble, souffle), `mic` (micro saturé : disto drive 3.2, bande 4.5 kHz, lofi 11 bits), `crush` (bitcrush 8 bits + disto). Le `lofi` n'y apparaît qu'en mix 1.0 : son chemin humide est retardé par le wobble, un mix partiel filtrerait le master en peigne. Mesuré sur un rendu `outrun` de 15 s :
+
+| Couleur | Crête | RMS | Énergie > 4 kHz | Distorsion (sinus 220 Hz) |
+|---|---|---|---|---|
+| `clean` | 0.791 | 0.149 | 41 % | 0 % |
+| `tape` | 0.731 | 0.156 | 34 % | 1.8 % |
+| `vhs` | 0.668 | 0.165 | 23 % | 2.6 % |
+| `mic` | 0.620 | 0.184 | 18 % | 4.1 % |
+| `crush` | 0.615 | 0.189 | 17 % | 9.1 % |
 
 ---
 
@@ -564,6 +574,7 @@ projet ; pour un autre dossier, ajouter `--directory <chemin>` aux arguments). O
 | `status()` | tempo, tonalité, accord, section, morceau (`track`, `track_bar`/`track_bars`), `drop`, couches |
 | `set_tempo(bpm)` | 60–180 |
 | `set_mood(mood)` | dark / dreamy / outrun |
+| `set_master_color(color)` | clean / tape / vhs / mic / crush : couleur du master |
 | `set_layer(layer, mute, solo, volume)` | mixage par couche |
 | `list_patches()` / `load_patch(layer, name)` | patches |
 | `set_patch_param(layer, path, value)` | ex. `filter.cutoff` 800 |

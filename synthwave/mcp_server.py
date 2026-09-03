@@ -74,6 +74,16 @@ def set_mood(mood: str) -> dict:
 
 
 @mcp.tool()
+def set_master_color(color: str) -> dict:
+    """
+    Colour the whole mix: clean|tape|vhs|mic|crush.
+
+    Always-on saturation / lo-fi stage between the master inserts and the limiter.
+    """
+    return _command(lambda r: r.set_master_color(color))
+
+
+@mcp.tool()
 def set_layer(
     layer: str, mute: bool | None = None, solo: bool | None = None, volume: float | None = None
 ) -> dict:

@@ -5,7 +5,8 @@ import pytest
 import soundfile as sf
 
 from synthwave.audio.export import export_wav
-from synthwave.audio.renderer import RenderConfig, Renderer
+from synthwave.audio.renderer import MASTER_COLORS, RenderConfig, Renderer
+from synthwave.engine.effects import build_effects
 from synthwave.patches.loader import PatchError
 
 
@@ -202,3 +203,47 @@ def test_auto_tweaks_apply_and_can_be_disabled():
     assert seen and r.base_patch["pad"].filter.cutoff == 1000  # manual edit kept underneath
     r.set_auto_tweaks(False)
     assert r.instruments["pad"].patch.filter.cutoff == 1000 and not r.status()["auto_tweaks"]
+
+
+def _harmonics(x, sr=44100, f0=220.0):
+    """Energy at the 2nd and 3rd harmonic of a f0 sine, relative to the fundamental."""
+    m = x.mean(axis=1) if x.ndim == 2 else x
+    spec = np.abs(np.fft.rfft(m * np.hanning(len(m))))
+    freqs = np.fft.rfftfreq(len(m), 1 / sr)
+
+    def at(f):
+        return float(spec[np.argmin(np.abs(freqs - f))])
+
+    return (at(2 * f0) + at(3 * f0)) / max(at(f0), 1e-9)
+
+
+def test_master_color_saturates_the_mix_and_defaults_to_tape():
+    sr = 44100
+    t = np.arange(sr, dtype=np.float32) / sr
+    sine = np.repeat((0.5 * np.sin(2 * np.pi * 220 * t))[:, None], 2, axis=1)
+    dry = _harmonics(sine)
+    for name in ("tape", "vhs", "mic", "crush"):
+        chain = build_effects(MASTER_COLORS[name], sr, 110.0)
+        wet = sine.copy()
+        for fx in chain:
+            wet = fx.process(wet)
+        assert _harmonics(wet) > dry * 3, name  # saturation adds harmonics
+
+    clean = Renderer(RenderConfig(seed=3, mood="outrun", master_color="clean"))
+    tape = Renderer(RenderConfig(seed=3, mood="outrun"))
+    assert tape.master_color == "tape"
+    a, b = render_seconds(clean, 3), render_seconds(tape, 3)
+    assert a.shape == b.shape and not np.allclose(a, b)
+    assert np.sqrt(np.mean(b**2)) >= np.sqrt(np.mean(a**2))  # denser, never quieter
+    assert np.abs(b).max() <= 1.0
+
+
+def test_master_color_can_be_changed_live_and_rejects_unknown_names():
+    r = Renderer(RenderConfig(seed=3, mood="outrun"))
+    render_seconds(r, 1)
+    r.set_master_color("mic")
+    assert r.status()["master_color"] == "mic"
+    mic = render_seconds(r, 2)
+    assert np.isfinite(mic).all() and np.abs(mic).max() <= 1.0
+    with pytest.raises(ValueError):
+        r.set_master_color("nope")
