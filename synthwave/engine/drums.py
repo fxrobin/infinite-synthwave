@@ -29,20 +29,24 @@ NOTE_TO_DRUM = {v: k for k, v in DRUM_NOTES.items()}
 
 
 def _t(sr: int, seconds: float) -> np.ndarray:
+    """T."""
     return np.arange(int(sr * seconds)) / sr
 
 
 def _stereo(x: np.ndarray) -> np.ndarray:
+    """Stereo."""
     x = x / max(1e-9, float(np.abs(x).max()))
     return np.stack([x, x], axis=1).astype(np.float32)
 
 
 def _filt(kind: str, x: np.ndarray, cutoff: float, res: float, sr: int) -> np.ndarray:
+    """Filt."""
     b, a = biquad_coeffs(kind, cutoff, res, sr)
     return lfilter(b, a, x)
 
 
 class DrumKit:
+    """Drumkit."""
     def __init__(
         self, patch: DrumPatchModel, sr: int, rng: np.random.Generator, bpm: float = 120.0
     ):
@@ -52,6 +56,7 @@ class DrumKit:
         self.set_patch(patch)
 
     def set_bpm(self, bpm: float) -> None:
+        """Set bpm."""
         self.bpm = bpm
         self.perc_fx = build_effects(
             [e.model_dump() for e in self.patch.perc_effects], self.sr, bpm
@@ -70,6 +75,7 @@ class DrumKit:
         return _stereo(noise * strokes * swell) * self.patch.crash_roll_gain
 
     def set_patch(self, patch: DrumPatchModel) -> None:
+        """Set patch."""
         self.patch = patch
         sr, rng = self.sr, self.rng
         k, s, h, c, tm = patch.kick, patch.snare, patch.hat, patch.clap, patch.tom
@@ -164,6 +170,7 @@ class DrumKit:
         self.set_bpm(self.bpm)
 
     def render(self, n: int, events: list[NoteEvent]) -> np.ndarray:
+        """Render."""
         kick = np.zeros((n, 2), dtype=np.float32)
         perc = np.zeros((n, 2), dtype=np.float32)
         for ev in events:

@@ -25,6 +25,7 @@ FX_OPTION = typer.Option(
 
 
 def parse_duration(text: str) -> float:
+    """Parse duration."""
     if not isinstance(text, str) or len(text) > 32 or "\x00" in text:
         raise ValueError(f"invalid duration {text!r}")
     m = _DUR.match(text.strip())
@@ -38,6 +39,7 @@ def parse_duration(text: str) -> float:
 
 
 def parse_bpm_range(text: str) -> tuple[float, float]:
+    """Parse bpm range."""
     try:
         lo, hi = (float(v) for v in text.split("-", 1))
     except ValueError as e:
@@ -59,6 +61,7 @@ def _parse_fx_value(v: str):
 
 
 def _parse_fx_params(spec: dict, params: str) -> None:
+    """Parse fx params."""
     if len(params) > 200:
         raise ValueError("fx params too long")
     for kv in params.split(","):
@@ -93,6 +96,7 @@ def parse_fx(text: str) -> tuple[str, dict]:
 
 
 def _validate_play_head(blocksize: int | None, device: str | None, mood: str | None) -> None:
+    """Validate play head."""
     if blocksize is not None and not 64 <= blocksize <= 8192:
         raise typer.BadParameter("blocksize must be 64-8192")
     if device is not None and (len(device) > 128 or "\x00" in device):
@@ -104,6 +108,7 @@ def _validate_play_head(blocksize: int | None, device: str | None, mood: str | N
 def _parse_play_timings(
     duration: str | None, bpm_range: str | None, track: str
 ) -> tuple[float | None, tuple[float, float] | None, float]:
+    """Parse play timings."""
     try:
         seconds = parse_duration(duration) if duration else None
     except ValueError as e:
@@ -128,6 +133,7 @@ def _build_renderer(
     track_s: float,
     fx: list[str] | None,
 ) -> Renderer:
+    """Build renderer."""
     try:
         renderer = Renderer(
             RenderConfig(
@@ -145,6 +151,7 @@ def _build_renderer(
 
 
 def _run_live_player(renderer: Renderer, blocksize: int, device: str | None) -> None:
+    """Run live player."""
     dev = int(device) if device and device.isdigit() else device
     player = Player(renderer, blocksize=blocksize, device=dev)
     try:

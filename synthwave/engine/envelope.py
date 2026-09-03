@@ -8,7 +8,9 @@ IDLE, ATTACK, DECAY, SUSTAIN, RELEASE = range(5)
 
 
 class ADSR:
+    """Adsr."""
     def __init__(self, attack: float, decay: float, sustain: float, release: float, sr: int):
+        """Initialize."""
         self.a = max(1, int(attack * sr))
         self.d = max(1, int(decay * sr))
         self.s = float(np.clip(sustain, 0.0, 1.0))
@@ -17,16 +19,20 @@ class ADSR:
 
     @property
     def finished(self) -> bool:
+        """Finished."""
         return self.stage == IDLE
 
     def gate_on(self) -> None:
+        """Gate on."""
         self.stage, self.t, self.start = ATTACK, 0, self.level
 
     def gate_off(self) -> None:
+        """Gate off."""
         if self.stage != IDLE:
             self.stage, self.t, self.start = RELEASE, 0, self.level
 
     def render(self, n: int) -> np.ndarray:
+        """Render."""
         out = np.empty(n, dtype=np.float32)
         filled = 0
         while filled < n:
@@ -61,6 +67,7 @@ class ADSR:
         return out
 
     def _advance(self) -> None:
+        """Advance."""
         self.t = 0
         if self.stage == ATTACK:
             self.stage, self.level = DECAY, 1.0

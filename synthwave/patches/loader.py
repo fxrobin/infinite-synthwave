@@ -19,6 +19,7 @@ _BARE_NAME_RE = re.compile(r"^[A-Za-z0-9_-]+$")
 
 
 def _allowed_patch_roots() -> list[Path]:
+    """Allowed patch roots."""
     roots: list[Path] = []
     for p in (LIBRARY, USER_DIR, Path.cwd(), Path.home(), Path(tempfile.gettempdir())):
         try:
@@ -41,6 +42,7 @@ def _allowed_patch_roots() -> list[Path]:
 
 
 def _is_within_allowed_roots(resolved: Path) -> bool:
+    """Is within allowed roots."""
     for root in _allowed_patch_roots():
         try:
             if resolved.is_relative_to(root):
@@ -51,19 +53,23 @@ def _is_within_allowed_roots(resolved: Path) -> bool:
 
 
 class PatchError(Exception):
+    """Patcherror."""
     pass
 
 
 def _dirs() -> list[Path]:
+    """Dirs."""
     return [d for d in (USER_DIR, LIBRARY) if d.is_dir()]
 
 
 def list_patches() -> list[str]:
+    """List patches."""
     names = {p.stem for d in _dirs() for p in d.glob("*.yaml")}
     return sorted(names)
 
 
 def patch_from_dict(data: dict) -> AnyPatch:
+    """Patch from dict."""
     if not isinstance(data, dict):
         raise PatchError("patch must be a mapping")
     try:
@@ -75,6 +81,7 @@ def patch_from_dict(data: dict) -> AnyPatch:
 
 
 def _resolve_bare_patch(name: str) -> Path:
+    """Resolve bare patch."""
     if not _BARE_NAME_RE.match(name):
         raise PatchError(
             f"invalid patch name {name!r}: bare names must match {_BARE_NAME_RE.pattern}"
@@ -87,6 +94,7 @@ def _resolve_bare_patch(name: str) -> Path:
 
 
 def _resolve_explicit_patch(name: str, path: Path) -> Path:
+    """Resolve explicit patch."""
     if path.suffix.lower() not in _ALLOWED_PATCH_SUFFIXES:
         raise PatchError(f"patch file must end with .yaml/.yml, got {path.suffix!r}")
     try:
@@ -106,6 +114,7 @@ def _resolve_explicit_patch(name: str, path: Path) -> Path:
 
 
 def _verify_patch_file(path: Path) -> Path:
+    """Verify patch file."""
     try:
         resolved_final = path.resolve()
     except Exception as e:
@@ -122,6 +131,7 @@ def _verify_patch_file(path: Path) -> Path:
 
 
 def load_patch(name_or_path: str) -> AnyPatch:
+    """Load patch."""
     if not isinstance(name_or_path, str) or not name_or_path or "\x00" in name_or_path:
         raise PatchError("invalid patch name")
     path = Path(name_or_path)
@@ -142,6 +152,7 @@ def load_patch(name_or_path: str) -> AnyPatch:
 
 
 def set_param(patch: AnyPatch, path: str, value) -> AnyPatch:
+    """Set param."""
     data = patch.model_dump()
     keys = path.split(".")
     node = data
@@ -182,6 +193,7 @@ _BOUNDS = {
 
 
 def _get_nested(data: dict, path: str):
+    """Get nested."""
     keys = path.split(".")
     node = data
     cur = None

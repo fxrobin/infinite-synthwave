@@ -36,8 +36,10 @@ _ALLOWED_LAYERS_MASTER = set(LAYERS) | {"master"}
 
 
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    """Securityheadersmiddleware."""
     async def dispatch(self, request, call_next):
         # limite taille requête
+        """Dispatch."""
         clen = request.headers.get("content-length")
         if clen and clen.isdigit() and int(clen) > _MAX_BODY_BYTES:
             return JSONResponse({"ok": False, "error": "request too large"}, status_code=413)
@@ -55,6 +57,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 
 
 def _validate_str(value, max_len=_MAX_STR_LEN, allow_empty=False) -> str:
+    """Validate str."""
     if not isinstance(value, str):
         raise ValueError("expected string")
     if not allow_empty and not value:
@@ -67,11 +70,13 @@ def _validate_str(value, max_len=_MAX_STR_LEN, allow_empty=False) -> str:
 
 
 def _validate_mood(name: str) -> None:
+    """Validate mood."""
     if name not in _ALLOWED_MOODS:
         raise ValueError(f"unknown mood {name!r}")
 
 
 def _validate_layer(name: str, allow_master: bool = False) -> None:
+    """Validate layer."""
     allowed = _ALLOWED_LAYERS_MASTER if allow_master else _ALLOWED_LAYERS
     if name not in allowed:
         raise ValueError(f"unknown layer {name!r}")
@@ -93,10 +98,12 @@ FX_DEFAULTS = {
 
 
 async def index(_: Request) -> HTMLResponse:
+    """Index."""
     return HTMLResponse((STATIC / "index.html").read_text(encoding="utf-8"))
 
 
 async def meta(_: Request) -> JSONResponse:
+    """Meta."""
     return JSONResponse(
         {
             "moods": {
@@ -111,11 +118,13 @@ async def meta(_: Request) -> JSONResponse:
 
 
 async def status(_: Request) -> JSONResponse:
+    """Status."""
     return JSONResponse(SESSION.status())
 
 
 async def _body(request: Request) -> dict:
     # limite taille brute avant JSON parsing
+    """Body."""
     body = await request.body()
     if len(body) > _MAX_BODY_BYTES:
         return {}
@@ -129,6 +138,7 @@ async def _body(request: Request) -> dict:
 
 
 async def start(request: Request) -> JSONResponse:
+    """Start."""
     b = await _body(request)
     try:
         # --- validation stricte ---
@@ -177,15 +187,18 @@ async def start(request: Request) -> JSONResponse:
 
 
 async def stop(_: Request) -> JSONResponse:
+    """Stop."""
     return JSONResponse(await asyncio.to_thread(SESSION.stop))
 
 
 def _cmd(fn) -> JSONResponse:
+    """Cmd."""
     res = SESSION.command(fn)
     return JSONResponse(res, status_code=200 if res["ok"] else 409)
 
 
 async def tempo(request: Request) -> JSONResponse:
+    """Tempo."""
     b = await _body(request)
     try:
         bpm = float(b["bpm"])
@@ -197,6 +210,7 @@ async def tempo(request: Request) -> JSONResponse:
 
 
 async def mood(request: Request) -> JSONResponse:
+    """Mood."""
     b = await _body(request)
     try:
         name = str(b.get("mood", "random"))
@@ -208,6 +222,7 @@ async def mood(request: Request) -> JSONResponse:
 
 
 async def layer(request: Request) -> JSONResponse:
+    """Layer."""
     b = await _body(request)
     try:
         name = str(b["layer"])
@@ -229,6 +244,7 @@ async def layer(request: Request) -> JSONResponse:
 
 
 async def patch(request: Request) -> JSONResponse:
+    """Patch."""
     b = await _body(request)
     try:
         lyr = _validate_str(str(b["layer"]))
@@ -240,6 +256,7 @@ async def patch(request: Request) -> JSONResponse:
 
 
 async def patch_param(request: Request) -> JSONResponse:
+    """Patch param."""
     b = await _body(request)
     try:
         lyr = _validate_str(str(b["layer"]))
@@ -257,6 +274,7 @@ async def patch_param(request: Request) -> JSONResponse:
 
 
 async def patch_state(request: Request) -> JSONResponse:
+    """Patch state."""
     r = SESSION.live
     name = request.path_params["layer"]
     if r is None or name not in r.instruments or name == "riser":
@@ -272,6 +290,7 @@ async def patch_state(request: Request) -> JSONResponse:
 
 
 async def effects(request: Request) -> JSONResponse:
+    """Effects."""
     b = await _body(request)
     try:
         lyr = _validate_str(str(b["layer"]))
@@ -295,6 +314,7 @@ async def effects(request: Request) -> JSONResponse:
 
 
 async def auto_tweaks(request: Request) -> JSONResponse:
+    """Auto tweaks."""
     b = await _body(request)
     val = b.get("enabled", True)
     if not isinstance(val, bool):
@@ -303,6 +323,7 @@ async def auto_tweaks(request: Request) -> JSONResponse:
 
 
 async def next_section(_: Request) -> JSONResponse:
+    """Next section."""
     return _cmd(lambda r: r.next_section())
 
 
@@ -345,6 +366,7 @@ app = Starlette(
 
 def serve(host: str = "127.0.0.1", port: int = 8765, open_browser: bool = True) -> None:
     # avertissement si bind non-local
+    """Serve."""
     if host not in ("127.0.0.1", "localhost", "::1"):
         print(
             f"[synthwave] WARNING: UI bound to {host} is exposed to network — "

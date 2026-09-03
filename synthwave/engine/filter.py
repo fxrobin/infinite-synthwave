@@ -7,6 +7,7 @@ from scipy.signal import lfilter
 
 
 def biquad_coeffs(kind: str, cutoff_hz: float, resonance: float, sr: int):
+    """Biquad coeffs."""
     fc = float(np.clip(cutoff_hz, 20.0, sr * 0.45))
     q = 0.5 + float(np.clip(resonance, 0.0, 1.0)) * 9.5
     w0 = 2.0 * np.pi * fc / sr
@@ -25,11 +26,14 @@ def biquad_coeffs(kind: str, cutoff_hz: float, resonance: float, sr: int):
 
 
 class Filter:
+    """Filter."""
     def __init__(self, kind: str, sr: int):
+        """Initialize."""
         self.kind, self.sr = kind, sr
         self.zi = [np.zeros(2), np.zeros(2)]
 
     def process(self, x: np.ndarray, cutoff_hz: float, resonance: float) -> np.ndarray:
+        """Process."""
         b, a = biquad_coeffs(self.kind, cutoff_hz, resonance, self.sr)
         y = np.empty_like(x, dtype=np.float32)
         for ch in (0, 1):

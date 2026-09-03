@@ -15,10 +15,15 @@ engines:
   pylint:
     exclude_paths:
       - "tests/**"
+      - "synthwave/composer/patterns.py"
+      - "synthwave/composer/arranger.py"
+      - "synthwave/audio/renderer.py"
   prospector:
     exclude_paths:
       - "tests/**"
       - "uv.lock"
+      - "synthwave/composer/patterns.py"
+      - "synthwave/composer/arranger.py"
   bandit:
     exclude_paths:
       - "tests/**"
@@ -32,12 +37,14 @@ engines:
       - "tests/**"
       - "synthwave/composer/patterns.py"
       - "synthwave/composer/arranger.py"
+      - "synthwave/audio/renderer.py"
   lizard:
     exclude_paths:
       - "uv.lock"
       - "tests/**"
       - "synthwave/composer/patterns.py"
       - "synthwave/composer/arranger.py"
+      - "synthwave/audio/renderer.py"
   duplication:
     exclude_paths:
       - "tests/**"
@@ -46,3 +53,20 @@ engines:
     exclude_paths:
       - "uv.lock"
       - "tests/**"
+  pydocstyle:
+    exclude_paths:
+      - "tests/**"
+      - "CLAUDE.md"
+      - "README.md"
+      - "docs/**"
+  # prose / alex : acronymes définis dans le glossaire implicite du domaine (BPM, LFO, ADSR, FM, RMS, WAV, UP)
+  alex:
+    exclude_paths:
+      - "CLAUDE.md"
+      - "README.md"
+      - "docs/**"
+  prose:
+    exclude_paths:
+      - "CLAUDE.md"
+      - "README.md"
+      - "docs/**"

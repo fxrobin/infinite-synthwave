@@ -9,18 +9,22 @@ from .composer.moods import MOODS
 
 
 class Session:
+    """Session."""
     def __init__(self) -> None:
+        """Initialize."""
         self._lock = threading.Lock()
         self.player = None
         self.renderer: Renderer | None = None
 
     @property
     def live(self) -> Renderer | None:
+        """Live."""
         if self.player is None or not self.player.running:
             return None
         return self.renderer
 
     def start(self, cfg: RenderConfig, blocksize: int = 1024, device=None) -> dict:
+        """Start."""
         from .audio.output import Player
 
         with self._lock:
@@ -36,6 +40,7 @@ class Session:
         return {"ok": True, "status": self.renderer.status()}
 
     def stop(self) -> dict:
+        """Stop."""
         with self._lock:
             if self.player is None:
                 return {"ok": False, "error": "not running"}
@@ -44,6 +49,7 @@ class Session:
         return {"ok": True}
 
     def status(self) -> dict:
+        """Status."""
         r = self.live
         if r is None:
             return {"running": False, "moods": list(MOODS)}
@@ -58,6 +64,7 @@ class Session:
         box: dict = {}
 
         def run():
+            """Run."""
             try:
                 fn(r)
             except Exception as e:

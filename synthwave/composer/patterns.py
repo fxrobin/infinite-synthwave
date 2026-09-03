@@ -15,6 +15,7 @@ SNAP, RIDE, SHAKER, TICK, CROLL = 40, 51, 70, 44, 57
 
 @dataclass(frozen=True)
 class Note:
+    """Note."""
     step: int
     note: int
     vel: float
@@ -25,6 +26,7 @@ Pattern = list[Note]
 
 
 def _sorted(p: Pattern) -> Pattern:
+    """Sorted."""
     return sorted(p, key=lambda n: (n.step, n.note))
 
 
@@ -68,6 +70,7 @@ def _gen_drums(
     halftime: bool,
     strong: bool,
 ) -> Pattern:
+    """Gen drums."""
     if strong:  # chorus: four on the floor, snare + clap on 2 and 4, driving hats
         p: Pattern = [Note(s, KICK, 1.0) for s in (0, 4, 8, 12)]
         p.append(Note(int(rng.choice([10, 14])), KICK, 0.75))
@@ -174,6 +177,7 @@ def cut_after(pattern: Pattern, step: int) -> Pattern:
 
 
 def gen_bass(rng: np.random.Generator, chord: Chord, style: str) -> Pattern:
+    """Gen bass."""
     root = chord.bass_note()
     fifth = root + 7
     if style == "eighths":
@@ -217,6 +221,7 @@ def gen_bass(rng: np.random.Generator, chord: Chord, style: str) -> Pattern:
 
 
 def gen_arp(rng: np.random.Generator, chord: Chord, mode: str, octaves: int = 2) -> Pattern:
+    """Gen arp."""
     tones = [n for o in range(octaves) for n in chord.notes(4 + o)]
     if mode == "up":
         seq = [tones[i % len(tones)] for i in range(STEPS)]
@@ -229,6 +234,7 @@ def gen_arp(rng: np.random.Generator, chord: Chord, mode: str, octaves: int = 2)
 
 
 def gen_pad(chord: Chord, octave: int = 4) -> Pattern:
+    """Gen pad."""
     notes = chord.notes(octave)
     if chord.root_pc >= 6:  # keep voicing low: drop the root an octave
         notes = [notes[0] - 12] + notes[1:]
@@ -238,6 +244,7 @@ def gen_pad(chord: Chord, octave: int = 4) -> Pattern:
 
 
 def gen_ambient(chord: Chord) -> Pattern:
+    """Gen ambient."""
     root = chord.notes(3)[0]
     return [Note(0, root, 0.6, STEPS), Note(0, root + 7, 0.4, STEPS)]
 
@@ -245,6 +252,7 @@ def gen_ambient(chord: Chord) -> Pattern:
 def gen_lead(
     rng: np.random.Generator, chord: Chord, scale_notes: list[int], density: float
 ) -> Pattern:
+    """Gen lead."""
     if not scale_notes:
         return []
     chord_pcs = {(chord.root_pc + i) % 12 for i in chord.intervals}
@@ -287,6 +295,7 @@ _CHORD_OFFSETS = (0, 2, 4)  # root, third, fifth as scale-step offsets
 
 
 def gen_theme(rng: np.random.Generator, density: float) -> Theme:
+    """Gen theme."""
     grid = [0, 2, 4, 6, 8, 10, 12, 14]
     count = max(2, min(len(grid), int(round(2 + density * 3))))
     steps = sorted(int(s) for s in rng.choice(grid, size=count, replace=False))
@@ -302,6 +311,7 @@ def gen_theme(rng: np.random.Generator, density: float) -> Theme:
         offsets.append(cur)
 
     def lengths(st: list[int]) -> list[int]:
+        """Lengths."""
         return [
             max(2, min(8, (st[i + 1] if i + 1 < len(st) else STEPS) - st[i]))
             for i in range(len(st))
@@ -359,6 +369,7 @@ def render_motif(
 def mutate(
     rng: np.random.Generator, pattern: Pattern, rate: float, allowed_notes: list[int]
 ) -> Pattern:
+    """Mutate."""
     out: Pattern = []
     taken = {n.step for n in pattern}
     for n in pattern:

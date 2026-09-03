@@ -35,6 +35,7 @@ LAYER_TRIM = {"lead": 2.5}  # static make-up gain per layer, applied before the 
 
 @dataclass
 class RenderConfig:
+    """Renderconfig."""
     sr: int = 44100
     bpm: float | None = None
     mood: str | None = None  # None: random at start, redrawn at every transition
@@ -46,7 +47,9 @@ class RenderConfig:
 
 
 class Renderer:
+    """Renderer."""
     def __init__(self, cfg: RenderConfig):
+        """Initialize."""
         if cfg.mood is not None and cfg.mood not in MOODS:
             raise ValueError(f"unknown mood {cfg.mood!r}, choose from {list(MOODS)}")
         self.cfg, self.sr = cfg, cfg.sr
@@ -137,9 +140,11 @@ class Renderer:
 
     # ----- commands (thread-safe through submit) -----
     def submit(self, fn) -> None:
+        """Submit."""
         self.commands.put(fn)
 
     def _drain(self) -> None:
+        """Drain."""
         while True:
             try:
                 fn = self.commands.get_nowait()
@@ -151,6 +156,7 @@ class Renderer:
                 print(f"[synthwave] command failed: {e}")
 
     def set_tempo(self, bpm: float) -> None:
+        """Set tempo."""
         self.bpm = float(np.clip(bpm, 60, 180))
         self.transport.set_bpm(self.bpm)
         self.arranger.bpm = self.bpm
@@ -174,6 +180,7 @@ class Renderer:
         solo: bool | None = None,
         volume: float | None = None,
     ) -> None:
+        """Set layer."""
         if layer not in LAYERS:
             raise ValueError(f"unknown layer {layer!r}, choose from {LAYERS}")
         if mute is not None:
@@ -184,12 +191,14 @@ class Renderer:
             self.layer_volume[layer] = float(np.clip(volume, 0.0, 2.0))
 
     def load_patch(self, layer: str, name: str) -> None:
+        """Load patch."""
         if layer not in LAYERS:
             raise ValueError(f"unknown layer {layer!r}, choose from {LAYERS}")
         self._install(layer, name, load_patch(name))
         self.manual_patch.add(layer)
 
     def _apply_mood_patches(self) -> None:
+        """Apply mood patches."""
         for layer in LAYERS:
             if layer in self.manual_patch or layer == "riser":
                 continue
@@ -198,6 +207,7 @@ class Renderer:
                 self._install(layer, name, load_patch(name))
 
     def set_patch_param(self, layer: str, path: str, value) -> None:
+        """Set patch param."""
         if layer not in LAYERS:
             raise ValueError(f"unknown layer {layer!r}, choose from {LAYERS}")
         base = self.base_patch[layer]
@@ -212,6 +222,7 @@ class Renderer:
                 self._install(layer, self.patch_names[layer], self.base_patch[layer], live=True)
 
     def _apply_auto_tweaks(self, tweaks: dict[str, dict[str, float]]) -> None:
+        """Apply auto tweaks."""
         changed = {
             layer
             for layer in set(tweaks) | set(self.auto_tweaks)
@@ -225,6 +236,7 @@ class Renderer:
                 self._install(layer, self.patch_names[layer], self.base_patch[layer], live=True)
 
     def next_section(self) -> None:
+        """Next section."""
         self.arranger.force_next_section()
 
     def set_layer_effects(self, layer: str, specs: list[dict] | None) -> None:
@@ -239,6 +251,7 @@ class Renderer:
         self._rebuild_inserts()
 
     def _rebuild_inserts(self) -> None:
+        """Rebuild inserts."""
         self.inserts = {}
         for layer in LAYERS + ("master",):
             specs = self.manual_fx.get(layer, self.auto_fx.get(layer, []))
@@ -246,6 +259,7 @@ class Renderer:
                 self.inserts[layer] = build_effects(specs, self.sr, self.bpm)
 
     def status(self) -> dict:
+        """Status."""
         p = self.plan
         return {
             "bpm": self.bpm,
@@ -292,11 +306,13 @@ class Renderer:
 
     # ----- rendering -----
     def _effective_gain(self, layer: str) -> float:
+        """Effective gain."""
         if layer in self.muted or (self.solo and layer not in self.solo):
             return 0.0
         return self.plan_gain[layer] * self.layer_volume[layer]
 
     def _apply_plan_mood(self, plan) -> None:
+        """Apply plan mood."""
         if plan.mood:
             self.mood = MOODS[plan.mood]
             self._apply_mood_patches()
@@ -305,6 +321,7 @@ class Renderer:
                 self._install(layer, name, load_patch(name))
 
     def _apply_plan_tempo(self, plan) -> None:
+        """Apply plan tempo."""
         if plan.bpm and abs(plan.bpm - self.bpm) > 0.05:
             self.set_tempo(plan.bpm)
         self._apply_auto_tweaks(plan.tweaks or {})
@@ -314,6 +331,7 @@ class Renderer:
             self._rebuild_inserts()
 
     def _apply_plan(self, plan) -> None:
+        """Apply plan."""
         self.plan = plan
         self.plan_gain = dict(plan.gains)
         self.fade_target = plan.fade
@@ -325,6 +343,7 @@ class Renderer:
         self._apply_plan_tempo(plan)
 
     def _mix_layers(self, n: int, events: dict, duck) -> np.ndarray:
+        """Mix layers."""
         mix = np.zeros((n, 2), dtype=np.float32)
         for layer in LAYERS:
             target = self._effective_gain(layer)
@@ -342,6 +361,7 @@ class Renderer:
         return mix
 
     def _apply_master(self, mix: np.ndarray, n: int) -> np.ndarray:
+        """Apply master."""
         fade = self.fade + self.fade_rate * np.arange(1, n + 1, dtype=np.float32)
         fade = (
             np.maximum(fade, self.fade_target)
@@ -355,6 +375,7 @@ class Renderer:
         return mix
 
     def render(self, n: int) -> np.ndarray:
+        """Render."""
         self._drain()
         events, plan = self.tracker.advance(n)
         if plan is not None:

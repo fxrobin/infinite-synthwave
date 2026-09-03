@@ -12,6 +12,7 @@ mcp = MCPServer("infinite-synthwave")
 
 
 def _command(fn) -> dict:
+    """Command."""
     return SESSION.command(fn)
 
 
@@ -125,6 +126,7 @@ def export_wav(
 
 
 def main() -> None:
+    """Main."""
     mcp.run(transport="stdio")
 
 

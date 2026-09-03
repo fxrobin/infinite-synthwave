@@ -24,6 +24,7 @@ _SENSITIVE_EXPORT_ROOTS = [
 
 
 def _allowed_export_roots() -> list[Path]:
+    """Allowed export roots."""
     roots: list[Path] = []
     for p in (Path.cwd(), Path.home(), Path(tempfile.gettempdir())):
         try:
@@ -41,6 +42,7 @@ def _allowed_export_roots() -> list[Path]:
 
 
 def _is_within_allowed_export_roots(resolved: Path) -> bool:
+    """Is within allowed export roots."""
     for root in _allowed_export_roots():
         try:
             if resolved.is_relative_to(root):
@@ -51,6 +53,7 @@ def _is_within_allowed_export_roots(resolved: Path) -> bool:
 
 
 def _check_export_extension(raw: Path, path: str) -> None:
+    """Check export extension."""
     if raw.suffix.lower() not in _ALLOWED_EXPORT_SUFFIXES:
         raise ValueError(
             f"export path must end with one of {sorted(_ALLOWED_EXPORT_SUFFIXES)}, "
@@ -59,6 +62,7 @@ def _check_export_extension(raw: Path, path: str) -> None:
 
 
 def _resolve_export_paths(raw: Path) -> tuple[Path, Path]:
+    """Resolve export paths."""
     try:
         expanded = raw.expanduser()
         parent = expanded.parent if str(expanded.parent) not in ("", ".") else Path.cwd()
@@ -75,6 +79,7 @@ def _resolve_export_paths(raw: Path) -> tuple[Path, Path]:
 
 
 def _check_export_sensitive(parent: Path, resolved: Path, path: str) -> None:
+    """Check export sensitive."""
     for sensitive in _SENSITIVE_EXPORT_ROOTS:
         try:
             s_res = sensitive.resolve()
@@ -89,6 +94,7 @@ def _check_export_sensitive(parent: Path, resolved: Path, path: str) -> None:
 
 
 def _check_export_hidden(resolved: Path, path: str) -> None:
+    """Check export hidden."""
     try:
         home_res = Path.home().resolve()
         if resolved.is_relative_to(home_res):
@@ -102,6 +108,7 @@ def _check_export_hidden(resolved: Path, path: str) -> None:
 
 
 def _validate_export_path(path: str) -> Path:
+    """Validate export path."""
     if not isinstance(path, str) or not path or "\x00" in path:
         raise ValueError(f"invalid export path {path!r}")
     raw = Path(path)
