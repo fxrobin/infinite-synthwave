@@ -235,19 +235,22 @@ def cut_after(pattern: Pattern, step: int) -> Pattern:
     return [n for n in pattern if n.step < step]
 
 
-def gen_bass(rng: np.random.Generator, chord: Chord, style: str) -> Pattern:
-    """Gen bass."""
+def gen_bass(rng: np.random.Generator, chord: Chord, style: str, straight: bool = False) -> Pattern:
+    """One bar of bass. `straight`: eighties phrasing, notes detached (length 1) and no
+    random ornament, so the line stays a driving ostinato.
+    """
     root = chord.bass_note()
     fifth = root + 7
+    hold = 1 if straight else 2
     if style == "eighths":
-        p = [Note(s, root, 1.0 if s % 4 == 0 else 0.8, 2) for s in range(0, STEPS, 2)]
+        p = [Note(s, root, 1.0 if s % 4 == 0 else 0.8, hold) for s in range(0, STEPS, 2)]
     elif style == "octaves":
         p = [Note(s, root + (12 if (s // 2) % 2 else 0), 0.9, 1) for s in range(0, STEPS, 2)]
     elif style == "sixteenths":  # pumping 16ths, octave pops on the off-beats
         p = [
             Note(
                 s,
-                root + (12 if s % 4 == 3 and rng.random() < 0.5 else 0),
+                root + (12 if s % 4 == 3 and (straight or rng.random() < 0.5) else 0),
                 0.95 if s % 4 == 0 else 0.6,
                 1,
             )
@@ -255,26 +258,26 @@ def gen_bass(rng: np.random.Generator, chord: Chord, style: str) -> Pattern:
         ]
     elif style == "walk":  # root, fifth, octave, seventh-ish
         walk = [root, root, fifth, root + 12, root, root + 10, fifth, root]
-        p = [Note(s, walk[s // 2], 0.9 if s % 4 == 0 else 0.75, 2) for s in range(0, STEPS, 2)]
+        p = [Note(s, walk[s // 2], 0.9 if s % 4 == 0 else 0.75, hold) for s in range(0, STEPS, 2)]
     elif style == "riff":  # chromatic menace: b2 and tritone passing tones
         b2, tritone = root + 1, root + 6
         p = [
             Note(0, root, 1.0, 2),
             Note(2, root, 0.8, 1),
             Note(3, root, 0.7, 1),
-            Note(6, int(rng.choice([b2, tritone])), 0.85, 2),
+            Note(6, b2 if straight else int(rng.choice([b2, tritone])), 0.85, 2),
             Note(8, root, 1.0, 2),
             Note(10, root, 0.8, 1),
             Note(11, root, 0.7, 1),
-            Note(14, int(rng.choice([b2, tritone, fifth])), 0.85, 1),
+            Note(14, fifth if straight else int(rng.choice([b2, tritone, fifth])), 0.85, 1),
             Note(15, root, 0.7, 1),
         ]
     else:  # syncopated
         steps = (0, 3, 6, 8, 11, 14)
-        p = [Note(s, root, 0.9, 2) for s in steps]
-        if rng.random() < 0.5:
+        p = [Note(s, root, 0.9, hold) for s in steps]
+        if not straight and rng.random() < 0.5:
             p[-1] = Note(14, fifth, 0.8, 2)
-    if style not in ("sixteenths", "riff") and rng.random() < 0.3:
+    if style not in ("sixteenths", "riff") and not straight and rng.random() < 0.3:
         p.append(Note(15, root + 12, 0.6, 1))
     return _sorted(p)
 
@@ -308,10 +311,25 @@ def gen_ambient(chord: Chord) -> Pattern:
     return [Note(0, root, 0.6, STEPS), Note(0, root + 7, 0.4, STEPS)]
 
 
+def _note_length(step: int, nxt: int, staccato: bool) -> int:
+    """Length of a melody note starting at `step`, the next one starting at `nxt`:
+    held up to it (legato) or short and detached (eighties phrasing).
+    """
+    if staccato:
+        return max(1, min(3, nxt - step - 1))
+    return max(2, min(8, nxt - step))
+
+
 def gen_lead(
-    rng: np.random.Generator, chord: Chord, scale_notes: list[int], density: float
+    rng: np.random.Generator,
+    chord: Chord,
+    scale_notes: list[int],
+    density: float,
+    staccato: bool = False,
 ) -> Pattern:
-    """Gen lead."""
+    """One bar of melody. `staccato`: eighties phrasing, short detached notes instead of
+    one note held until the next.
+    """
     if not scale_notes:
         return []
     chord_pcs = {(chord.root_pc + i) % 12 for i in chord.intervals}
@@ -325,7 +343,7 @@ def gen_lead(
         strong = [n for n in near if n % 12 in chord_pcs]
         note = int(rng.choice(strong if (s % 4 == 0 and strong) else near))
         nxt = steps[i + 1] if i + 1 < len(steps) else STEPS
-        p.append(Note(s, note, 0.8, max(2, min(8, nxt - s))))  # long, legato phrases
+        p.append(Note(s, note, 0.8, _note_length(s, nxt, staccato)))
         prev = note
     return p
 
@@ -358,8 +376,10 @@ class Theme:
 _CHORD_OFFSETS = (0, 2, 4)  # root, third, fifth as scale-step offsets
 
 
-def gen_theme(rng: np.random.Generator, density: float) -> Theme:
-    """Gen theme."""
+def gen_theme(rng: np.random.Generator, density: float, staccato: bool = False) -> Theme:
+    """The melodic material of one track. `staccato`: short, detached notes (eighties
+    phrasing) instead of notes held up to the next one.
+    """
     grid = [0, 2, 4, 6, 8, 10, 12, 14]
     count = max(2, min(len(grid), int(round(2 + density * 3))))
     steps = sorted(int(s) for s in rng.choice(grid, size=count, replace=False))
@@ -377,7 +397,7 @@ def gen_theme(rng: np.random.Generator, density: float) -> Theme:
     def lengths(st: list[int]) -> list[int]:
         """Lengths."""
         return [
-            max(2, min(8, (st[i + 1] if i + 1 < len(st) else STEPS) - st[i]))
+            _note_length(st[i], st[i + 1] if i + 1 < len(st) else STEPS, staccato)
             for i in range(len(st))
         ]
 
@@ -392,6 +412,17 @@ def gen_theme(rng: np.random.Generator, density: float) -> Theme:
     c_offs = [int(np.clip(-o, -5, 5)) for o, s in zip(offsets, steps, strict=True) if s in c_steps]
     c = Motif(tuple(zip(c_steps, c_offs, lengths(c_steps), strict=True)))
     return Theme(q, a, c)
+
+
+def _trim_overlaps(p: Pattern) -> Pattern:
+    """Shorten any note that would run past the start of the next one (an added ornament
+    can land inside a held note).
+    """
+    out: Pattern = []
+    for i, n in enumerate(p):
+        room = p[i + 1].step - n.step if i + 1 < len(p) else STEPS - n.step
+        out.append(n if n.length <= room else Note(n.step, n.note, n.vel, max(1, room)))
+    return out
 
 
 def render_motif(
@@ -428,7 +459,7 @@ def render_motif(
             prev = max((n for n in p if n.step < s), key=lambda n: n.step, default=p[0])
             near = [n for n in scale_notes if abs(n + octave - prev.note) <= 2] or scale_notes
             p.append(Note(s, int(rng.choice(near)) + octave, vel * 0.8, 1))
-    return _sorted(p)
+    return _trim_overlaps(_sorted(p))
 
 
 def mutate(

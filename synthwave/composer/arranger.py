@@ -245,7 +245,8 @@ class Arranger:
         """New track."""
         self.track += 1
         self.track_bar, self.track_sections = 0, 0
-        self.theme = gen_theme(self.rng, self.mood.drum_density)  # one theme per track
+        # one theme per track; the eighties moods play it short and detached
+        self.theme = gen_theme(self.rng, self.mood.drum_density, staccato=self.mood.straight)
         secs = self.track_s * float(self.rng.uniform(0.92, 1.08))
         bars = int(round(secs / self._bar_seconds() / 4.0)) * 4
         self.track_bars = max(bars, SECTION_BARS[Section.INTRO] + 8 + SECTION_BARS[Section.OUTRO])
@@ -264,7 +265,10 @@ class Arranger:
             layer: str(pool[int(r.integers(len(pool)))]) for layer, pool in self.mood.pools.items()
         }
         self.bass_base: Pattern | None = None
-        self.arp_mode = str(r.choice(["up", "updown", "random"], p=[0.45, 0.4, 0.15]))
+        modes, weights = ["up", "updown", "random"], [0.45, 0.4, 0.15]
+        if self.mood.straight:  # eighties: the arp is a fixed ostinato, never a random walk
+            modes, weights = ["up", "updown"], [0.5, 0.5]
+        self.arp_mode = str(r.choice(modes, p=weights))
         self.arp_on = self.section == Section.CHORUS or r.random() < self.mood.arp_prob
         m = self.mood
         self.drums_base = gen_drums(
@@ -539,11 +543,13 @@ class Arranger:
         return p
 
     def _bass(self, r: np.random.Generator, chord: Chord, predrop: bool) -> Pattern:
-        """Regenerate on the chord each bar; every second bar apply a light mutation."""
-        p = gen_bass(r, chord, self.bass_style)
+        """Regenerate on the chord each bar; every second bar apply a light mutation
+        (eighties moods keep the line as a strict ostinato instead).
+        """
+        p = gen_bass(r, chord, self.bass_style, straight=self.mood.straight)
         if predrop:
             return cut_after(p, 12)
-        if self.section_bar % 2 == 1:
+        if not self.mood.straight and self.section_bar % 2 == 1:
             root = chord.bass_note()
             p = mutate(r, p, 0.2, [root, root + 12, root + 7, root + 1, root + 6])
         return p
@@ -574,6 +580,8 @@ class Arranger:
             else 0
         )
         vary = 0.1 if sec == Section.CHORUS else 0.25
+        if self.mood.straight:  # eighties: the hook comes back the same, bar after bar
+            vary *= 0.4
         return render_motif(r, motif, chord, scale, octave=octave, vary=vary)
 
     def _tweaks(self, predrop: bool) -> dict[str, dict[str, float]]:
@@ -647,7 +655,12 @@ class Arranger:
             "riser": self._risers(predrop) if self.section != Section.TRANSITION else [],
         }
         tries = 0
-        while self.prev_patterns is not None and patterns == self.prev_patterns and tries < 4:
+        while (
+            not self.mood.straight  # a repeated bar is the point of an eighties ostinato
+            and self.prev_patterns is not None
+            and patterns == self.prev_patterns
+            and tries < 4
+        ):
             root = chord.bass_note()
             patterns["bass"] = mutate(r, patterns["bass"], 0.5, [root, root + 12, root + 7])
             tries += 1

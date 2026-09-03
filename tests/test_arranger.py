@@ -25,7 +25,7 @@ def test_plan_has_all_layers_and_gains():
 
 
 def test_fill_on_last_bar_and_bars_differ():
-    a = make(seed=2)
+    a = make(seed=2, mood="dark")  # generative mood: no two identical bars in a row
     plans = [a.next_bar() for _ in range(40)]
     assert plans[7].fill and not plans[6].fill
     for x, y in zip(plans, plans[1:], strict=False):
@@ -78,11 +78,15 @@ def test_transition_is_ambient_only_and_applies_mood():
 
 
 def test_transitions_occur_naturally_and_change_key():
-    a = make(seed=11)
-    plans = [a.next_bar() for _ in range(400)]
-    trans = [p for p in plans if p.section == Section.TRANSITION]
-    assert len(trans) >= 3 * 4
-    assert len({p.key for p in plans}) >= 2
+    # a transition keeps the tonic when it scores best, so check the key moves over seeds
+    seen = set()
+    for seed in (11, 12, 13):
+        a = make(seed=seed)
+        plans = [a.next_bar() for _ in range(400)]
+        trans = [p for p in plans if p.section == Section.TRANSITION]
+        assert len(trans) >= 3 * 4
+        seen.add(len({p.key for p in plans}))
+    assert max(seen) >= 2
 
 
 def test_bass_instrument_rotates_between_sections():
@@ -300,6 +304,7 @@ def test_predrop_carries_a_cymbal_roll():
 def test_straight_mood_groove_never_moves_inside_a_section():
     """Eighties moods: same kick/snare grid every bar, no random roll mid-section."""
     a = make(seed=11, mood="outrun")
+    a.mood_locked = True
     plans = [a.next_bar() for _ in range(300)]
     verses = [p for p in plans if p.section == Section.VERSE and not p.fill and not p.drop]
     assert len(verses) > 20
@@ -316,3 +321,44 @@ def test_straight_mood_groove_never_moves_inside_a_section():
     assert len(first) > 4 and len(grids) == 1
     for p in verses:  # four on the floor everywhere, in every verse of every track
         assert {n.step for n in p.patterns["drums"] if n.note == 36} == {0, 4, 8, 12}
+
+
+def test_straight_mood_melody_is_detached_and_arp_is_an_ostinato():
+    a = make(seed=13, mood="retro")
+    a.mood_locked = True  # without this the mood is redrawn at every transition
+    plans = [a.next_bar() for _ in range(300)]
+    leads = [p.patterns["lead"] for p in plans if p.patterns["lead"]]
+    assert len(leads) > 10
+    for bar in leads:
+        notes = sorted(bar, key=lambda n: n.step)
+        assert all(n.length <= 3 for n in notes)  # no note held into the next one
+        for cur, nxt in zip(notes, notes[1:], strict=False):
+            assert cur.step + cur.length <= nxt.step
+    # inside one section (the arp mode is drawn per section) the same chord gives the
+    # same figure, bar after bar: an ostinato, not a random walk
+    by_chord = {}
+    for p in plans:
+        if p.section != Section.VERSE or not p.patterns["arp"]:
+            continue
+        if p.patches and by_chord:
+            break  # a new section starts here (patches are sent on its first bar)
+        by_chord.setdefault(p.chord, []).append(p.patterns["arp"])
+    repeated = [v for v in by_chord.values() if len(v) > 1]
+    assert repeated and all(all(x == v[0] for x in v) for v in repeated)
+
+
+def test_straight_mood_bass_repeats_instead_of_wandering():
+    a = make(seed=17, mood="outrun")
+    a.mood_locked = True
+    plans = [a.next_bar() for _ in range(200)]
+    verse = []
+    for p in (q for q in plans if q.section == Section.VERSE and not q.drop):
+        if verse and p.section_bar <= verse[-1].section_bar:
+            break  # first verse only: the bass style is drawn once per section
+        verse.append(p)
+    by_chord = {}
+    for p in verse:
+        by_chord.setdefault(p.chord, []).append(p.patterns["bass"])
+    repeated = [v for v in by_chord.values() if len(v) > 2]
+    assert repeated and all(all(x == v[0] for x in v) for v in repeated)
+    assert all(n.length == 1 for v in repeated for n in v[0])
