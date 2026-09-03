@@ -1,0 +1,18 @@
+# Cloches lointaines : FM inharmonique très en arrière, réverbe maximale, quasi immatériel.
+name: ambient_bells
+polyphony: 3
+volume: 0.42
+oscillators:
+  - {wave: fm, fm_ratio: 3.5, fm_index: 1.4, level: 0.4}
+  - {wave: fm, fm_ratio: 7.0, fm_index: 0.5, octave: 1, level: 0.15}
+  - {wave: sine, octave: -1, level: 0.35}
+amp_env: {attack: 2.0, decay: 2.5, sustain: 0.6, release: 5.0}
+filter:
+  type: lp
+  cutoff: 2200
+  resonance: 0.1
+  key_track: 0.4
+lfo: {wave: sine, rate: 0.07, target: amp, amount: 0.25}
+effects:
+  - {type: delay, time: "1/2", feedback: 0.45, mix: 0.3, pingpong: true}
+  - {type: reverb, size: 1.0, damping: 0.4, mix: 0.75, predelay: 0.07}

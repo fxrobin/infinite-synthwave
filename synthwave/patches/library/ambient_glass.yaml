@@ -1,0 +1,18 @@
+# Verre : partiels FM cristallins deux octaves au-dessus, delay 1/2 ping-pong, réverbe immense.
+name: ambient_glass
+polyphony: 3
+volume: 1.05
+oscillators:
+  - {wave: fm, fm_ratio: 3.0, fm_index: 0.8, octave: 1, level: 0.45}
+  - {wave: sine, octave: 2, level: 0.22}
+  - {wave: triangle, level: 0.3}
+amp_env: {attack: 2.5, decay: 1.2, sustain: 0.85, release: 5.0}
+filter:
+  type: hp
+  cutoff: 900
+  resonance: 0.12
+lfo: {wave: sine, rate: 0.09, target: cutoff, amount: 350}
+effects:
+  - {type: chorus, rate: 0.22, depth: 0.006, mix: 0.5}
+  - {type: delay, time: "1/2", feedback: 0.5, mix: 0.35, pingpong: true}
+  - {type: reverb, size: 1.0, damping: 0.35, mix: 0.7, predelay: 0.06}

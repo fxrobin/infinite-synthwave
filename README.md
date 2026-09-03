@@ -246,7 +246,7 @@ Notes :
 
 ## Patches YAML
 
-Bibliothèque : `synthwave/patches/library/` (89 patches). Les fichiers placés dans
+Bibliothèque : `synthwave/patches/library/` (95 patches). Les fichiers placés dans
 `~/.config/synthwave/patches/` sont aussi listés et priment sur la bibliothèque.
 
 ```yaml
@@ -282,7 +282,7 @@ Patch batterie (`kind: drums`) : `kick` (pitch, `sub`, `drive` saturation, `gain
 d'effets appliquée à toutes les percussions sauf le kick (écho ping‑pong + reverb dans
 `drums_dark.yaml`). Voir `drums_808.yaml`.
 
-### Bibliothèque livrée (89 patches)
+### Bibliothèque livrée (95 patches)
 
 | Catégorie | Patch | Caractère |
 |---|---|---|
@@ -364,6 +364,12 @@ d'effets appliquée à toutes les percussions sauf le kick (écho ping‑pong + 
 | | `ambient_deep` | Sine -2 oct. + FM 0.25, LP 300 Hz |
 | | `ambient_rain` | Bruit HP 2500 Hz, tremolo, bitcrush + lofi |
 | | `ambient_choir` | Triangle 4×10 cts + square, flanger + chorus |
+| | `ambient_tape` | Cassette : bourdon triangle + lofi 10 bits, wobble de bande 6 ms |
+| | `ambient_glass` | Verre : FM 3.0×0.8 une octave au-dessus, HP 900 Hz, delay 1/2 |
+| | `ambient_ocean` | Océan : bruit passe-bande balayé à 0.045 Hz, autopan 0.04, ressac |
+| | `ambient_neon` | Néon : saw 4×14 cts, phaser 6 étages à 0.06 Hz, halo brillant |
+| | `ambient_vhs` | VHS : souffle + FM 0.5×0.6, bitcrush 7 bits, flanger fatigué |
+| | `ambient_bells` | Cloches lointaines : FM 3.5 + 7.0 inharmoniques, reverb 0.75 |
 | **Drums** | `drums_808` | 808 sec, hats 8500 Hz |
 | | `drums_dark` | Kick grave 140→40 Hz, hats feutrés, delay 1/8d + reverb perc |
 | | `drums_linn` | LinnDrum : kick court, snare 210 Hz sèche, hats 9 kHz |

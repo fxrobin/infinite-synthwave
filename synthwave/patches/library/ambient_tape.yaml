@@ -1,0 +1,18 @@
+# Nappe cassette : bourdon doux passé au lofi (wobble de bande), très filtré, sans brillance.
+name: ambient_tape
+polyphony: 3
+volume: 0.68
+oscillators:
+  - {wave: triangle, unison: 2, detune: 7, level: 0.55, spread: 0.8}
+  - {wave: sine, octave: -1, level: 0.4}
+  - {wave: noise, level: 0.08}
+amp_env: {attack: 3.0, decay: 1.0, sustain: 0.9, release: 4.0}
+filter:
+  type: lp
+  cutoff: 800
+  resonance: 0.12
+lfo: {wave: triangle, rate: 0.06, target: cutoff, amount: 250}
+effects:
+  - {type: lofi, bits: 10, downsample: 2, cutoff: 3500, wobble: 0.006, noise: 0.0025, mix: 0.7}
+  - {type: chorus, rate: 0.18, depth: 0.007, mix: 0.45}
+  - {type: reverb, size: 1.0, damping: 0.65, mix: 0.55, predelay: 0.04}

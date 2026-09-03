@@ -88,7 +88,15 @@ DARK_POOLS = {
         "arp_dx7",
         "arp_piano_atmos",
     ],
-    "ambient": ["ambient_dark", "ambient_deep", "ambient_wind", "ambient_choir"],
+    "ambient": [
+        "ambient_dark",
+        "ambient_deep",
+        "ambient_wind",
+        "ambient_choir",
+        "ambient_vhs",
+        "ambient_bells",
+        "ambient_tape",
+    ],
     "drums": [
         "drums_dark",
         "drums_industrial",
@@ -164,6 +172,10 @@ BRIGHT_POOLS = {
         "ambient_rain",
         "ambient_choir",
         "ambient_wind",
+        "ambient_glass",
+        "ambient_ocean",
+        "ambient_neon",
+        "ambient_tape",
     ],
     "drums": [  # dry, pure kits only: no delay, no breakbeat, for the straight eighties groove
         "drums_808",
@@ -202,7 +214,7 @@ CYBER_POOLS = {
     ],
     "pad": ["pad_dark", "pad_shimmer", "pad_glass", "pad_prophet"],
     "arp": ["arp_stab", "arp_fm", "arp_dark", "arp_square", "arp_sh101"],
-    "ambient": ["ambient_dark", "ambient_rain", "ambient_deep"],
+    "ambient": ["ambient_dark", "ambient_rain", "ambient_deep", "ambient_vhs", "ambient_neon"],
     "drums": ["drums_industrial", "drums_dark", "drums_lofi", "drums_tight"],
 }
 CYBER_BASS = {"sixteenths": 3, "riff": 3, "eighths": 2, "octaves": 1}
@@ -235,7 +247,14 @@ DRIVE_POOLS = {
     ],
     "pad": ["pad_juno", "pad_strings", "pad_shimmer", "pad_jupiter", "pad_obx"],
     "arp": ["arp_saw", "arp_pluck", "arp_stab", "arp_square", "arp_jupiter", "arp_sh101"],
-    "ambient": ["ambient_shimmer", "ambient_drone", "ambient_wind"],
+    "ambient": [
+        "ambient_shimmer",
+        "ambient_drone",
+        "ambient_wind",
+        "ambient_neon",
+        "ambient_glass",
+        "ambient_ocean",
+    ],
     "drums": ["drums_808", "drums_linn", "drums_dmx", "drums_tight", "drums_soft80"],
 }
 DRIVE_BASS = {"eighths": 3, "sixteenths": 3, "octaves": 2, "syncopated": 1}
