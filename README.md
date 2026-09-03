@@ -1,5 +1,7 @@
 # Infinite Synthwave
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/0f0c79a88dde4e6fb8e207db266c5752)](https://app.codacy.com/gh/fxrobin/infinite-synthwave?utm_source=github.com&utm_medium=referral&utm_content=fxrobin/infinite-synthwave&utm_campaign=Badge_Grade)
+
 Générateur procédural de synthwave / outrun qui joue en continu sur la sortie audio
 (ou pendant une durée fixée), avec des synthétiseurs internes programmables en YAML,
 un tracker 16 pas piloté par une harmonie markovienne, une CLI et un serveur MCP.
