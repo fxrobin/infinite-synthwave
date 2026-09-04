@@ -304,6 +304,7 @@ MINIMAL_POOLS = {
         "bass_thump",
         "bass_juno60",
         "bass_soft",
+        "dx7_bass",
     ],
     "lead": [
         "lead_hollow",
@@ -325,6 +326,7 @@ MINIMAL_POOLS = {
         "pad_polysix",
         "pad_piano_atmos",
         "pad_shimmer",
+        "dx7_epiano",
     ],
     "arp": [
         "arp_pluck",
@@ -338,6 +340,7 @@ MINIMAL_POOLS = {
         "ambient_wind",
         "ambient_dark",
         "ambient_choir",
+        "dx7_bell",
     ],
     "drums": [
         "drums_tight",

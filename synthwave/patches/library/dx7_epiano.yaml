@@ -1,0 +1,16 @@
+name: dx7_epiano
+kind: dx7
+polyphony: 8
+volume: 0.65
+algorithm: 5
+feedback: 4
+operators:
+  - {ratio: 1.0, level: 0.88, attack: 0.005, decay: 0.25, sustain: 0.7, release: 0.4}
+  - {ratio: 14.0, level: 0.42, attack: 0.002, decay: 0.12, sustain: 0.25, release: 0.15}
+  - {ratio: 1.0, level: 0.76, attack: 0.006, decay: 0.3, sustain: 0.65, release: 0.35}
+  - {ratio: 1.0, level: 0.55, attack: 0.004, decay: 0.2, sustain: 0.5, release: 0.25}
+  - {ratio: 1.0, level: 0.9, attack: 0.005, decay: 0.22, sustain: 0.75, release: 0.3}
+  - {ratio: 1.0, level: 0.6, attack: 0.005, decay: 0.18, sustain: 0.6, release: 0.25}
+effects:
+  - {type: chorus, rate: 0.4, depth: 0.002, mix: 0.25}
+  - {type: reverb, size: 0.75, damping: 0.4, mix: 0.25}

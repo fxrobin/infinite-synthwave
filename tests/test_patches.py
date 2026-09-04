@@ -7,7 +7,7 @@ from synthwave.patches.loader import (
     patch_from_dict,
     set_param,
 )
-from synthwave.patches.model import DrumPatchModel, PatchModel
+from synthwave.patches.model import DrumPatchModel, Dx7PatchModel, PatchModel
 
 
 def test_library_lists_and_loads_all():
@@ -16,7 +16,7 @@ def test_library_lists_and_loads_all():
     assert expected <= set(names)
     for n in names:
         p = load_patch(n)
-        assert isinstance(p, (PatchModel, DrumPatchModel))
+        assert isinstance(p, (PatchModel, DrumPatchModel, Dx7PatchModel))
 
 
 def test_drum_patch_discriminated():

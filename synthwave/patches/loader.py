@@ -7,7 +7,7 @@ from pathlib import Path
 import yaml
 from pydantic import ValidationError
 
-from .model import AnyPatch, DrumPatchModel, PatchModel
+from .model import AnyPatch, DrumPatchModel, Dx7PatchModel, PatchModel
 
 LIBRARY = Path(__file__).parent / "library"
 USER_DIR = Path.home() / ".config" / "synthwave" / "patches"
@@ -74,6 +74,8 @@ def patch_from_dict(data: dict) -> AnyPatch:
     try:
         if data.get("kind") == "drums":
             return DrumPatchModel.model_validate(data)
+        if data.get("kind") == "dx7":
+            return Dx7PatchModel.model_validate(data)
         return PatchModel.model_validate(data)
     except ValidationError as e:
         raise PatchError(str(e)) from e

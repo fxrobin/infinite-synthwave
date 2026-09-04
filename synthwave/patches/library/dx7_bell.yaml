@@ -1,0 +1,16 @@
+name: dx7_bell
+kind: dx7
+polyphony: 8
+volume: 0.55
+algorithm: 4
+feedback: 2
+operators:
+  - {ratio: 1.0, level: 0.8, attack: 0.005, decay: 0.6, sustain: 0.3, release: 1.2}
+  - {ratio: 3.5, level: 0.65, attack: 0.002, decay: 0.35, sustain: 0.15, release: 0.8}
+  - {ratio: 1.0, level: 0.7, attack: 0.004, decay: 0.5, sustain: 0.25, release: 1.0}
+  - {ratio: 7.0, level: 0.45, attack: 0.001, decay: 0.2, sustain: 0.1, release: 0.6}
+  - {ratio: 1.41, level: 0.5, attack: 0.003, decay: 0.4, sustain: 0.2, release: 0.9}
+  - {ratio: 1.0, level: 0.4, attack: 0.004, decay: 0.3, sustain: 0.15, release: 0.7}
+effects:
+  - {type: reverb, size: 0.85, damping: 0.35, mix: 0.4}
+  - {type: delay, time: "1/4", feedback: 0.25, mix: 0.2}
