@@ -128,6 +128,26 @@ def _parse_play_timings(
     return seconds, rng, track_s
 
 
+def _parse_patches(items: list[str] | None) -> dict[str, str]:
+    """Parse --patch/--patches layer:name (répétable)."""
+    out: dict[str, str] = {}
+    if not items:
+        return out
+    from .audio.renderer import LAYERS
+
+    for item in items:
+        if ":" not in item:
+            raise ValueError(f"invalid --patch {item!r}, expected layer:name (ex. bass:dx7_bass)")
+        layer, name = item.split(":", 1)
+        layer, name = layer.strip(), name.strip()
+        if layer not in LAYERS:
+            raise ValueError(f"unknown layer {layer!r} in --patch, choose from {LAYERS}")
+        if not name or len(name) > 64 or "\x00" in name:
+            raise ValueError(f"invalid patch name {name!r}")
+        out[layer] = name
+    return out
+
+
 def _build_renderer(  # noqa: PLR0913 - renderer wiring bundles CLI options
     bpm: float | None,
     mood: str | None,
@@ -137,6 +157,7 @@ def _build_renderer(  # noqa: PLR0913 - renderer wiring bundles CLI options
     track_s: float,
     fx: list[str] | None,
     master_color: str,
+    patches: dict[str, str] | None = None,
 ) -> Renderer:
     """Build renderer."""
     try:
@@ -149,6 +170,7 @@ def _build_renderer(  # noqa: PLR0913 - renderer wiring bundles CLI options
                 bpm_range=rng,
                 track_s=track_s,
                 master_color=master_color,
+                patches=patches or {},
             )
         )
     except ValueError as e:
@@ -219,13 +241,21 @@ def play(  # noqa: PLR0913 - CLI entry point bundles user options
         "auto",
         help="Couleur master : auto (choisie par la composition) ou " + "|".join(MASTER_COLORS),
     ),
+    patch: list[str] | None = typer.Option(  # noqa: B008
+        None, help="Patch par couche: layer:name ex. bass:dx7_bass"
+    ),
+    patches: list[str] | None = typer.Option(None, help="Alias de --patch", hidden=True),  # noqa: B008
 ):
     """Joue de la synthwave sur la sortie audio (ou exporte en WAV)."""
     _validate_play_head(blocksize, device, mood)
     seconds, rng, track_s = _parse_play_timings(duration, bpm_range, track)
     if export and seconds is None:
         raise typer.BadParameter("--export requires --duration")
-    renderer = _build_renderer(bpm, mood, seed, seconds, rng, track_s, fx, master_color)
+    try:
+        patch_map = _parse_patches((patch or []) + (patches or []))
+    except ValueError as e:
+        raise typer.BadParameter(str(e)) from e
+    renderer = _build_renderer(bpm, mood, seed, seconds, rng, track_s, fx, master_color, patch_map)
     typer.echo(
         f"seed={renderer.seed} bpm={renderer.bpm:g} mood={renderer.mood.name}"
         f"{'' if mood else ' (random)'} key={renderer.arranger.harmony.key_name}"

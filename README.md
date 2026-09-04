@@ -46,7 +46,8 @@ uv run synthwave play --duration 5m --mood outrun --bpm 118      # tempo fixe
 uv run synthwave play --mood dark --bpm-range 80-95                # zone de tempo
 uv run synthwave play --duration 3m --seed 42 --export track.wav   # rendu hors-ligne (.wav .flac .ogg .mp3)
 uv run synthwave play --fx pad:gate:rate=1/16,depth=0.8 --fx master:lofi:bits=8
-uv run synthwave patches                       # patches disponibles
+uv run synthwave play --mood minimal --patch bass:dx7_bass --patch pad:dx7_epiano  # DX7 6-op fidèle
+uv run synthwave patches                       # patches disponibles (99 + 3 DX7)
 uv run synthwave devices                       # périphériques audio
 uv run synthwave mcp                           # serveur MCP (stdio)
 uv run synthwave ui --port 8765 --no-browser   # interface web
@@ -64,6 +65,7 @@ uv run synthwave ui --port 8765 --no-browser   # interface web
 | `--device 2` / `hw:0,0` | Index ou nom sounddevice. |
 | `--blocksize 1024` | Taille de bloc audio. |
 | `--fx layer:type:k=v,...` | Insert manuel (répétable). `layer` ou `master`. Ex. `pad:gate:rate=1/16,depth=0.8` `master:lofi:bits=8` `lead:phaser:rate=2/1`. `None` en MCP = retour auto. |
+| `--patch layer:name` | Patch par couche (répétable, `--patches` alias). Ex. `bass:dx7_bass` `pad:dx7_epiano` `lead:dx7_bell`. Outrepasse le mood pour la couche. |
 | `--master-color clean\|tape\|vhs\|mic\|crush` | Couleur permanente du master (défaut `tape`). |
 
 ## Moods — 12 ambiances implémentées (`synthwave/composer/moods.py:43`)
