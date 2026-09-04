@@ -1,0 +1,13 @@
+name: bass_soft
+polyphony: 1
+glide: 0.02
+volume: 0.48
+oscillators:
+  - {wave: triangle, level: 0.7}
+  - {wave: sine, octave: -1, level: 0.6}
+  - {wave: triangle, octave: 1, level: 0.12}
+amp_env: {attack: 0.01, decay: 0.35, sustain: 0.7, release: 0.2}
+filter:
+  type: lp
+  cutoff: 320
+  resonance: 0.03

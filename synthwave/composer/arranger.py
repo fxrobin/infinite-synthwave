@@ -19,12 +19,14 @@ from .moods import MOODS, Mood
 from .patterns import (
     CRASH,
     CROLL,
+    MONO_CHOICES,
     Note,
     Pattern,
     add_roll,
     add_straight_fill,
     cut_after,
     drum_layer,
+    filter_mono_drums,
     gen_ambient,
     gen_arp,
     gen_bass,
@@ -294,21 +296,34 @@ class Arranger:
         # second lead: a diatonic third or sixth under the theme, fixed for the section
         self.harmony_degrees = int(r.choice([-2, -2, -2, -5, -7]))
         m = self.mood
+        is_minimal = bool(getattr(m, "mono_drums", False))
         self.drums_base = gen_drums(
             r,
             self._density(),
-            snare=self.section != Section.INTRO,
+            snare=True if is_minimal else self.section != Section.INTRO,
             halftime=m.halftime,
             strong=self.section == Section.CHORUS,
-            snap=r.random() < m.snap_prob,
-            ride=r.random() < m.ride_prob,
-            shaker=r.random() < m.shaker_prob,
-            tick=r.random() < m.tick_prob,
+            snap=False if is_minimal else r.random() < m.snap_prob,
+            ride=False if is_minimal else r.random() < m.ride_prob,
+            shaker=False if is_minimal else r.random() < m.shaker_prob,
+            tick=False if is_minimal else r.random() < m.tick_prob,
             straight=m.straight,
         )
+        # minimal/programming: one voice only (kick xor snare xor hat) — chosen per section
+        if is_minimal:
+            self.mono_choice = str(r.choice(MONO_CHOICES))
+            self.drums_base = filter_mono_drums(self.drums_base, self.mono_choice)
+            # never keep crash/croll in minimal — one voice is enough
+            self.drums_base = [n for n in self.drums_base if n.note not in (CRASH, CROLL)]
+        else:
+            self.mono_choice = None
         self.mid_drop = False
         self.gestures: dict[str, dict[str, float]] = {}
-        prob = _GESTURE_PROB.get(self.section, 0.0)
+        # minimal: far fewer gestures — keep the mix almost static
+        if getattr(m, "mono_drums", False):
+            prob = _GESTURE_PROB.get(self.section, 0.0) * 0.25
+        else:
+            prob = _GESTURE_PROB.get(self.section, 0.0)
         for layer, pool in _GESTURES.items():
             if r.random() < prob:
                 self.gestures[layer] = dict(pool[int(r.integers(len(pool)))])
@@ -318,6 +333,9 @@ class Arranger:
             )
             self.arp_on = True
             self.mid_drop = self.section_len >= 16 and r.random() < 0.4
+            if getattr(m, "mono_drums", False):
+                # no mid-chorus drop in minimal — keep the hypnotic loop
+                self.mid_drop = False
         self.fx = self._section_fx()
         self.section_color = self._section_color()
 
@@ -347,6 +365,12 @@ class Arranger:
 
     def _section_fx(self) -> dict[str, list[dict]]:
         """Section fx."""
+        # minimal/programming: almost no auto inserts — keep the mix clean and hypnotic
+        if getattr(self.mood, "mono_drums", False):
+            # only very rarely a subtle pad gate or master tape wobble
+            if self.section == Section.CHORUS and self.rng.random() < 0.15:
+                return {"pad": [{"type": "gate", "rate": "1/8", "depth": 0.6, "duty": 0.5}]}
+            return {}
         r, fx = self.rng, {}
         energy = self.mood.drum_density
         if self.section == Section.CHORUS:
@@ -536,6 +560,12 @@ class Arranger:
         """Drums."""
         if self.section == Section.TRANSITION:
             return []
+        # minimal/programming: hypnotic mono groove — no drops, no fills, no rolls, no crash
+        if getattr(self.mood, "mono_drums", False):
+            if predrop:
+                # keep the same sparse pulse, just mute hats on beat 4 if present
+                return [n for n in self.drums_base if n.step < 12]
+            return list(self.drums_base)
         first, last = self.section_bar == 0, self.section_bar == self.section_len - 1
         if predrop:
             return gen_predrop(r, self.drums_base)
@@ -568,6 +598,11 @@ class Arranger:
         """Announce the coming chorus on the two last bars; drop an impact on its first
         beat.
         """
+        if getattr(self.mood, "mono_drums", False):
+            # minimal: no announcement, no pre-drop theatrics — keep focus
+            if self.section == Section.CHORUS and self.section_bar == 0:
+                return [Note(0, RISER_IMPACT, 0.6, 8)]
+            return []
         remaining = self.section_len - self.section_bar  # bars left including this one
         going_to_chorus = self._going_to_chorus()
         p: Pattern = []
@@ -647,6 +682,13 @@ class Arranger:
         """Section gestures + per-bar sweeps: the filter opens over the 4 bars before a
         chorus (build-up), closes down in a break, and rises through the intro.
         """
+        if getattr(self.mood, "mono_drums", False):
+            # minimal: keep mix static — only section gestures, no build-up sweeps
+            return {
+                k: {p: round(f, 4) for p, f in v.items()}
+                for k, v in self.gestures.items()
+                if v
+            }
         out = {k: dict(v) for k, v in self.gestures.items()}
 
         def mul(layer: str, path: str, factor: float) -> None:
