@@ -1,0 +1,15 @@
+name: solina_trumpet
+kind: solina
+registers:
+  violin: false
+  viola: false
+  trumpet: true
+  horn: false
+  cello: false
+  contrabass: false
+crescendo: 0.05
+sustain_length: 0.4
+ensemble: true
+stereo: true
+bass_volume: 0.8
+volume: 0.84

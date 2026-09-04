@@ -1,0 +1,15 @@
+name: solina_dry
+kind: solina
+registers:
+  violin: true
+  viola: true
+  trumpet: false
+  horn: false
+  cello: false
+  contrabass: false
+crescendo: 0.3
+sustain_length: 1.0
+ensemble: false
+stereo: false
+bass_volume: 0.8
+volume: 0.4

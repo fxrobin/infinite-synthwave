@@ -1,0 +1,21 @@
+name: solina_oxygene
+kind: solina
+registers:
+  violin: true
+  viola: true
+  trumpet: false
+  horn: false
+  cello: false
+  contrabass: true
+crescendo: 0.6
+sustain_length: 2.0
+ensemble: true
+stereo: true
+bass_volume: 0.8
+volume: 0.4
+effects:
+- type: reverb
+  size: 0.9
+  damping: 0.5
+  mix: 0.3
+  predelay: 0.03

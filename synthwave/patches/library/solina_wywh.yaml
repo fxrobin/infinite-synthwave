@@ -1,0 +1,21 @@
+name: solina_wywh
+kind: solina
+registers:
+  violin: true
+  viola: true
+  trumpet: false
+  horn: false
+  cello: true
+  contrabass: false
+crescendo: 1.2
+sustain_length: 3.0
+ensemble: true
+stereo: true
+bass_volume: 0.8
+volume: 0.42
+effects:
+- type: reverb
+  size: 0.9
+  damping: 0.5
+  mix: 0.3
+  predelay: 0.03

@@ -134,3 +134,26 @@ def test_release_then_silence_and_update_patch_keeps_state():
     s.render(2048, [NoteEvent(0, 60, 1.0, False)])
     tail = s.render(SR // 2, [])
     assert np.abs(tail[-1024:]).max() < 1e-3
+
+
+# ----- intégration -----
+from synthwave.audio.renderer import RenderConfig, Renderer  # noqa: E402
+from synthwave.patches.loader import list_patches, load_patch, set_param  # noqa: E402
+
+
+def test_renderer_plays_solina_on_pad_and_live_param():
+    r = Renderer(RenderConfig(mood="dark", seed=1, patches={"pad": "solina_strings"}))
+    assert isinstance(r.instruments["pad"], SolinaSynth)
+    out = r.render(2048)
+    assert np.isfinite(out).all()
+    p = set_param(r.base_patch["pad"], "crescendo", 0.9)
+    assert p.crescendo == 0.9
+
+
+def test_every_solina_patch_renders():
+    names = [n for n in list_patches() if n.startswith("solina_")]
+    assert len(names) >= 14
+    for name in names:
+        s = SolinaSynth(load_patch(name), SR, np.random.default_rng(0), 110)
+        out = s.render(8192, [NoteEvent(0, 48, 1.0, True), NoteEvent(0, 64, 1.0, True)])
+        assert np.isfinite(out).all() and np.abs(out).max() > 0.005, name

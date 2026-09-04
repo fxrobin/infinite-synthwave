@@ -1,0 +1,15 @@
+name: solina_contrabass
+kind: solina
+registers:
+  violin: false
+  viola: false
+  trumpet: false
+  horn: false
+  cello: true
+  contrabass: true
+crescendo: 0.1
+sustain_length: 0.7
+ensemble: true
+stereo: true
+bass_volume: 1.0
+volume: 0.27

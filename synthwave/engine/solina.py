@@ -359,6 +359,8 @@ class SolinaSynth:
         st = np.stack([upper, upper], axis=1).astype(np.float32)
         if self.ensemble is not None:
             st = self.ensemble.process(st)
+        else:
+            st *= 0.33  # même niveau que la somme mono des 3 lignes BBD
         bass = (self._bass(n) * 0.3).astype(np.float32)
         st[:, 0] += bass
         st[:, 1] += bass
