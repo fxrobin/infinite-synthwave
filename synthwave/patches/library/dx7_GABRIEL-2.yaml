@@ -1,0 +1,105 @@
+name: GABRIEL-2
+kind: dx7
+algorithm: 16
+feedback: 7
+volume: 0.7
+polyphony: 8
+glide: 0.0
+operators:
+- ratio: 4.0
+  detune: -7
+  level: 0.9292929292929293
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 61
+  eg_level1: 99
+  eg_rate2: 55
+  eg_level2: 94
+  eg_rate3: 53
+  eg_level3: 97
+  eg_rate4: 48
+  eg_level4: 0
+- ratio: 2.0
+  detune: 2
+  level: 1.0
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 65
+  eg_level1: 46
+  eg_rate2: 63
+  eg_level2: 56
+  eg_rate3: 53
+  eg_level3: 71
+  eg_rate4: 25
+  eg_level4: 46
+- ratio: 0.5
+  detune: 7
+  level: 0.8686868686868687
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 58
+  eg_level1: 99
+  eg_rate2: 71
+  eg_level2: 94
+  eg_rate3: 53
+  eg_level3: 97
+  eg_rate4: 47
+  eg_level4: 0
+- ratio: 6.125
+  detune: -2
+  level: 0.9292929292929293
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 75
+  eg_level1: 48
+  eg_rate2: 79
+  eg_level2: 58
+  eg_rate3: 41
+  eg_level3: 20
+  eg_rate4: 12
+  eg_level4: 9
+- ratio: 2.0
+  detune: -3
+  level: 0.9292929292929293
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 42
+  eg_level1: 71
+  eg_rate2: 50
+  eg_level2: 72
+  eg_rate3: 24
+  eg_level3: 85
+  eg_rate4: 62
+  eg_level4: 0
+- ratio: 2.0
+  detune: 7
+  level: 0.8383838383838383
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 75
+  eg_level1: 53
+  eg_rate2: 72
+  eg_level2: 47
+  eg_rate3: 48
+  eg_level3: 41
+  eg_rate4: 17
+  eg_level4: 0
+effects: []

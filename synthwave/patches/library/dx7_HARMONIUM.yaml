@@ -1,0 +1,105 @@
+name: HARMONIUM
+kind: dx7
+algorithm: 3
+feedback: 0
+volume: 0.7
+polyphony: 8
+glide: 0.0
+operators:
+- ratio: 1.0
+  detune: 0
+  level: 1.0
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 57
+  eg_level1: 99
+  eg_rate2: 0
+  eg_level2: 90
+  eg_rate3: 12
+  eg_level3: 97
+  eg_rate4: 70
+  eg_level4: 0
+- ratio: 2.0
+  detune: -7
+  level: 0.9090909090909091
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 67
+  eg_level1: 99
+  eg_rate2: 95
+  eg_level2: 96
+  eg_rate3: 70
+  eg_level3: 79
+  eg_rate4: 28
+  eg_level4: 0
+- ratio: 1.005
+  detune: 0
+  level: 0.7474747474747475
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 89
+  eg_level1: 99
+  eg_rate2: 0
+  eg_level2: 90
+  eg_rate3: 12
+  eg_level3: 97
+  eg_rate4: 70
+  eg_level4: 0
+- ratio: 4.0
+  detune: 7
+  level: 1.0
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 62
+  eg_level1: 99
+  eg_rate2: 0
+  eg_level2: 90
+  eg_rate3: 12
+  eg_level3: 97
+  eg_rate4: 70
+  eg_level4: 0
+- ratio: 2.0
+  detune: 0
+  level: 0.9090909090909091
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 67
+  eg_level1: 99
+  eg_rate2: 95
+  eg_level2: 96
+  eg_rate3: 70
+  eg_level3: 79
+  eg_rate4: 28
+  eg_level4: 0
+- ratio: 2.0
+  detune: 0
+  level: 0.7474747474747475
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 88
+  eg_level1: 99
+  eg_rate2: 0
+  eg_level2: 90
+  eg_rate3: 12
+  eg_level3: 97
+  eg_rate4: 70
+  eg_level4: 0
+effects: []

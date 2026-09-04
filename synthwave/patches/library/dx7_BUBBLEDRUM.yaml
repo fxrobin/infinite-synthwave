@@ -1,0 +1,105 @@
+name: BUBBLEDRUM
+kind: dx7
+algorithm: 1
+feedback: 6
+volume: 0.7
+polyphony: 8
+glide: 0.0
+operators:
+- ratio: 2.0
+  detune: 0
+  level: 1.0
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 99
+  eg_level1: 99
+  eg_rate2: 53
+  eg_level2: 40
+  eg_rate3: 99
+  eg_level3: 0
+  eg_rate4: 61
+  eg_level4: 0
+- ratio: 4.0
+  detune: 0
+  level: 1.0
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 99
+  eg_level1: 99
+  eg_rate2: 53
+  eg_level2: 0
+  eg_rate3: 99
+  eg_level3: 0
+  eg_rate4: 43
+  eg_level4: 0
+- ratio: 3.0
+  detune: 0
+  level: 1.0
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 99
+  eg_level1: 99
+  eg_rate2: 37
+  eg_level2: 0
+  eg_rate3: 99
+  eg_level3: 0
+  eg_rate4: 46
+  eg_level4: 0
+- ratio: 3.0
+  detune: 0
+  level: 0.7171717171717171
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 99
+  eg_level1: 99
+  eg_rate2: 87
+  eg_level2: 75
+  eg_rate3: 99
+  eg_level3: 60
+  eg_rate4: 42
+  eg_level4: 0
+- ratio: 3.0149999999999997
+  detune: 0
+  level: 0.9191919191919192
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 99
+  eg_level1: 99
+  eg_rate2: 99
+  eg_level2: 99
+  eg_rate3: 99
+  eg_level3: 99
+  eg_rate4: 37
+  eg_level4: 0
+- ratio: 8.0
+  detune: 0
+  level: 0.7171717171717171
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 99
+  eg_level1: 99
+  eg_rate2: 99
+  eg_level2: 99
+  eg_rate3: 99
+  eg_level3: 99
+  eg_rate4: 19
+  eg_level4: 0
+effects: []

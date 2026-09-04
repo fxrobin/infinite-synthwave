@@ -1,0 +1,105 @@
+name: PCM-AKKOR.
+kind: dx7
+algorithm: 3
+feedback: 7
+volume: 0.7
+polyphony: 8
+glide: 0.0
+operators:
+- ratio: 1.005
+  detune: 3
+  level: 0.9494949494949495
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 55
+  eg_level1: 99
+  eg_rate2: 15
+  eg_level2: 92
+  eg_rate3: 10
+  eg_level3: 82
+  eg_rate4: 76
+  eg_level4: 0
+- ratio: 0.5025
+  detune: -3
+  level: 0.9090909090909091
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 91
+  eg_level1: 99
+  eg_rate2: 15
+  eg_level2: 92
+  eg_rate3: 10
+  eg_level3: 71
+  eg_rate4: 70
+  eg_level4: 0
+- ratio: 6.029999999999999
+  detune: 0
+  level: 0.48484848484848486
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 87
+  eg_level1: 99
+  eg_rate2: 15
+  eg_level2: 92
+  eg_rate3: 10
+  eg_level3: 71
+  eg_rate4: 46
+  eg_level4: 0
+- ratio: 1.0
+  detune: -7
+  level: 0.9797979797979798
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 55
+  eg_level1: 99
+  eg_rate2: 15
+  eg_level2: 92
+  eg_rate3: 10
+  eg_level3: 99
+  eg_rate4: 69
+  eg_level4: 0
+- ratio: 1.0
+  detune: 0
+  level: 0.8585858585858586
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 63
+  eg_level1: 99
+  eg_rate2: 15
+  eg_level2: 92
+  eg_rate3: 10
+  eg_level3: 68
+  eg_rate4: 46
+  eg_level4: 0
+- ratio: 6.0
+  detune: -5
+  level: 0.5454545454545454
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 98
+  eg_level1: 90
+  eg_rate2: 15
+  eg_level2: 92
+  eg_rate3: 10
+  eg_level3: 68
+  eg_rate4: 50
+  eg_level4: 0
+effects: []

@@ -1,0 +1,105 @@
+name: \GLOCKENSY
+kind: dx7
+algorithm: 5
+feedback: 7
+volume: 0.7
+polyphony: 8
+glide: 0.0
+operators:
+- ratio: 1.0
+  detune: -6
+  level: 0.9090909090909091
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 99
+  eg_level1: 99
+  eg_rate2: 50
+  eg_level2: 90
+  eg_rate3: 35
+  eg_level3: 0
+  eg_rate4: 34
+  eg_level4: 0
+- ratio: 5.0
+  detune: 0
+  level: 0.0
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 95
+  eg_level1: 99
+  eg_rate2: 82
+  eg_level2: 85
+  eg_rate3: 49
+  eg_level3: 90
+  eg_rate4: 20
+  eg_level4: 0
+- ratio: 1.0
+  detune: 5
+  level: 0.9090909090909091
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 99
+  eg_level1: 99
+  eg_rate2: 50
+  eg_level2: 90
+  eg_rate3: 35
+  eg_level3: 0
+  eg_rate4: 34
+  eg_level4: 0
+- ratio: 8.0
+  detune: 0
+  level: 0.0
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 99
+  eg_level1: 99
+  eg_rate2: 85
+  eg_level2: 85
+  eg_rate3: 37
+  eg_level3: 0
+  eg_rate4: 30
+  eg_level4: 0
+- ratio: 3.0
+  detune: -2
+  level: 0.8888888888888888
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 99
+  eg_level1: 99
+  eg_rate2: 50
+  eg_level2: 95
+  eg_rate3: 35
+  eg_level3: 0
+  eg_rate4: 34
+  eg_level4: 0
+- ratio: 11.0
+  detune: 0
+  level: 0.9696969696969697
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 99
+  eg_level1: 99
+  eg_rate2: 85
+  eg_level2: 85
+  eg_rate3: 35
+  eg_level3: 0
+  eg_rate4: 33
+  eg_level4: 0
+effects: []

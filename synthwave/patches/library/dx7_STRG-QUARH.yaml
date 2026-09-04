@@ -1,0 +1,105 @@
+name: STRG-QUARH
+kind: dx7
+algorithm: 15
+feedback: 7
+volume: 0.7
+polyphony: 8
+glide: 0.0
+operators:
+- ratio: 1.0
+  detune: 0
+  level: 1.0
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 52
+  eg_level1: 99
+  eg_rate2: 30
+  eg_level2: 92
+  eg_rate3: 25
+  eg_level3: 90
+  eg_rate4: 43
+  eg_level4: 0
+- ratio: 1.0
+  detune: 0
+  level: 0.8888888888888888
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 99
+  eg_level1: 82
+  eg_rate2: 71
+  eg_level2: 92
+  eg_rate3: 35
+  eg_level3: 86
+  eg_rate4: 51
+  eg_level4: 0
+- ratio: 1.0
+  detune: 0
+  level: 1.0
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 50
+  eg_level1: 99
+  eg_rate2: 52
+  eg_level2: 92
+  eg_rate3: 35
+  eg_level3: 91
+  eg_rate4: 41
+  eg_level4: 0
+- ratio: 1.0
+  detune: 0
+  level: 0.7070707070707071
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 96
+  eg_level1: 99
+  eg_rate2: 19
+  eg_level2: 92
+  eg_rate3: 20
+  eg_level3: 89
+  eg_rate4: 54
+  eg_level4: 0
+- ratio: 1.0
+  detune: 7
+  level: 0.8282828282828283
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 53
+  eg_level1: 86
+  eg_rate2: 67
+  eg_level2: 92
+  eg_rate3: 38
+  eg_level3: 74
+  eg_rate4: 54
+  eg_level4: 0
+- ratio: 14.0
+  detune: -7
+  level: 0.5151515151515151
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 53
+  eg_level1: 99
+  eg_rate2: 64
+  eg_level2: 92
+  eg_rate3: 44
+  eg_level3: 56
+  eg_rate4: 54
+  eg_level4: 0
+effects: []

@@ -1,0 +1,105 @@
+name: :strange:4
+kind: dx7
+algorithm: 17
+feedback: 7
+volume: 0.7
+polyphony: 8
+glide: 0.0
+operators:
+- ratio: 5.0
+  detune: 0
+  level: 1.0
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 87
+  eg_level1: 99
+  eg_rate2: 42
+  eg_level2: 0
+  eg_rate3: 14
+  eg_level3: 0
+  eg_rate4: 54
+  eg_level4: 0
+- ratio: 3.0
+  detune: 0
+  level: 0.7474747474747475
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 99
+  eg_level1: 90
+  eg_rate2: 14
+  eg_level2: 90
+  eg_rate3: 14
+  eg_level3: 90
+  eg_rate4: 19
+  eg_level4: 0
+- ratio: 1.0
+  detune: 0
+  level: 0.797979797979798
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 87
+  eg_level1: 92
+  eg_rate2: 20
+  eg_level2: 92
+  eg_rate3: 55
+  eg_level3: 92
+  eg_rate4: 19
+  eg_level4: 0
+- ratio: 1.0
+  detune: 0
+  level: 1.0
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 93
+  eg_level1: 99
+  eg_rate2: 67
+  eg_level2: 60
+  eg_rate3: 67
+  eg_level3: 62
+  eg_rate4: 20
+  eg_level4: 0
+- ratio: 6.0
+  detune: 0
+  level: 1.0
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 99
+  eg_level1: 99
+  eg_rate2: 69
+  eg_level2: 57
+  eg_rate3: 58
+  eg_level3: 99
+  eg_rate4: 82
+  eg_level4: 99
+- ratio: 5.0
+  detune: 0
+  level: 1.0
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 99
+  eg_level1: 90
+  eg_rate2: 61
+  eg_level2: 81
+  eg_rate3: 60
+  eg_level3: 33
+  eg_rate4: 19
+  eg_level4: 0
+effects: []

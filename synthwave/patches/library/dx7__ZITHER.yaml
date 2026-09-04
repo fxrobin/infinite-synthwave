@@ -1,0 +1,105 @@
+name: =ZITHER
+kind: dx7
+algorithm: 16
+feedback: 3
+volume: 0.7
+polyphony: 8
+glide: 0.0
+operators:
+- ratio: 1.0
+  detune: 0
+  level: 1.0
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 74
+  eg_level1: 99
+  eg_rate2: 85
+  eg_level2: 95
+  eg_rate3: 27
+  eg_level3: 0
+  eg_rate4: 30
+  eg_level4: 0
+- ratio: 3.0
+  detune: 0
+  level: 0.9393939393939394
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 91
+  eg_level1: 99
+  eg_rate2: 25
+  eg_level2: 86
+  eg_rate3: 39
+  eg_level3: 0
+  eg_rate4: 20
+  eg_level4: 0
+- ratio: 1.0
+  detune: 0
+  level: 1.0
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 78
+  eg_level1: 99
+  eg_rate2: 87
+  eg_level2: 92
+  eg_rate3: 22
+  eg_level3: 0
+  eg_rate4: 35
+  eg_level4: 0
+- ratio: 3.0
+  detune: 0
+  level: 0.898989898989899
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 81
+  eg_level1: 99
+  eg_rate2: 87
+  eg_level2: 92
+  eg_rate3: 22
+  eg_level3: 0
+  eg_rate4: 35
+  eg_level4: 0
+- ratio: 3.0
+  detune: 0
+  level: 1.0
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 81
+  eg_level1: 99
+  eg_rate2: 87
+  eg_level2: 92
+  eg_rate3: 22
+  eg_level3: 0
+  eg_rate4: 35
+  eg_level4: 0
+- ratio: 12.0
+  detune: 0
+  level: 0.5757575757575758
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 99
+  eg_level1: 99
+  eg_rate2: 57
+  eg_level2: 0
+  eg_rate3: 99
+  eg_level3: 0
+  eg_rate4: 35
+  eg_level4: 0
+effects: []

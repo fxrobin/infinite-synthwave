@@ -89,11 +89,25 @@ def dx7_sysex_to_patches(data: bytes) -> list:
         elif len(raw) >= 6 and raw[3] == 0x00:
             payload = raw[6:-2]  # 155
             return [_unpack_single_voice(payload, Dx7OpSpec, Dx7PatchModel)]
-    # raw unpacked 155 or 128
+    # raw unpacked: 128 single packed, 155 single unpacked, 4096 bulk packed (no sysex header)
     if len(raw) == 128:
         return [_unpack_packed_voice(raw, Dx7OpSpec, Dx7PatchModel, 0)]
     if len(raw) == 155:
         return [_unpack_single_voice(raw, Dx7OpSpec, Dx7PatchModel)]
+    if len(raw) == 4096:
+        # 32 voices packed, no sysex header — common in Dexed_cart
+        patches = []
+        for v in range(32):
+            chunk = raw[v * 128 : (v + 1) * 128]
+            patches.append(_unpack_packed_voice(chunk, Dx7OpSpec, Dx7PatchModel, v))
+        return patches
+    if len(raw) == 16384:
+        # 4 banks concatenated
+        patches = []
+        for v in range(len(raw) // 128):
+            chunk = raw[v * 128 : (v + 1) * 128]
+            patches.append(_unpack_packed_voice(chunk, Dx7OpSpec, Dx7PatchModel, v))
+        return patches
     raise ValueError(f"unsupported DX7 sysex length {len(raw)}")
 
 
@@ -188,12 +202,14 @@ def _dx7_eg_to_adsr(op) -> tuple[float, float, float, float]:
     if op.eg_type != "dx7":
         return op.attack, op.decay, op.sustain, op.release
     # very rough: R1->attack, R2->decay, L3->sustain, R4->release
-    # rates 0..99 -> time 3s .. 0.002s
+    # rates 0..99 -> time 3s .. 0.002s ; clamp 127 -> 99
     def rate_to_time(r: int) -> float:
-        return float(0.002 + (99 - r) * 0.03)  # 0.002..2.97s
+        rc = int(min(99, max(0, r)))
+        return float(0.002 + (99 - rc) * 0.03)  # 0.002..2.97s
+
     a = rate_to_time(op.eg_rate1)
     d = rate_to_time(op.eg_rate2)
-    s = float(op.eg_level3) / 99.0
+    s = float(min(99, max(0, op.eg_level3))) / 99.0
     r = rate_to_time(op.eg_rate4)
     return a, d, s, r
 

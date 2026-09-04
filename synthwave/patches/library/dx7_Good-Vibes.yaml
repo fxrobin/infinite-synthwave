@@ -1,0 +1,105 @@
+name: Good-Vibes
+kind: dx7
+algorithm: 2
+feedback: 7
+volume: 0.7
+polyphony: 8
+glide: 0.0
+operators:
+- ratio: 2.0
+  detune: -1
+  level: 1.0
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 99
+  eg_level1: 99
+  eg_rate2: 90
+  eg_level2: 98
+  eg_rate3: 30
+  eg_level3: 0
+  eg_rate4: 33
+  eg_level4: 0
+- ratio: 14.0
+  detune: 0
+  level: 0.6464646464646465
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 99
+  eg_level1: 99
+  eg_rate2: 39
+  eg_level2: 0
+  eg_rate3: 0
+  eg_level3: 0
+  eg_rate4: 33
+  eg_level4: 0
+- ratio: 0.625
+  detune: -7
+  level: 1.0
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 99
+  eg_level1: 99
+  eg_rate2: 50
+  eg_level2: 85
+  eg_rate3: 36
+  eg_level3: 0
+  eg_rate4: 48
+  eg_level4: 0
+- ratio: 4.0
+  detune: 0
+  level: 0.8686868686868687
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 99
+  eg_level1: 99
+  eg_rate2: 99
+  eg_level2: 90
+  eg_rate3: 42
+  eg_level3: 0
+  eg_rate4: 42
+  eg_level4: 0
+- ratio: 7.98
+  detune: 0
+  level: 0.8888888888888888
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 99
+  eg_level1: 99
+  eg_rate2: 74
+  eg_level2: 0
+  eg_rate3: 99
+  eg_level3: 0
+  eg_rate4: 42
+  eg_level4: 0
+- ratio: 2.0
+  detune: 0
+  level: 1.0
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 99
+  eg_level1: 99
+  eg_rate2: 43
+  eg_level2: 0
+  eg_rate3: 0
+  eg_level3: 0
+  eg_rate4: 42
+  eg_level4: 0
+effects: []

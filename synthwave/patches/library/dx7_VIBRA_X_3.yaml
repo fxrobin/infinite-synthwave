@@ -1,0 +1,105 @@
+name: VIBRA X  3
+kind: dx7
+algorithm: 11
+feedback: 2
+volume: 0.7
+polyphony: 8
+glide: 0.0
+operators:
+- ratio: 6.0
+  detune: -1
+  level: 0.8686868686868687
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 80
+  eg_level1: 99
+  eg_rate2: 30
+  eg_level2: 62
+  eg_rate3: 33
+  eg_level3: 50
+  eg_rate4: 34
+  eg_level4: 0
+- ratio: 2.0
+  detune: 6
+  level: 0.6767676767676768
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 95
+  eg_level1: 99
+  eg_rate2: 21
+  eg_level2: 44
+  eg_rate3: 99
+  eg_level3: 35
+  eg_rate4: 32
+  eg_level4: 0
+- ratio: 4.0
+  detune: 5
+  level: 0.6868686868686869
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 90
+  eg_level1: 99
+  eg_rate2: 27
+  eg_level2: 85
+  eg_rate3: 20
+  eg_level3: 43
+  eg_rate4: 33
+  eg_level4: 0
+- ratio: 1.0
+  detune: -3
+  level: 0.9191919191919192
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 80
+  eg_level1: 99
+  eg_rate2: 24
+  eg_level2: 62
+  eg_rate3: 0
+  eg_level3: 86
+  eg_rate4: 33
+  eg_level4: 0
+- ratio: 1.0
+  detune: 0
+  level: 0.8888888888888888
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 95
+  eg_level1: 99
+  eg_rate2: 0
+  eg_level2: 75
+  eg_rate3: 25
+  eg_level3: 0
+  eg_rate4: 34
+  eg_level4: 0
+- ratio: 1.0
+  detune: 1
+  level: 0.7878787878787878
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 90
+  eg_level1: 98
+  eg_rate2: 68
+  eg_level2: 85
+  eg_rate3: 20
+  eg_level3: 0
+  eg_rate4: 50
+  eg_level4: 0
+effects: []

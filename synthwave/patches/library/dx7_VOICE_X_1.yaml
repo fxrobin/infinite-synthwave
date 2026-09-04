@@ -1,0 +1,105 @@
+name: VOICE X 1
+kind: dx7
+algorithm: 7
+feedback: 7
+volume: 0.7
+polyphony: 8
+glide: 0.0
+operators:
+- ratio: 1.0
+  detune: -1
+  level: 0.8787878787878788
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 99
+  eg_level1: 99
+  eg_rate2: 20
+  eg_level2: 94
+  eg_rate3: 53
+  eg_level3: 97
+  eg_rate4: 57
+  eg_level4: 0
+- ratio: 1.0
+  detune: 0
+  level: 1.0
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 99
+  eg_level1: 51
+  eg_rate2: 26
+  eg_level2: 61
+  eg_rate3: 53
+  eg_level3: 76
+  eg_rate4: 25
+  eg_level4: 51
+- ratio: 1.0
+  detune: 1
+  level: 1.0
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 70
+  eg_level1: 99
+  eg_rate2: 20
+  eg_level2: 94
+  eg_rate3: 53
+  eg_level3: 97
+  eg_rate4: 47
+  eg_level4: 0
+- ratio: 1.0
+  detune: 3
+  level: 1.0
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 72
+  eg_level1: 48
+  eg_rate2: 19
+  eg_level2: 58
+  eg_rate3: 41
+  eg_level3: 20
+  eg_rate4: 12
+  eg_level4: 9
+- ratio: 1.0
+  detune: -1
+  level: 0.6060606060606061
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 99
+  eg_level1: 99
+  eg_rate2: 21
+  eg_level2: 90
+  eg_rate3: 36
+  eg_level3: 85
+  eg_rate4: 63
+  eg_level4: 0
+- ratio: 5.0
+  detune: 1
+  level: 0.5454545454545454
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 99
+  eg_level1: 99
+  eg_rate2: 72
+  eg_level2: 99
+  eg_rate3: 48
+  eg_level3: 99
+  eg_rate4: 17
+  eg_level4: 0
+effects: []

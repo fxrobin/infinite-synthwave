@@ -1,0 +1,105 @@
+name: '*Pauke'
+kind: dx7
+algorithm: 9
+feedback: 7
+volume: 0.7
+polyphony: 8
+glide: 0.0
+operators:
+- ratio: 10.0
+  detune: 0
+  level: 1.0
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 55
+  eg_level1: 94
+  eg_rate2: 79
+  eg_level2: 98
+  eg_rate3: 42
+  eg_level3: 0
+  eg_rate4: 49
+  eg_level4: 0
+- ratio: 17.0
+  detune: 0
+  level: 0.898989898989899
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 67
+  eg_level1: 99
+  eg_rate2: 99
+  eg_level2: 99
+  eg_rate3: 86
+  eg_level3: 0
+  eg_rate4: 26
+  eg_level4: 0
+- ratio: 1.0
+  detune: 0
+  level: 1.0
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 99
+  eg_level1: 99
+  eg_rate2: 36
+  eg_level2: 0
+  eg_rate3: 98
+  eg_level3: 0
+  eg_rate4: 35
+  eg_level4: 0
+- ratio: 1.0
+  detune: 0
+  level: 0.9797979797979798
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 99
+  eg_level1: 99
+  eg_rate2: 50
+  eg_level2: 0
+  eg_rate3: 26
+  eg_level3: 0
+  eg_rate4: 19
+  eg_level4: 0
+- ratio: 2.02
+  detune: -7
+  level: 0.9696969696969697
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 99
+  eg_level1: 89
+  eg_rate2: 77
+  eg_level2: 72
+  eg_rate3: 25
+  eg_level3: 64
+  eg_rate4: 23
+  eg_level4: 0
+- ratio: 1.385
+  detune: 0
+  level: 0.8585858585858586
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 99
+  eg_level1: 99
+  eg_rate2: 32
+  eg_level2: 75
+  eg_rate3: 16
+  eg_level3: 0
+  eg_rate4: 30
+  eg_level4: 0
+effects: []

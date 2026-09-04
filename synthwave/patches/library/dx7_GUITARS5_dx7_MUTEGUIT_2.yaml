@@ -1,0 +1,105 @@
+name: dx7_GUITARS5_dx7_MUTEGUIT_2
+kind: dx7
+algorithm: 22
+feedback: 7
+volume: 0.7
+polyphony: 8
+glide: 0.0
+operators:
+- ratio: 1.0
+  detune: -7
+  level: 1.0
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 99
+  eg_level1: 99
+  eg_rate2: 77
+  eg_level2: 0
+  eg_rate3: 99
+  eg_level3: 0
+  eg_rate4: 64
+  eg_level4: 0
+- ratio: 1.0
+  detune: 7
+  level: 1.0
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 99
+  eg_level1: 99
+  eg_rate2: 44
+  eg_level2: 50
+  eg_rate3: 30
+  eg_level3: 0
+  eg_rate4: 60
+  eg_level4: 0
+- ratio: 1.0
+  detune: 1
+  level: 0.9494949494949495
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 99
+  eg_level1: 99
+  eg_rate2: 40
+  eg_level2: 0
+  eg_rate3: 99
+  eg_level3: 0
+  eg_rate4: 97
+  eg_level4: 0
+- ratio: 1.0
+  detune: 1
+  level: 0.9595959595959596
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 99
+  eg_level1: 99
+  eg_rate2: 40
+  eg_level2: 0
+  eg_rate3: 99
+  eg_level3: 0
+  eg_rate4: 97
+  eg_level4: 0
+- ratio: 1.0
+  detune: 1
+  level: 0.9595959595959596
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 99
+  eg_level1: 99
+  eg_rate2: 40
+  eg_level2: 0
+  eg_rate3: 99
+  eg_level3: 0
+  eg_rate4: 97
+  eg_level4: 0
+- ratio: 1.0
+  detune: 3
+  level: 0.7272727272727273
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 99
+  eg_level1: 99
+  eg_rate2: 48
+  eg_level2: 51
+  eg_rate3: 0
+  eg_level3: 0
+  eg_rate4: 93
+  eg_level4: 0
+effects: []

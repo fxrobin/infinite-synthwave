@@ -1,0 +1,105 @@
+name: SYN-SOUND3
+kind: dx7
+algorithm: 5
+feedback: 1
+volume: 0.7
+polyphony: 8
+glide: 0.0
+operators:
+- ratio: 15.680000000000001
+  detune: -7
+  level: 0.0
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 99
+  eg_level1: 99
+  eg_rate2: 25
+  eg_level2: 99
+  eg_rate3: 25
+  eg_level3: 99
+  eg_rate4: 61
+  eg_level4: 0
+- ratio: 0.5
+  detune: 7
+  level: 0.898989898989899
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 0
+  eg_level1: 61
+  eg_rate2: 99
+  eg_level2: 99
+  eg_rate3: 25
+  eg_level3: 99
+  eg_rate4: 25
+  eg_level4: 99
+- ratio: 30.0
+  detune: -3
+  level: 0.04040404040404041
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 99
+  eg_level1: 99
+  eg_rate2: 25
+  eg_level2: 99
+  eg_rate3: 25
+  eg_level3: 99
+  eg_rate4: 61
+  eg_level4: 0
+- ratio: 0.5
+  detune: -6
+  level: 1.0
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 0
+  eg_level1: 61
+  eg_rate2: 99
+  eg_level2: 99
+  eg_rate3: 25
+  eg_level3: 99
+  eg_rate4: 25
+  eg_level4: 99
+- ratio: 32.0
+  detune: 1
+  level: 1.0
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 99
+  eg_level1: 99
+  eg_rate2: 39
+  eg_level2: 63
+  eg_rate3: 31
+  eg_level3: 95
+  eg_rate4: 46
+  eg_level4: 0
+- ratio: 32.0
+  detune: -7
+  level: 0.0
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 0
+  eg_level1: 46
+  eg_rate2: 99
+  eg_level2: 99
+  eg_rate3: 39
+  eg_level3: 63
+  eg_rate4: 31
+  eg_level4: 95
+effects: []

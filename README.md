@@ -251,7 +251,7 @@ Notes :
 
 ## Patches YAML
 
-Bibliothèque : `synthwave/patches/library/` (99 patches). Les fichiers placés dans
+Bibliothèque : `synthwave/patches/library/` (646 patches — 96 synthés soustractifs + 550 DX7 6-op). Les fichiers placés dans
 `~/.config/synthwave/patches/` sont aussi listés et priment sur la bibliothèque.
 
 ```yaml

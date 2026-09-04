@@ -1,0 +1,105 @@
+name: BEATMEHRDR
+kind: dx7
+algorithm: 18
+feedback: 7
+volume: 0.7
+polyphony: 8
+glide: 0.0
+operators:
+- ratio: 0.5175
+  detune: -2
+  level: 1.0
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 78
+  eg_level1: 99
+  eg_rate2: 32
+  eg_level2: 85
+  eg_rate3: 44
+  eg_level3: 0
+  eg_rate4: 60
+  eg_level4: 0
+- ratio: 1.49
+  detune: -3
+  level: 0.8383838383838383
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 88
+  eg_level1: 99
+  eg_rate2: 56
+  eg_level2: 77
+  eg_rate3: 60
+  eg_level3: 0
+  eg_rate4: 93
+  eg_level4: 0
+- ratio: 1.1400000000000001
+  detune: 3
+  level: 0.797979797979798
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 88
+  eg_level1: 99
+  eg_rate2: 56
+  eg_level2: 77
+  eg_rate3: 60
+  eg_level3: 0
+  eg_rate4: 93
+  eg_level4: 0
+- ratio: 8.12
+  detune: 7
+  level: 0.9191919191919192
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 88
+  eg_level1: 99
+  eg_rate2: 73
+  eg_level2: 77
+  eg_rate3: 53
+  eg_level3: 0
+  eg_rate4: 93
+  eg_level4: 0
+- ratio: 3.0
+  detune: 7
+  level: 0.7878787878787878
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 99
+  eg_level1: 99
+  eg_rate2: 46
+  eg_level2: 95
+  eg_rate3: 34
+  eg_level3: 99
+  eg_rate4: 91
+  eg_level4: 0
+- ratio: 2.0
+  detune: 0
+  level: 1.0
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 99
+  eg_level1: 99
+  eg_rate2: 46
+  eg_level2: 96
+  eg_rate3: 54
+  eg_level3: 99
+  eg_rate4: 85
+  eg_level4: 0
+effects: []

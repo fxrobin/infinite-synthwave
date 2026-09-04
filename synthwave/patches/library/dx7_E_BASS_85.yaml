@@ -1,0 +1,105 @@
+name: E BASS 85
+kind: dx7
+algorithm: 3
+feedback: 3
+volume: 0.7
+polyphony: 8
+glide: 0.0
+operators:
+- ratio: 1.0
+  detune: 4
+  level: 1.0
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 96
+  eg_level1: 99
+  eg_rate2: 25
+  eg_level2: 75
+  eg_rate3: 25
+  eg_level3: 0
+  eg_rate4: 67
+  eg_level4: 0
+- ratio: 14.0
+  detune: 0
+  level: 0.7171717171717171
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 95
+  eg_level1: 99
+  eg_rate2: 50
+  eg_level2: 75
+  eg_rate3: 35
+  eg_level3: 0
+  eg_rate4: 78
+  eg_level4: 0
+- ratio: 1.0
+  detune: -7
+  level: 1.0
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 95
+  eg_level1: 99
+  eg_rate2: 20
+  eg_level2: 95
+  eg_rate3: 20
+  eg_level3: 0
+  eg_rate4: 50
+  eg_level4: 0
+- ratio: 1.0
+  detune: 0
+  level: 0.8888888888888888
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 95
+  eg_level1: 99
+  eg_rate2: 29
+  eg_level2: 95
+  eg_rate3: 20
+  eg_level3: 0
+  eg_rate4: 50
+  eg_level4: 0
+- ratio: 0.5
+  detune: -7
+  level: 0.797979797979798
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 10
+  eg_level1: 68
+  eg_rate2: 18
+  eg_level2: 95
+  eg_rate3: 31
+  eg_level3: 0
+  eg_rate4: 37
+  eg_level4: 0
+- ratio: 1.0
+  detune: 7
+  level: 0.7878787878787878
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 52
+  eg_level1: 99
+  eg_rate2: 25
+  eg_level2: 99
+  eg_rate3: 13
+  eg_level3: 99
+  eg_rate4: 34
+  eg_level4: 0
+effects: []
