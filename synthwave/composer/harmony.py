@@ -45,11 +45,13 @@ PROGRESSIONS: dict[str, tuple[int, ...]] = {
     "I-bVII-IV-I": (0, 6, 3, 0),
     "I-IV-bVII-IV": (0, 3, 6, 3),
     "I-v-bVII-IV": (0, 4, 6, 3),
-    # dorian
+    # dorian / minimal (two-chord I-IV)
     "i-IV-i-IV": (0, 3, 0, 3),
+    "I-IV-I-IV": (0, 3, 0, 3),
+    "i-IV-bVII-i": (0, 3, 6, 0),
+    "I-IV-bVII-I": (0, 3, 6, 0),
     "i-bVII-IV-i": (0, 6, 3, 0),
     "i-ii-bIII-ii": (0, 1, 2, 1),
-    "i-IV-bVII-i": (0, 3, 6, 0),
     "i-ii-IV-i": (0, 1, 3, 0),
     # locrian / phrygian dominant (tension)
     "i-bII-bv-i": (0, 1, 4, 0),

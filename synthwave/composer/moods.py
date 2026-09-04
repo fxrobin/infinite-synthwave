@@ -28,6 +28,7 @@ class Mood:
     shaker_prob: float = 0.0  # 16th-note shaker (per section)
     tick_prob: float = 0.5  # dry closed hat "tic tic" on the 8ths (per section)
     straight: bool = False  # eighties groove: dead on the 4/4 grid, no random kick/hat/roll
+    mono_drums: bool = False  # minimal: only one of kick/snare/hat per section (programming focus)
 
 
 DARK_PATCHES = {
@@ -290,6 +291,71 @@ DRIVE_POOLS = {
 }
 DRIVE_BASS = {"eighths": 3, "sixteenths": 3, "octaves": 2, "syncopated": 1}
 CHILL_BASS = {"eighths": 2, "walk": 3, "syncopated": 2, "octaves": 1}
+MINIMAL_BASS = {"eighths": 4, "octaves": 3, "syncopated": 1}
+MINIMAL_POOLS = {
+    "bass": [
+        "bass_sub",
+        "bass_pulse",
+        "bass_moog",
+        "bass_808",
+        "bass_pluck",
+        "bass_sh101",
+        "bass_dub",
+        "bass_thump",
+        "bass_juno60",
+        "bass_soft",
+    ],
+    "lead": [
+        "lead_hollow",
+        "lead_organ",
+        "lead_juno",
+        "lead_polysix",
+        "lead_piano_atmos",
+        "lead_m1",
+    ],
+    "lead2": [
+        "lead_hollow",
+        "lead_organ",
+        "lead_polysix",
+        "lead_piano_atmos",
+    ],
+    "pad": [
+        "pad_warm",
+        "pad_dark",
+        "pad_polysix",
+        "pad_piano_atmos",
+        "pad_shimmer",
+    ],
+    "arp": [
+        "arp_pluck",
+        "arp_square",
+        "arp_glass",
+        "arp_piano_atmos",
+    ],
+    "ambient": [
+        "ambient_drone",
+        "ambient_tape",
+        "ambient_wind",
+        "ambient_dark",
+        "ambient_choir",
+    ],
+    "drums": [
+        "drums_tight",
+        "drums_808",
+        "drums_linn",
+        "drums_acoustic",
+        "drums_soft80",
+    ],
+}
+MINIMAL_PATCHES = {
+    "drums": "drums_tight",
+    "bass": "bass_sub",
+    "arp": "arp_pluck",
+    "pad": "pad_warm",
+    "lead": "lead_hollow",
+    "lead2": "lead_hollow",
+    "ambient": "ambient_drone",
+}
 
 MOODS: dict[str, Mood] = {
     "dark": Mood(
@@ -533,5 +599,63 @@ MOODS: dict[str, Mood] = {
         tick_prob=0.4,
         ride_prob=0.35,
         straight=True,
+    ),
+    "minimal": Mood(
+        "minimal",
+        96,
+        0.18,
+        0.22,
+        0.1,
+        0.7,
+        0.0,
+        {
+            "i-IV-i-IV": 4,
+            "I-IV-I-IV": 3,
+            "i-bVII-IV-i": 2,
+            "I-IV-bVII-I": 1,
+        },
+        scale="dorian",
+        sevenths=False,
+        halftime=False,
+        pad_octave=4,
+        patches=MINIMAL_PATCHES,
+        pools=MINIMAL_POOLS,
+        bass_styles=MINIMAL_BASS,
+        bpm_range=(90.0, 108.0),
+        snap_prob=0.0,
+        ride_prob=0.0,
+        shaker_prob=0.0,
+        tick_prob=0.0,
+        straight=True,
+        mono_drums=True,
+    ),
+    "programming": Mood(
+        "programming",
+        94,
+        0.14,
+        0.18,
+        0.08,
+        0.65,
+        0.0,
+        {
+            "i-IV-i-IV": 4,
+            "I-IV-I-IV": 3,
+            "i-IV-bVII-i": 2,
+            "i-bVII-IV-i": 1,
+        },
+        scale="minor",
+        sevenths=False,
+        halftime=False,
+        pad_octave=4,
+        patches=MINIMAL_PATCHES,
+        pools=MINIMAL_POOLS,
+        bass_styles=MINIMAL_BASS,
+        bpm_range=(88.0, 104.0),
+        snap_prob=0.0,
+        ride_prob=0.0,
+        shaker_prob=0.0,
+        tick_prob=0.0,
+        straight=True,
+        mono_drums=True,
     ),
 }

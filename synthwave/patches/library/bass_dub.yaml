@@ -1,0 +1,12 @@
+name: bass_dub
+polyphony: 1
+glide: 0.025
+volume: 0.62
+oscillators:
+  - {wave: sine, level: 1.0}
+  - {wave: triangle, level: 0.22}
+amp_env: {attack: 0.025, decay: 0.3, sustain: 0.85, release: 0.25}
+filter:
+  type: lp
+  cutoff: 180
+  resonance: 0.04

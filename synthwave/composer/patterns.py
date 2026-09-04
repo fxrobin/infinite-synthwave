@@ -12,6 +12,21 @@ STEPS = 16
 KICK, SNARE, CLAP, HAT_C, TOM_L, HAT_O, TOM_M, CRASH = 36, 38, 39, 42, 45, 46, 47, 49
 SNAP, RIDE, SHAKER, TICK, CROLL = 40, 51, 70, 44, 57
 
+# minimal / programming : one voice only
+MONO_CHOICES = ("kick", "snare", "hat")
+_MONO_KEEP: dict[str, set[int]] = {
+    "kick": {KICK},
+    "snare": {SNARE, CLAP},
+    "hat": {HAT_C, HAT_O, TICK, RIDE, SHAKER},
+}
+
+
+def filter_mono_drums(pattern: Pattern, choice: str) -> Pattern:
+    """Keep only `choice` voice (kick xor snare xor hat) for minimal moods."""
+    keep = _MONO_KEEP.get(choice, set())
+    # never keep crash/croll/toms/snaps in mono mode — pure minimal
+    return _sorted([n for n in pattern if n.note in keep])
+
 
 @dataclass(frozen=True)
 class Note:
