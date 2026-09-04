@@ -47,7 +47,8 @@ uv run synthwave play --mood dark --bpm-range 80-95                # zone de tem
 uv run synthwave play --duration 3m --seed 42 --export track.wav   # rendu hors-ligne (.wav .flac .ogg .mp3)
 uv run synthwave play --fx pad:gate:rate=1/16,depth=0.8 --fx master:lofi:bits=8
 uv run synthwave play --mood minimal --patch bass:dx7_bass --patch pad:dx7_epiano  # DX7 6-op fidèle
-uv run synthwave patches                       # patches disponibles (646)
+uv run synthwave play --mood retro --patch pad:solina_wywh --patch lead2:solina_horn  # Solina String Ensemble
+uv run synthwave patches                       # patches disponibles (660)
 uv run synthwave import-dx7 bank.syx           # importe 32 voix DX7 bulk → YAML dx7_*
 uv run synthwave devices                       # périphériques audio
 uv run synthwave mcp                           # serveur MCP (stdio)
@@ -66,7 +67,7 @@ uv run synthwave ui --port 8765 --no-browser   # interface web
 | `--device 2` / `hw:0,0` | Index ou nom sounddevice. |
 | `--blocksize 1024` | Taille de bloc audio. |
 | `--fx layer:type:k=v,...` | Insert manuel (répétable). `layer` ou `master`. Ex. `pad:gate:rate=1/16,depth=0.8` `master:lofi:bits=8` `lead:phaser:rate=2/1`. `None` en MCP = retour auto. |
-| `--patch layer:name` | Patch par couche (répétable, `--patches` alias). Ex. `bass:dx7_bass` `pad:dx7_epiano` `lead:dx7_bell`. Outrepasse le mood pour la couche. |
+| `--patch layer:name` | Patch par couche (répétable, `--patches` alias). Ex. `bass:dx7_bass` `pad:dx7_epiano` `lead:dx7_bell` `pad:solina_strings`. Outrepasse le mood pour la couche. |
 | `--master-color clean\|tape\|vhs\|mic\|crush` | Couleur permanente du master (défaut `tape`). |
 
 ## Moods — 12 ambiances implémentées (`synthwave/composer/moods.py:43`)
@@ -227,11 +228,29 @@ Le vibrato `pitch` est évalué sur la moyenne du bloc, le `pwm` est passé par-
 
 Moteur FM 6 opérateurs `sine` + 32 algorithmes Yamaha (flags `IN/OUT/FB/ADD`, bus 0/1/2, `isCarrier`), feedback `0..7` 1-sample, 6× EG 8-param `R1-4/L1-4 0-99` (ou ADSR fallback), `ratio` `coarse+fine` via `coarsemul`, `detune -7..8`, `velocity`/`level scaling`. Rendu vectorisé `numpy` par bloc 1024 (`phases + inbuf`, `sin(2π(phase+mod))·env`, `tanh` DAC). Import bulk `F0 43 00 09 20 00` 4104 B / raw 4096 B / single 155 B via `dx7_sysex_to_patches()` + CLI `synthwave import-dx7 bank.syx`. Patches `kind: dx7` (`algorithm 1-32`, `feedback`, `operators[6]`, `volume`, `effects`) — 550 DX7 dans `patches/library/dx7_*.yaml` (ex. `dx7_bass` `alg1 fb5` Lately Bass, `dx7_epiano` `alg5 fb4`, `dx7_bell` `alg4`). Volumes calibrés `0.70→0.574` (−1.8dB, `0.525` leads) + trim renderer `0.85` (`0.72` sur `lead/lead2`) pour équilibrer vs `LAYER_TRIM lead 2.5`.
 
+
+### Solina String Ensemble fidèle (`synthwave/engine/solina.py`)
+
+Émulation du circuit de l'Eminent/ARP Solina String Ensemble (1974), la « string machine » de
+*Wish You Were Here*, *Oxygène* (Eminent 310, même circuit), *Moon Safari*, *Dream Weaver*,
+*Video Killed the Radio Star*. Le Solina n'a **aucune mémoire de patch** : un patch YAML
+`kind: solina` = les 6 boutons de registre + les faders.
+
+| Élément du circuit | Émulation |
+|---|---|
+| Générateur | 1 horloge maître → top-octave (C8–B8) → diviseurs `2**k` (`note_hz`) : toutes les touches sont **verrouillées en phase** (zéro dérive entre voix, d'où la nécessité de l'ensemble). Onde « dent de scie en escalier » 16 niveaux (`staircase_saw`, compteur 4 bits = somme d'octaves de carrés), passe-bas 9 kHz anti-alias. |
+| Keyers | `RcKeyer` : une enveloppe RC attaque/release **par touche** (49 touches C2–C6, MIDI 36–84 ; les notes hors clavier sont repliées par octave). `crescendo` = τ attaque (0.005–2 s), `sustain_length` = τ release (0.05–4 s). Ni decay ni sustain ; re-déclenchement pendant le release = reprise du niveau courant. Le crescendo n'agit pas sur trumpet/horn (attaque fixe 8 ms). |
+| Registres haut | `viola` 8', `violin` = viola +1 octave (4'), `trumpet` 8' cuivré, `horn` = trumpet filtré plus sombre (**Horn prime sur Trumpet**). Filtres formants fixes appliqués sur le bus sommé de chaque registre (paraphonique, RC passifs sur l'original) : viola HP 300 Hz + bosse 1 kHz, violin HP 600 + bosse 2.5 kHz, trumpet HP 200 + bosses 1.2/3.2 kHz, horn LP 900 + bosse 500 Hz. |
+| Section basse | `cello` 8' et `contrabass` 16' (cello −1 octave), **monophonique** (note la plus grave tenue), uniquement ≤ `split_note` (défaut 55 = G3, les 20 touches graves), keyer dédié, fader `bass_volume`, **hors ensemble**. Cello LP 1.2 kHz + bosse 250 Hz, contrabass LP 600 Hz. |
+| Ensemble | `SolinaEnsemble` : 3 lignes BBD ≈ 5 ms **100 % wet** (aucun signal sec), modulées par deux LFO 3-phases — chorus 0.6 Hz ±1.5 ms et vibrato 6 Hz ±0.15 ms — chaque ligne décalée de 120°. Passe-bas 1 pôle 6 kHz avant/après (bande passante des TCA350) + `tanh` doux. `stereo: true` (défaut) panne les 3 lignes G/C/D — l'original est mono, `stereo: false` restitue la somme mono. Aussi disponible comme effet `ensemble` sur n'importe quel patch. |
+
+Sources : Wikipedia « ARP String Ensemble », Sound On Sound « Eminent 310 », jhaible « Triple Chorus », KVR « solina ensemble effect », guide Zoe Blade, manuel Arturia Solina V, guide Behringer Solina.
+
 ---
 
 ## Effets — référence complète
 
-12 effets bloc-vectorisés (`synthwave/engine/effects.py:392`). Paramètres temps synchronisés au BPM via `note_to_seconds` (`1/4`, `1/8`, `1/8d` dotée, `1/8t` triolet, ou secondes flottantes). Empilables dans `effects:` d'un patch, surchargeables par section par l'arrangeur, et par `--fx` / `set_layer_effects` (par couche ou `master`).
+13 effets bloc-vectorisés (`synthwave/engine/effects.py:392`). Paramètres temps synchronisés au BPM via `note_to_seconds` (`1/4`, `1/8`, `1/8d` dotée, `1/8t` triolet, ou secondes flottantes). Empilables dans `effects:` d'un patch, surchargeables par section par l'arrangeur, et par `--fx` / `set_layer_effects` (par couche ou `master`).
 
 | # | `type` | Classe | Paramètres (défauts) | Ce que ça fait | Où utilisé |
 |---|---|---|---|---|---|
@@ -247,6 +266,7 @@ Moteur FM 6 opérateurs `sine` + 32 algorithmes Yamaha (flags `IN/OUT/FB/ADD`, b
 | 10 | `autopan` | `AutoPan` | `rate="1/2"` (Hz ou note), `depth=0.8` (0–1), `wave=sine` | Auto-pan constant-power à LFO, rendu mono→stéréo en loi √2. | Arrangeur `lead` chorus |
 | 11 | `phaser` | `Phaser` | `rate=0.3` (Hz ou note), `depth=0.8`, `stages=4` (2–8), `mix=0.5`, `feedback=0.3` (0–0.9) | Cascade d'allpasses 1er ordre balayés 300 Hz–2.4 kHz par LFO triangle, par chunks 128. | `arp_dark`, `lead_*` |
 | 12 | `flanger` | `Flanger` | `rate=0.25` (Hz ou note), `depth=0.002` s, `base=0.003` s, `feedback=0.5` (0–0.9), `mix=0.5` | Court délai modulé sine (buffer 50 ms) avec feedback, interpolé linéaire. | `lead_pulse`, arrangeur `lead` chorus |
+| 13 | `ensemble` | `SolinaEnsemble` | `chorus_rate=0.6` Hz, `chorus_depth=0.0015` s, `vibrato_rate=6.0` Hz, `vibrato_depth=0.00015` s, `base_delay=0.005` s, `stereo=true`, `bandwidth=6000` Hz | Triple BBD du Solina : 3 lignes 100 % wet, deux LFO 3-phases à 120°, passe-bas BBD, mono interne pannée G/C/D. | Moteur Solina (`kind: solina`), utilisable sur tout patch |
 
 Notes :
 
@@ -302,12 +322,29 @@ effects:
   - {type: reverb, size: 0.75, mix: 0.25}
 ```
 
+Patch Solina (`kind: solina`) — boutons + faders, voir « Solina String Ensemble fidèle » :
+```yaml
+name: solina_wywh
+kind: solina
+registers: {violin: true, viola: true, trumpet: false, horn: false, cello: true, contrabass: false}
+crescendo: 1.2        # τ attaque cordes (s), 0.005–2 ; sans effet sur trumpet/horn
+sustain_length: 3.0   # τ release (s), 0.05–4
+ensemble: true        # triple BBD 100 % wet (section basse hors ensemble)
+stereo: true          # false = somme mono fidèle
+bass_volume: 0.8      # cello/contrabass (0–1.5)
+split_note: 55        # dernière touche de la section basse mono (G3)
+tune: 0.0             # cents
+volume: 0.42          # calibré RMS ≈ pad_strings
+effects:
+  - {type: reverb, size: 0.9, damping: 0.5, mix: 0.3, predelay: 0.03}
+```
+
 Patch batterie (`kind: drums`) : `kick` (pitch, `sub`, `drive` saturation, `gain`), `snare`
 (gated reverb, `gain`), `hat`, `clap`, `tom`, `crash_gain`, et `perc_effects` : chaîne
 d'effets appliquée à toutes les percussions sauf le kick (écho ping‑pong + reverb dans
 `drums_dark.yaml`). Voir `drums_808.yaml`.
 
-### Bibliothèque livrée (646 patches — 96 soustractifs + 550 DX7)
+### Bibliothèque livrée (660 patches — 96 soustractifs + 550 DX7 + 14 Solina)
 
 | Catégorie | Patch | Caractère |
 |---|---|---|
@@ -414,6 +451,17 @@ d'effets appliquée à toutes les percussions sauf le kick (écho ping‑pong + 
 | | `dx7_epiano` | EP FM `alg5 fb4` chorus+reverb — Rhodes FM |
 | | `dx7_bell` | Cloche `alg4` inharmonique 3.5/7.0 — Bell FM |
 | | `dx7_*` (547) | Banks Dexed `/homepages.abdn.ac.uk/d.j.benson` importés `import-dx7` (32 algs fidèles, bulk 4104) |
+| **Solina** | `solina_strings` | Violin + viola, crescendo 0.35 / sustain 1.2 — le son « classique » |
+| | `solina_full` | Les 6 boutons (horn prime sur trumpet), « all buttons in » |
+| | `solina_wywh` | Violin + viola + cello, crescendo 1.2 / sustain 3.0 + reverb — nappes lentes *Wish You Were Here* |
+| | `solina_oxygene` | Violin + viola + contrabass, crescendo 0.6 / sustain 2.0 + reverb — Jarre, Eminent 310 |
+| | `solina_moon_safari` | Viola + cello, crescendo 0.2 / sustain 1.0 — Air, cordes douces médium |
+| | `solina_dream_weaver` | Violin + viola + horn, crescendo 0.5 / sustain 1.5 — Gary Wright, mur de cordes + cuivre |
+| | `solina_radio_star` | Viola + trumpet, crescendo 0.05 / sustain 0.3 — Buggles, stabs courts |
+| | `solina_cello` | Cello (mono grave) + viola, `bass_volume` 1.0 |
+| | `solina_contrabass` | Contrabass + cello, section basse seule, `bass_volume` 1.0 |
+| | `solina_violin` / `solina_viola` / `solina_trumpet` / `solina_horn` | Registres seuls (0.15 / 0.6 cordes, 0.05 / 0.4–0.5 cuivres) |
+| | `solina_dry` | Violin + viola sans ensemble, mono — son brut des diviseurs, organ-like |
 
 ---
 
@@ -587,7 +635,7 @@ morceau et progression (mesures de la section / du morceau), tonalité, accord, 
 mood en attente, oscilloscope du master, VU-mètre par couche et gain courant de l'arrangeur.
 Contrôles live : Start (mood/BPM/seed/durée de morceau), Stop, section suivante, tempo,
 changement de mood (via outro + transition), mute / solo / volume par couche, patch par couche
-(liste filtrée par famille + 550 DX7 `dx7_*` sur chaque couche hors `drums`, pastille jaune `DX7` quand actif), panneau **Tweak** (sliders générés depuis le patch : filtre,
+(liste filtrée par famille + 550 DX7 `dx7_*` et 14 Solina `solina_*` sur chaque couche hors `drums`, pastille jaune `DX7` / orange `SOLINA` quand actif), panneau **Tweak** (sliders générés depuis le patch : filtre,
 enveloppes, LFO, oscillateurs, kick/snare/hats…) et chaîne d'effets par couche ou master
 (chips : clic = retirer, `+ effet` = ajouter avec des valeurs par défaut, `↺ auto` = rendre la
 main à l'arrangeur).
