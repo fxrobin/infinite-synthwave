@@ -14,11 +14,12 @@ from ..composer.arranger import LAYERS, TRACK_SECONDS, Arranger, BarPlan
 from ..composer.harmony import Harmony
 from ..composer.moods import MOODS
 from ..engine.drums import DrumKit
+from ..engine.dx7 import Dx7Synth
 from ..engine.effects import Effect, Limiter, Sidechain, build_effects
 from ..engine.risers import RiserKit
 from ..engine.synth import Synth
 from ..patches.loader import PatchError, apply_tweaks, load_patch, set_param
-from ..patches.model import DrumPatchModel, PatchModel
+from ..patches.model import DrumPatchModel, Dx7PatchModel, PatchModel
 from ..sequencer.tracker import Tracker
 from ..sequencer.transport import Transport
 
@@ -124,9 +125,10 @@ class Renderer:
         )
         self.arranger.mood_locked = cfg.mood is not None
         self.tracker = Tracker(self.transport, self.arranger)
-        self.instruments: dict[str, Synth | DrumKit] = {}
+        self.instruments: dict[str, Synth | Dx7Synth | DrumKit] = {}
         self.patch_names: dict[str, str] = {}
-        self.base_patch: dict[str, PatchModel | DrumPatchModel] = {}  # loaded + manual edits
+        # loaded + manual edits
+        self.base_patch: dict[str, PatchModel | Dx7PatchModel | DrumPatchModel] = {}
         self.auto_tweaks: dict[str, dict[str, float]] = {}  # arranger gestures
         self.auto_tweaks_enabled = True
         self.manual_patch: set[str] = set(cfg.patches)
@@ -184,9 +186,16 @@ class Renderer:
             else:
                 inst.set_patch(patch)
         else:
-            if not isinstance(patch, PatchModel):
+            if isinstance(patch, Dx7PatchModel):
+                if inst is None or not isinstance(inst, Dx7Synth):
+                    inst = Dx7Synth(patch, self.sr, self.rng, self.bpm)
+                elif live:
+                    inst.update_patch(patch)
+                else:
+                    inst.set_patch(patch)
+            elif not isinstance(patch, PatchModel):
                 raise PatchError(f"layer {layer!r} needs a synth patch, got {patch.name!r}")
-            if inst is None:
+            elif inst is None or not isinstance(inst, Synth):
                 inst = Synth(patch, self.sr, self.rng, self.bpm)
             elif live:
                 inst.update_patch(patch)

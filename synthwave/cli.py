@@ -240,6 +240,35 @@ def play(  # noqa: PLR0913 - CLI entry point bundles user options
     _run_live_player(renderer, blocksize, device)
 
 
+@app.command(name="import-dx7")
+def import_dx7(
+    syx: str = typer.Argument(help="Fichier .syx DX7 bulk (32 voix) ou single (1 voix)"),
+    out_dir: str = typer.Option("synthwave/patches/library", help="Dossier de sortie YAML"),
+):
+    """Importe un bank DX7 .syx en patches YAML dx7_* (32 algs, 6 ops complets)."""
+    from pathlib import Path
+
+    import yaml
+
+    from .engine.dx7 import dx7_sysex_to_patches
+
+    p = Path(syx)
+    if not p.exists():
+        raise typer.BadParameter(f"fichier introuvable: {syx}")
+    data = p.read_bytes()
+    try:
+        patches = dx7_sysex_to_patches(data)
+    except Exception as e:
+        raise typer.BadParameter(f"syx invalide: {e}") from e
+    out = Path(out_dir)
+    out.mkdir(parents=True, exist_ok=True)
+    for patch in patches:
+        yaml_text = yaml.safe_dump(patch.model_dump(), sort_keys=False, allow_unicode=True)
+        (out / f"{patch.name}.yaml").write_text(yaml_text, encoding="utf-8")
+        typer.echo(f"wrote {patch.name}.yaml (alg {patch.algorithm} fb {patch.feedback})")
+    typer.echo(f"{len(patches)} patches importés depuis {syx}")
+
+
 @app.command()
 def patches():
     """Liste les patches disponibles (bibliothèque + ~/.config/synthwave/patches)."""

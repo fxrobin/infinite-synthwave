@@ -175,6 +175,43 @@ class ShakerSpec(BaseModel):
     gain: float = 0.3
 
 
+class Dx7OpSpec(BaseModel):
+    """One DX7 operator — 1:1 port of the DX7 6-op voice."""
+
+    ratio: float = Field(1.0, ge=0.25, le=32.0)  # freq = ratio * noteHz (coarse+fine)
+    detune: int = Field(0, ge=-7, le=7)  # DX7 detune slot
+    level: float = Field(0.85, ge=0.0, le=1.0)  # output level 0..1 (= DX7 0..99)
+    # ADSR fallback (if DX7 EG not used) — shaped per-operator timbre/volume
+    attack: float = Field(0.005, ge=0.0)
+    decay: float = Field(0.15, ge=0.0)
+    sustain: float = Field(0.8, ge=0.0, le=1.0)
+    release: float = Field(0.2, ge=0.0)
+    # DX7 8-param EG (optional) — when set, ADSR ci-dessus est ignoré
+    eg_type: Literal["adsr", "dx7"] = "adsr"
+    eg_rate1: int = Field(99, ge=0, le=99)
+    eg_level1: int = Field(99, ge=0, le=99)
+    eg_rate2: int = Field(99, ge=0, le=99)
+    eg_level2: int = Field(99, ge=0, le=99)
+    eg_rate3: int = Field(0, ge=0, le=99)
+    eg_level3: int = Field(99, ge=0, le=99)
+    eg_rate4: int = Field(99, ge=0, le=99)
+    eg_level4: int = Field(0, ge=0, le=99)
+
+
+class Dx7PatchModel(BaseModel):
+    """DX7 6-op patch — 32 algorithms, feedback, 6 ops."""
+
+    name: str
+    kind: Literal["dx7"] = "dx7"
+    algorithm: int = Field(1, ge=1, le=32)
+    feedback: int = Field(0, ge=0, le=7)  # DX7 feedback 0..7 on the feedback op of the algo
+    volume: float = Field(0.7, ge=0.0, le=2.0)
+    polyphony: int = Field(8, ge=1, le=16)
+    glide: float = Field(0.0, ge=0.0)
+    operators: list[Dx7OpSpec] = Field(min_length=6, max_length=6)
+    effects: list[EffectSpec] = []
+
+
 class DrumPatchModel(BaseModel):
     """Drumpatchmodel."""
 
@@ -195,4 +232,4 @@ class DrumPatchModel(BaseModel):
     perc_effects: list[EffectSpec] = []  # applied to everything except the kick
 
 
-AnyPatch = PatchModel | DrumPatchModel
+AnyPatch = PatchModel | Dx7PatchModel | DrumPatchModel

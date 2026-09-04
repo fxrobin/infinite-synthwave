@@ -1,0 +1,16 @@
+name: dx7_bass
+kind: dx7
+polyphony: 1
+glide: 0.03
+volume: 0.6
+algorithm: 1
+feedback: 5
+operators:
+  - {ratio: 1.0, level: 0.92, attack: 0.003, decay: 0.12, sustain: 0.9, release: 0.15}
+  - {ratio: 1.0, level: 0.75, attack: 0.003, decay: 0.14, sustain: 0.85, release: 0.14}
+  - {ratio: 1.0, level: 0.65, attack: 0.004, decay: 0.18, sustain: 0.8, release: 0.18}
+  - {ratio: 2.0, level: 0.55, attack: 0.002, decay: 0.08, sustain: 0.45, release: 0.1}
+  - {ratio: 1.0, level: 0.5, attack: 0.003, decay: 0.1, sustain: 0.6, release: 0.12}
+  - {ratio: 3.0, level: 0.35, attack: 0.002, decay: 0.09, sustain: 0.3, release: 0.1}
+effects:
+  - {type: distortion, drive: 1.8, tone: 2500, mix: 0.25}
