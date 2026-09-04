@@ -221,7 +221,8 @@ function buildLayers() {
   for (const layer of state.meta.layers) {
     const el = document.createElement("div"); el.className = "card layer"; el.id = "layer-" + layer;
     el.style.borderTop = "3px solid " + LAYER_COLORS[layer];
-    const patches = state.meta.patches.filter(p => p.startsWith(layer + "_"));
+    const isDx7 = (p) => p.toLowerCase().startsWith("dx7_");
+    const patches = state.meta.patches.filter(p => p.startsWith(layer + "_") || (layer !== "drums" && isDx7(p)));
     // construction DOM sans innerHTML pour les patch names (XSS stocké)
     el.innerHTML = `
       <div class="name"><span></span><span class="mini" data-gain></span></div>
