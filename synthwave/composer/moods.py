@@ -88,6 +88,11 @@ DARK_POOLS = {
         "pad_cs80",
         "pad_obx",
         "pad_piano_atmos",
+        "solina_strings",
+        "solina_cello",
+        "solina_wywh",
+        "solina_dry",
+        "solina_contrabass",
     ],
     "arp": [
         "arp_dark",
@@ -106,6 +111,7 @@ DARK_POOLS = {
         "ambient_vhs",
         "ambient_bells",
         "ambient_tape",
+        "solina_oxygene",
     ],
     "drums": [
         "drums_dark",
@@ -160,6 +166,9 @@ BRIGHT_POOLS = {
         "lead_m1",
         "lead_piano_atmos",
         "lead_jx8p",
+        "solina_horn",
+        "solina_trumpet",
+        "solina_radio_star",
     ],
     "pad": [
         "pad_juno",
@@ -173,6 +182,12 @@ BRIGHT_POOLS = {
         "pad_cs80",
         "pad_polysix",
         "pad_piano_atmos",
+        "solina_strings",
+        "solina_full",
+        "solina_moon_safari",
+        "solina_dream_weaver",
+        "solina_violin",
+        "solina_viola",
     ],
     "arp": [
         "arp_pluck",

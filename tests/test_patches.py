@@ -7,7 +7,7 @@ from synthwave.patches.loader import (
     patch_from_dict,
     set_param,
 )
-from synthwave.patches.model import DrumPatchModel, Dx7PatchModel, PatchModel
+from synthwave.patches.model import DrumPatchModel, Dx7PatchModel, PatchModel, SolinaPatchModel
 
 
 def test_library_lists_and_loads_all():
@@ -16,7 +16,7 @@ def test_library_lists_and_loads_all():
     assert expected <= set(names)
     for n in names:
         p = load_patch(n)
-        assert isinstance(p, (PatchModel, DrumPatchModel, Dx7PatchModel))
+        assert isinstance(p, (PatchModel, DrumPatchModel, Dx7PatchModel, SolinaPatchModel))
 
 
 def test_drum_patch_discriminated():
@@ -59,7 +59,9 @@ def test_every_library_patch_is_in_a_pool_and_every_pool_patch_exists():
     # DX7 banks are bulk imports, available via --patch but not required in a mood pool
     dx7_library = {n for n in library if n.lower().startswith("dx7_")}
     assert pooled <= library
-    assert (library - dx7_library) <= pooled | {n for m in MOODS.values() for n in m.patches.values()}
+    assert (library - dx7_library) <= pooled | {
+        n for m in MOODS.values() for n in m.patches.values()
+    }
     assert len(library) >= 51
 
 

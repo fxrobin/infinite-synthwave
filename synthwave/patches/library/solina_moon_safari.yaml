@@ -1,0 +1,15 @@
+name: solina_moon_safari
+kind: solina
+registers:
+  violin: false
+  viola: true
+  trumpet: false
+  horn: false
+  cello: true
+  contrabass: false
+crescendo: 0.2
+sustain_length: 1.0
+ensemble: true
+stereo: true
+bass_volume: 0.8
+volume: 0.38
