@@ -47,7 +47,8 @@ uv run synthwave play --mood dark --bpm-range 80-95                # zone de tem
 uv run synthwave play --duration 3m --seed 42 --export track.wav   # rendu hors-ligne (.wav .flac .ogg .mp3)
 uv run synthwave play --fx pad:gate:rate=1/16,depth=0.8 --fx master:lofi:bits=8
 uv run synthwave play --mood minimal --patch bass:dx7_bass --patch pad:dx7_epiano  # DX7 6-op fidèle
-uv run synthwave patches                       # patches disponibles (99 + 3 DX7)
+uv run synthwave patches                       # patches disponibles (646)
+uv run synthwave import-dx7 bank.syx           # importe 32 voix DX7 bulk → YAML dx7_*
 uv run synthwave devices                       # périphériques audio
 uv run synthwave mcp                           # serveur MCP (stdio)
 uv run synthwave ui --port 8765 --no-browser   # interface web
@@ -222,6 +223,10 @@ Le vibrato `pitch` est évalué sur la moyenne du bloc, le `pwm` est passé par-
 
 `polyphony: 1–16`, voice-stealing au plus ancien (`age`). Monophonique ⇒ legato + glide. Chaque voix possède ses oscillateurs, ses enveloppes, son filtre et son LFO.
 
+### DX7 6-op fidèle (`synthwave/engine/dx7.py:13`)
+
+Moteur FM 6 opérateurs `sine` + 32 algorithmes Yamaha (flags `IN/OUT/FB/ADD`, bus 0/1/2, `isCarrier`), feedback `0..7` 1-sample, 6× EG 8-param `R1-4/L1-4 0-99` (ou ADSR fallback), `ratio` `coarse+fine` via `coarsemul`, `detune -7..8`, `velocity`/`level scaling`. Rendu vectorisé `numpy` par bloc 1024 (`phases + inbuf`, `sin(2π(phase+mod))·env`, `tanh` DAC). Import bulk `F0 43 00 09 20 00` 4104 B / raw 4096 B / single 155 B via `dx7_sysex_to_patches()` + CLI `synthwave import-dx7 bank.syx`. Patches `kind: dx7` (`algorithm 1-32`, `feedback`, `operators[6]`, `volume`, `effects`) — 550 DX7 dans `patches/library/dx7_*.yaml` (ex. `dx7_bass` `alg1 fb5` Lately Bass, `dx7_epiano` `alg5 fb4`, `dx7_bell` `alg4`). Volumes calibrés `0.70→0.574` (−1.8dB, `0.525` leads) + trim renderer `0.85` (`0.72` sur `lead/lead2`) pour équilibrer vs `LAYER_TRIM lead 2.5`.
+
 ---
 
 ## Effets — référence complète
@@ -251,7 +256,7 @@ Notes :
 
 ## Patches YAML
 
-Bibliothèque : `synthwave/patches/library/` (646 patches — 96 synthés soustractifs + 550 DX7 6-op). Les fichiers placés dans
+Bibliothèque : `synthwave/patches/library/` (646 patches — 96 synthés soustractifs + 550 DX7 6-op, volumes DX7 calibrés `0.70→0.574` + trim renderer `0.85/0.72` lead). Les fichiers placés dans
 `~/.config/synthwave/patches/` sont aussi listés et priment sur la bibliothèque.
 
 ```yaml
@@ -282,12 +287,27 @@ effects:
   - {type: flanger, rate: 0.25, depth: 0.002, base: 0.003, feedback: 0.5, mix: 0.5}
 ```
 
+Patch DX7 (`kind: dx7`) — 6-op FM fidèle, import `.syx` via `synthwave import-dx7 bank.syx` :
+```yaml
+name: dx7_epiano
+kind: dx7
+algorithm: 5        # 1..32 (flags IN/OUT/FB)
+feedback: 4         # 0..7
+polyphony: 8
+volume: 0.5         # calibré 0.574 bulk, 0.525 leads
+operators:
+  - {ratio: 1.0, level: 0.88, attack: 0.005, decay: 0.25, sustain: 0.7, release: 0.4} # EG ADSR ou dx7 R/L
+  - {ratio: 14.0, level: 0.42, eg_type: dx7, eg_rate1: 99, eg_level1: 99, eg_rate2: 70, eg_level2: 60}
+effects:
+  - {type: reverb, size: 0.75, mix: 0.25}
+```
+
 Patch batterie (`kind: drums`) : `kick` (pitch, `sub`, `drive` saturation, `gain`), `snare`
 (gated reverb, `gain`), `hat`, `clap`, `tom`, `crash_gain`, et `perc_effects` : chaîne
 d'effets appliquée à toutes les percussions sauf le kick (écho ping‑pong + reverb dans
 `drums_dark.yaml`). Voir `drums_808.yaml`.
 
-### Bibliothèque livrée (95 patches)
+### Bibliothèque livrée (646 patches — 96 soustractifs + 550 DX7)
 
 | Catégorie | Patch | Caractère |
 |---|---|---|
@@ -390,6 +410,10 @@ d'effets appliquée à toutes les percussions sauf le kick (écho ping‑pong + 
 | | `drums_soft80` | Kick doux 80s (drive 1.1, battant 0.5), gated reverb moyenne |
 | | `drums_breaks` | Kick vintage court (drive 1.0, battant 0.9), lofi 10 bits sur les percussions |
 | | `drums_dmx` | Oberheim DMX / LinnDrum : sons purs et secs, snare peu réverbérée, aucun delay |
+| **DX7** | `dx7_bass` | Lately Bass `alg1 fb5` 6-op — punchy FM |
+| | `dx7_epiano` | EP FM `alg5 fb4` chorus+reverb — Rhodes FM |
+| | `dx7_bell` | Cloche `alg4` inharmonique 3.5/7.0 — Bell FM |
+| | `dx7_*` (547) | Banks Dexed `/homepages.abdn.ac.uk/d.j.benson` importés `import-dx7` (32 algs fidèles, bulk 4104) |
 
 ---
 
@@ -445,7 +469,7 @@ Annonces arrangeur (`synthwave/composer/arranger.py:219`) : `uplifter` à J-2 du
 
 - **Sidechain** (`engine/effects.py:209`) : ducking `gain = 1 - depth*exp(-t/release)` déclenché sur chaque kick, `depth 0.45 / release 0.22 s`. Atténuation par couche : `pad 100%`, `bass 60%`, `ambient 60%`, `arp 50%`.
 - **Gains de section** : `intro drums 0.6/lead 0.0` → `verse` → `chorus full` → `break drums 0.0/lead 0.0` → `transition drums/bass/arp/lead 0.0` → `outro` avec `fade` linéaire sur 8 bars.
-- **Trim par couche** (`audio/renderer.py:26`) : `LAYER_TRIM = {"lead": 2.5}` — make-up gain statique appliqué avant mix pour compenser le niveau perçu du lead (×2.5, les autres ×1.0).
+- **Trim par couche** (`audio/renderer.py:26`) : `LAYER_TRIM = {"lead": 2.5}` + `DX7 ×0.85` (`×0.72` sur `lead/lead2`) — DX7 6-op plus présent, volumes calibrés `0.574` (`0.525` leads) pour équilibrer.
 - **Master** : rampe de gain par couche (`current→target` sur un bloc, appliquée **avant** les effets de la couche pour que les queues de delay/reverb continuent de sonner) → inserts `master` (auto/manuels) → `master_volume 0.7` × `fade` linéaire → **couleur master** → `Limiter threshold 0.95`.
 - **Couleur master** (`MASTER_COLORS`, `--master-color`, MCP `set_master_color`, `POST /api/master_color`) : étage de saturation permanent placé après le volume, donc toujours attaqué au même niveau. **Choisie par la composition** par défaut (`auto`) : une couleur tirée par morceau selon la luminosité du mood (moods clairs `tape`/`clean`, moods sombres `vhs`/`mic`), puis déplacée d'un cran sur l'échelle `clean < tape < vhs < mic < crush` selon la section — intro plus sale (50 %), chorus plus propre (40 %), break sur bande usée. Une valeur donnée à la main (`--master-color vhs`, MCP, UI) verrouille le choix ; `auto` rend la main. `clean` (aucun), `tape` (défaut : saturation douce + bitcrush 13 bits), `vhs` (bande usée : disto + lofi 10 bits, wobble, souffle), `mic` (micro saturé : disto drive 3.2, bande 4.5 kHz, lofi 11 bits), `crush` (bitcrush 8 bits + disto). Le `lofi` n'y apparaît qu'en mix 1.0 : son chemin humide est retardé par le wobble, un mix partiel filtrerait le master en peigne. Mesuré sur un rendu `outrun` de 15 s :
 
@@ -563,7 +587,7 @@ morceau et progression (mesures de la section / du morceau), tonalité, accord, 
 mood en attente, oscilloscope du master, VU-mètre par couche et gain courant de l'arrangeur.
 Contrôles live : Start (mood/BPM/seed/durée de morceau), Stop, section suivante, tempo,
 changement de mood (via outro + transition), mute / solo / volume par couche, patch par couche
-(liste filtrée par famille), panneau **Tweak** (sliders générés depuis le patch : filtre,
+(liste filtrée par famille + 550 DX7 `dx7_*` sur chaque couche hors `drums`, pastille jaune `DX7` quand actif), panneau **Tweak** (sliders générés depuis le patch : filtre,
 enveloppes, LFO, oscillateurs, kick/snare/hats…) et chaîne d'effets par couche ou master
 (chips : clic = retirer, `+ effet` = ajouter avec des valeurs par défaut, `↺ auto` = rendre la
 main à l'arrangeur).
