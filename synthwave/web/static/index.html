@@ -69,9 +69,10 @@
   .field { display: grid; gap: 4px; }
   .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; }
   .big { font-size: 34px; font-weight: 800; letter-spacing: .04em; line-height: 1; }
-  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 12px; }
-  .stat { display: grid; gap: 4px; }
-  .stat .v { font-size: 20px; font-weight: 700; }
+  .stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+  @media (max-width: 560px) { .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  .stat { display: grid; gap: 4px; min-width: 0; }
+  .stat .v { font-size: 20px; font-weight: 700; min-width: 0; overflow-wrap: anywhere; line-height: 1.15; }
   .bar { height: 8px; border-radius: 999px; background: rgba(255,255,255,.07); overflow: hidden; }
   .bar > i { display: block; height: 100%; width: 0; border-radius: 999px;
              background: linear-gradient(90deg, var(--cyan), var(--violet)); transition: width .25s; }
@@ -341,7 +342,9 @@ function render(st) {
   $("#drop").classList.toggle("on", !!st.drop);
   $("#pending").textContent = st.pending_mood ? `→ ${st.pending_mood} au prochain outro` :
     (st.mood_locked ? "mood figé" : "mood aléatoire à chaque morceau");
-  $("#mood").textContent = st.mood; $("#key").textContent = st.key; $("#chord").textContent = st.chord || "—";
+  $("#mood").textContent = st.mood; $("#mood").title = st.mood;
+  $("#key").textContent = st.key; $("#key").title = st.key;
+  $("#chord").textContent = st.chord || "—"; $("#chord").title = st.chord || "";
   $("#bpm").textContent = st.bpm; $("#track").textContent = "#" + st.track;
   const s = Math.round(st.elapsed_s); $("#elapsed").textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
   const secLen = { intro: 8, verse: 16, chorus: 16, break: 8, transition: 4, outro: 8 }[sec] || 16;
