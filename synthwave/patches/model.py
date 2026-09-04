@@ -57,6 +57,7 @@ class EffectSpec(BaseModel):
     model_config = ConfigDict(extra="allow")
     type: Literal[
         "chorus",
+        "ensemble",
         "delay",
         "reverb",
         "gated_reverb",
@@ -233,4 +234,32 @@ class DrumPatchModel(BaseModel):
     perc_effects: list[EffectSpec] = []  # applied to everything except the kick
 
 
-AnyPatch = PatchModel | Dx7PatchModel | DrumPatchModel
+class SolinaRegisters(BaseModel):
+    """Les 6 boutons de registre du Solina."""
+
+    violin: bool = True  # viola +1 octave
+    viola: bool = True  # 8'
+    trumpet: bool = False  # 8' cuivré (Horn prime sur Trumpet)
+    horn: bool = False  # trumpet filtré, plus sombre
+    cello: bool = False  # section basse mono, 8'
+    contrabass: bool = False  # section basse mono, cello -1 octave
+
+
+class SolinaPatchModel(BaseModel):
+    """Solina String Ensemble — pas de mémoire sur l'original : un patch = boutons + faders."""
+
+    name: str
+    kind: Literal["solina"] = "solina"
+    registers: SolinaRegisters = SolinaRegisters()
+    crescendo: float = Field(0.3, ge=0.005, le=2.0)  # attaque cordes (s), sans effet cuivres
+    sustain_length: float = Field(0.8, ge=0.05, le=4.0)  # release (s), toutes voix
+    ensemble: bool = True  # triple BBD, 100 % wet, section basse hors ensemble
+    stereo: bool = True  # 3 lignes pannées G/C/D (l'original est mono)
+    bass_volume: float = Field(0.8, ge=0.0, le=1.5)
+    split_note: int = Field(55, ge=36, le=84)  # dernière touche de la section basse (G3)
+    tune: float = Field(0.0, ge=-100.0, le=100.0)  # cents
+    volume: float = Field(0.5, ge=0.0, le=2.0)
+    effects: list[EffectSpec] = []
+
+
+AnyPatch = PatchModel | Dx7PatchModel | DrumPatchModel | SolinaPatchModel

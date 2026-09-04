@@ -17,9 +17,10 @@ from ..engine.drums import DrumKit
 from ..engine.dx7 import Dx7Synth
 from ..engine.effects import Effect, Limiter, Sidechain, build_effects
 from ..engine.risers import RiserKit
+from ..engine.solina import SolinaSynth
 from ..engine.synth import Synth
 from ..patches.loader import PatchError, apply_tweaks, load_patch, set_param
-from ..patches.model import DrumPatchModel, Dx7PatchModel, PatchModel
+from ..patches.model import AnyPatch, DrumPatchModel, Dx7PatchModel, PatchModel, SolinaPatchModel
 from ..sequencer.tracker import Tracker
 from ..sequencer.transport import Transport
 
@@ -125,10 +126,10 @@ class Renderer:
         )
         self.arranger.mood_locked = cfg.mood is not None
         self.tracker = Tracker(self.transport, self.arranger)
-        self.instruments: dict[str, Synth | Dx7Synth | DrumKit] = {}
+        self.instruments: dict[str, Synth | Dx7Synth | SolinaSynth | DrumKit] = {}
         self.patch_names: dict[str, str] = {}
         # loaded + manual edits
-        self.base_patch: dict[str, PatchModel | Dx7PatchModel | DrumPatchModel] = {}
+        self.base_patch: dict[str, AnyPatch] = {}
         self.auto_tweaks: dict[str, dict[str, float]] = {}  # arranger gestures
         self.auto_tweaks_enabled = True
         self.manual_patch: set[str] = set(cfg.patches)
@@ -189,6 +190,13 @@ class Renderer:
             if isinstance(patch, Dx7PatchModel):
                 if inst is None or not isinstance(inst, Dx7Synth):
                     inst = Dx7Synth(patch, self.sr, self.rng, self.bpm)
+                elif live:
+                    inst.update_patch(patch)
+                else:
+                    inst.set_patch(patch)
+            elif isinstance(patch, SolinaPatchModel):
+                if inst is None or not isinstance(inst, SolinaSynth):
+                    inst = SolinaSynth(patch, self.sr, self.rng, self.bpm)
                 elif live:
                     inst.update_patch(patch)
                 else:
