@@ -2,7 +2,7 @@ name: dx7_CREATDX_dx7_VOICE_X_1Y
 kind: dx7
 algorithm: 7
 feedback: 7
-volume: 0.7
+volume: 0.574
 polyphony: 8
 glide: 0.0
 operators:

@@ -2,7 +2,7 @@ name: JL ORGAN
 kind: dx7
 algorithm: 32
 feedback: 0
-volume: 0.7
+volume: 0.525
 polyphony: 8
 glide: 0.0
 operators:

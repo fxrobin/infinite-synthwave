@@ -442,6 +442,9 @@ class Renderer:
             # inserts: a layer leaving the mix keeps its delay/reverb tail ringing out.
             ramp = np.linspace(g0, target, n, endpoint=False, dtype=np.float32)
             ramp *= LAYER_TRIM.get(layer, 1.0)
+            # DX7 6-op : un peu moins fort, surtout les leads très présents
+            if isinstance(self.instruments[layer], Dx7Synth):
+                ramp = ramp * (0.72 if layer in ("lead", "lead2") else 0.85)
             sig = self.instruments[layer].render(n, events[layer], gain=ramp)
             for fx in self.inserts.get(layer, ()):
                 sig = fx.process(sig)

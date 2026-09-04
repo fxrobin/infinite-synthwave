@@ -2,7 +2,7 @@ name: FUNK BASS
 kind: dx7
 algorithm: 18
 feedback: 6
-volume: 0.7
+volume: 0.574
 polyphony: 8
 glide: 0.0
 operators:
