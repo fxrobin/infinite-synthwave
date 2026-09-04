@@ -55,7 +55,7 @@ uv run synthwave ui --port 8765 --no-browser   # interface web
 | Option | Description |
 |---|---|
 | `--duration 5m` | `90`, `90s`, `5m`, `1h30m`. Sans → infini en live, obligatoire avec `--export`. |
-| `--mood <nom>` | `dark\|noir\|dreamy\|outrun\|cyberpunk\|horror\|desert\|chill\|retro\|drive`. Sans → tiré au hasard au démarrage et changé à chaque transition. Avec → figé (sauf `set_mood("random")` MCP). |
+| `--mood <nom>` | `dark\|noir\|dreamy\|outrun\|cyberpunk\|horror\|desert\|chill\|retro\|drive\|minimal\|programming`. Sans → tiré au hasard au démarrage et changé à chaque transition. Avec → figé (sauf `set_mood("random")` MCP). |
 | `--bpm 118` | Tempo fixe (60–180). Sans → tiré dans la zone du mood. |
 | `--bpm-range 80-95` | Zone de tempo (40–200). Redessiné à chaque transition. Prime sur la zone du mood. |
 | `--track 3m30` | Durée visée d'un morceau (intro → outro) avant la transition vers le suivant. Défaut `3m30` (±8 %). |
@@ -66,7 +66,7 @@ uv run synthwave ui --port 8765 --no-browser   # interface web
 | `--fx layer:type:k=v,...` | Insert manuel (répétable). `layer` ou `master`. Ex. `pad:gate:rate=1/16,depth=0.8` `master:lofi:bits=8` `lead:phaser:rate=2/1`. `None` en MCP = retour auto. |
 | `--master-color clean\|tape\|vhs\|mic\|crush` | Couleur permanente du master (défaut `tape`). |
 
-## Moods — 10 ambiances implémentées (`synthwave/composer/moods.py:43`)
+## Moods — 12 ambiances implémentées (`synthwave/composer/moods.py:43`)
 
 | Mood | BPM | Gamme | 7e | Rythme | Densité drums/arp/lead | Brightness | Patches | Pools (rotation par section) | Styles basse |
 |---|---|---|---|---|---|---|---|---|---|
@@ -80,8 +80,10 @@ uv run synthwave ui --port 8765 --no-browser   # interface web
 | `chill` | 84–96 | dorien | oui | 4/4 droit² | 0.4 / 0.6 / 0.3 | 0.9 | bright | bright pools | eighths 2, walk 3, sync 2, oct 1 |
 | `retro` | 104–118 | mixolydien (major 50%) | oui | 4/4 droit² | 0.6 / 0.8 / 0.45 | 1.1 | bright | bright pools | bright bass |
 | `drive` | 122–136 | mineur | oui | 4/4 droit² très dense | 1.0 / 1.0 / 0.5 | 1.2 | drive† | bass: moog/sub/pulse/reese · lead: saw/pulse/scream | eighths 3, sixteenths 3, oct 2, sync 1 |
+| `minimal` | 90–108 | dorien | non | 4/4 droit² mono‡ | 0.18 / 0.22 / 0.10 | 0.70 | `minimal` | bass: sub/pulse/moog/808/pluck/sh101/dub/thump/juno60/soft · lead: hollow/organ/juno | eighths 4, octaves 3, sync 1 |
+| `programming` | 88–104 | mineur | non | 4/4 droit² mono‡ | 0.14 / 0.18 / 0.08 | 0.65 | `minimal` | idem minimal (hypnotique) | eighths 4, octaves 3, sync 1 |
 
-*`major_prob` : dreamy 0.35, retro 0.5, les autres 0.0. `²4/4 droit` = `Mood.straight` : groove années 80 figé sur la grille, kits de percussion secs (voir « Batterie synthétisée »). `†drive` pools = moog/sub/pulse/reese + saw/pulse/scream. `pad_octave` 3 (dark/cyberpunk/horror/desert) vs 4 (les autres).
+*`major_prob` : dreamy 0.35, retro 0.5, les autres 0.0. `²4/4 droit` = `Mood.straight` : groove années 80 figé sur la grille, kits de percussion secs (voir « Batterie synthétisée »). `†drive` pools = moog/sub/pulse/reese + saw/pulse/scream. `‡minimal/programming` : `mono_drums` = une seule voix par section `kick xor snare xor hat` (pas de fills/rolls/crash/predrop théâtral), FX/gestures/risers réduits au minimum pour boucle hypnotique `I-IV` (Basic Channel / dub-techno). `pad_octave` 3 (dark/cyberpunk/horror/desert) vs 4 (les autres).
 
 Sans `--mood`, le mood est tiré au hasard au démarrage et retiré à chaque transition ;
 `--mood X` le fige (en MCP, `set_mood("random")` rend la main au hasard).
@@ -247,7 +249,7 @@ Notes :
 
 ## Patches YAML
 
-Bibliothèque : `synthwave/patches/library/` (95 patches). Les fichiers placés dans
+Bibliothèque : `synthwave/patches/library/` (99 patches). Les fichiers placés dans
 `~/.config/synthwave/patches/` sont aussi listés et priment sur la bibliothèque.
 
 ```yaml
@@ -317,6 +319,10 @@ d'effets appliquée à toutes les percussions sauf le kick (écho ping‑pong + 
 | | `bass_sh101` | SH-101 : saw + sub square, résonance 0.3, decay court |
 | | `bass_ms20` | MS-20 : résonance 0.45, disto 3.5 |
 | | `bass_dx7` | DX7 « Lately Bass » : FM 1.0×3.0 + 0.5×1.0, sans glide |
+| | `bass_dub` | Dub sub Basic Channel : sine + triangle, LP 180 Hz, attaque douce — hypnotique |
+| | `bass_thump` | Club minimal dry : square PWM 0.25 + sine sub, env 900 Hz, punchy |
+| | `bass_juno60` | Juno-60 PWM doux : square PWM 0.4 unison + saw, LFO cutoff 0.35 Hz |
+| | `bass_soft` | Triangle soft non-fatiguant : triangle + sine sub, LP 320 Hz |
 | **Arp** | `arp_pluck` | Saw 2×8 cts env 2200 Hz, delay 1/8d |
 | | `arp_dark` | Square PWM 0.25 + saw, disto+phaser+delay |
 | | `arp_saw` | Saw 3×12 cts, env 1800 Hz, delay 1/8d |
@@ -406,13 +412,13 @@ Chaque hit est rendu une fois à l'init en buffer stéréo, puis mixé à la dem
 
 Notes MIDI : `kick 36`, `snare 38`, `clap 39`, `snap 40`, `hat_closed 42`, `hat_open 46`, `tom_low 45`, `tom_mid 47`, `tick 44`, `crash 49`, `ride 51`, `crash_roll 57`, `shaker 70`.
 
-**Groove droit années 80** (`Mood.straight`, moods `dreamy`, `outrun`, `chill`, `retro`, `drive`) : la
+**Groove droit années 80** (`Mood.straight`, moods `dreamy`, `outrun`, `chill`, `retro`, `drive`, `minimal`, `programming`) : la
 grille ne bouge jamais d'une mesure à l'autre — kick sur les quatre temps (sans kick syncopé
 aléatoire), snare **et** clap superposés sur 2 et 4, charleys fermés sur les croches (doubles en
 chorus), open hat sur 14, aucun roll en milieu de section, fill de fin de phrase = quatre doubles
 de snare crescendo sous un kick qui ne s'interrompt pas. Les pools de ces moods n'utilisent que des
 kits secs (pas de `delay` sur le bus percussions : `drums_808`, `drums_linn`, `drums_dmx`,
-`drums_tight`, `drums_acoustic`, `drums_soft80`). Les moods sombres (`dark`, `noir`, `cyberpunk`,
+`drums_tight`, `drums_acoustic`, `drums_soft80`). `minimal`/`programming` ajoutent `mono_drums` : une seule voix par section (`kick xor snare xor hat`, pas de rolls/fills/crash/predrop `hat`/`snare`, risers réduits à l'impact). Les moods sombres (`dark`, `noir`, `cyberpunk`,
 `horror`, `desert`) gardent le groove génératif avec kicks syncopés, rolls et kits humides.
 
 Le flag `straight` ne touche pas que la batterie : la basse joue des notes détachées en ostinato, l'arpège garde la même figure sur un accord donné, et la mélodie est jouée staccato (notes courtes séparées par un silence) au lieu d'être tenue jusqu'à la note suivante. Mesuré sur 400 mesures : durée moyenne d'une note de lead 2.0 pas et 98 % des notes détachées en `outrun`, contre 4.9 pas et 19 % en `dark`.
@@ -457,18 +463,18 @@ Annonces arrangeur (`synthwave/composer/arranger.py:219`) : `uplifter` à J-2 du
 
 | Échelle | Degrés (demi-tons) | Moods |
 |---|---|---|
-| `minor` (naturel) | 0 2 3 5 7 8 10 | dreamy (65%), outrun, cyberpunk, drive |
+| `minor` (naturel) | 0 2 3 5 7 8 10 | dreamy (65%), outrun, cyberpunk, drive, programming |
 | `major` | 0 2 4 5 7 9 11 | dreamy/retro via `major_prob` |
 | `phrygian` | 0 1 3 5 7 8 10 | dark |
 | `harmonic_minor` | 0 2 3 5 7 8 11 | noir |
-| `dorian` | 0 2 3 5 7 9 10 | chill |
+| `dorian` | 0 2 3 5 7 9 10 | chill, minimal |
 | `mixolydian` | 0 2 4 5 7 9 10 | retro (50% majeur) |
 | `locrian` | 0 1 3 5 6 8 10 | horror |
 | `phrygian_dominant` | 0 1 4 5 7 8 10 | desert |
 
 Tonalité `tonic` 0–11 tirée au hasard au démarrage. À chaque transition `change_key()` choisit le nouveau tonic parmi ceux qui partagent le plus de notes avec la gamme courante (+3 si le dernier accord est un pivot, +1 même tonique) puis `pivot_chord()` fournit l'accord tenu pendant la transition. `set_mood` applique `SCALES[mood.scale]` (ou `MAJOR` si `rng < major_prob`).
 
-### Progressions — 37 progressions (`harmony.py:11`)
+### Progressions — 39 progressions (`harmony.py:11`)
 
 | Famille | Progression | Degrés | Usages (poids) |
 |---|---|---|---|
@@ -503,10 +509,12 @@ Tonalité `tonic` 0–11 tirée au hasard au démarrage. À chaque transition `c
 | | `I-bVII-IV-I` | 0 6 3 0 | retro 2 |
 | | `I-IV-bVII-IV` | 0 3 6 3 | retro 2 |
 | | `I-v-bVII-IV` | 0 4 6 3 | retro 1 |
-| dorien | `i-IV-i-IV` | 0 3 0 3 | chill 3 |
-| | `i-bVII-IV-i` | 0 6 3 0 | chill 2 |
+| dorien / minimal | `i-IV-i-IV` | 0 3 0 3 | chill 3, minimal 4, programming 4 |
+| | `I-IV-I-IV` | 0 3 0 3 | minimal 3, programming 3 (alias majeur) |
+| | `i-bVII-IV-i` | 0 6 3 0 | chill 2, programming 1 |
+| | `I-IV-bVII-I` | 0 3 6 0 | minimal 1 (alias) |
 | | `i-ii-bIII-ii` | 0 1 2 1 | chill 2 |
-| | `i-IV-bVII-i` | 0 3 6 0 | chill 2 |
+| | `i-IV-bVII-i` | 0 3 6 0 | chill 2, minimal 2, programming 2 |
 | | `i-ii-IV-i` | 0 1 3 0 | chill 1 |
 | tension | `i-bII-bv-i` | 0 1 4 0 | horror 3 |
 | | `i-biii-bII-i` | 0 2 1 0 | horror 2 |
