@@ -262,4 +262,118 @@ class SolinaPatchModel(BaseModel):
     effects: list[EffectSpec] = []
 
 
-AnyPatch = PatchModel | Dx7PatchModel | DrumPatchModel | SolinaPatchModel
+# ----- Roland D-50 (Linear Arithmetic) : valeurs panneau entières, import sysex sans perte -----
+
+
+class D50Env(BaseModel):
+    """Enveloppe 5 temps / 3 niveaux + sustain + end (TVF et TVA)."""
+
+    t: list[int] = Field([0, 50, 50, 50, 50], min_length=5, max_length=5)  # 0..100
+    l: list[int] = Field([100, 100, 100], min_length=3, max_length=3)  # noqa: E741 - nom D-50
+    sustain: int = Field(100, ge=0, le=100)
+    end: int = Field(0, ge=0, le=100)
+
+
+class D50Partial(BaseModel):
+    """Un partial : générateur synthé (LA32) ou PCM, TVF, TVA."""
+
+    coarse: int = Field(36, ge=0, le=72)  # C1..C7, 36 = C4
+    fine: int = Field(0, ge=-50, le=50)
+    keyfollow: int = Field(11, ge=0, le=16)  # index dans KEYFOLLOW (11 = 1)
+    lfo_mode: int = Field(0, ge=0, le=3)  # OFF, +, -, A&L
+    penv_mode: int = Field(0, ge=0, le=2)  # OFF, +, -
+    bend_mode: int = Field(0, ge=0, le=2)
+    wave: Literal["square", "saw"] = "square"
+    pcm: int = Field(1, ge=1, le=100)
+    pw: int = Field(0, ge=0, le=100)
+    pw_velo: int = Field(0, ge=-7, le=7)
+    pw_lfo: int = Field(0, ge=0, le=5)  # +1 -1 +2 -2 +3 -3
+    pw_lfo_depth: int = Field(0, ge=0, le=100)
+    cutoff: int = Field(70, ge=0, le=100)
+    resonance: int = Field(0, ge=0, le=30)
+    cutoff_kf: int = Field(7, ge=0, le=14)  # index dans CUTOFF_KF (7 = 1/2 ... voir table)
+    bias_point: int = Field(64, ge=0, le=127)  # bit 6 = au-dessus, bits 0-5 = note - 27
+    bias_level: int = Field(7, ge=0, le=14)  # 7 = 0
+    tvf_env_depth: int = Field(0, ge=0, le=100)
+    tvf_velo: int = Field(0, ge=0, le=100)
+    tvf_depth_kf: int = Field(0, ge=0, le=4)
+    tvf_time_kf: int = Field(0, ge=0, le=4)
+    tvf_env: D50Env = D50Env()
+    tvf_lfo: int = Field(0, ge=0, le=5)
+    tvf_lfo_depth: int = Field(0, ge=0, le=100)
+    tva_level: int = Field(100, ge=0, le=100)
+    tva_velo: int = Field(0, ge=-50, le=50)
+    tva_bias_point: int = Field(64, ge=0, le=127)
+    tva_bias_level: int = Field(12, ge=0, le=12)  # 12 = 0 dB, 0 = -12
+    tva_env: D50Env = D50Env()
+    tva_velo_time: int = Field(0, ge=0, le=4)
+    tva_time_kf: int = Field(0, ge=0, le=4)
+    tva_lfo: int = Field(0, ge=0, le=5)
+    tva_lfo_depth: int = Field(0, ge=0, le=100)
+
+
+class D50Lfo(BaseModel):
+    """Lfo du tone (3 par tone)."""
+
+    wave: int = Field(0, ge=0, le=3)  # TRI SAW SQU RND
+    rate: int = Field(50, ge=0, le=100)
+    delay: int = Field(0, ge=0, le=100)
+    sync: int = Field(0, ge=0, le=2)
+
+
+class D50Common(BaseModel):
+    """Bloc commun d'un tone : structure, P-ENV, LFO, EQ, chorus."""
+
+    structure: int = Field(1, ge=1, le=7)
+    penv_velo: int = Field(0, ge=0, le=2)
+    penv_time_kf: int = Field(0, ge=0, le=4)
+    penv_t: list[int] = Field([0, 0, 0, 0], min_length=4, max_length=4)  # 0..50
+    penv_l: list[int] = Field([0, 0, 0, 0, 0], min_length=5, max_length=5)  # -50..50
+    pmod_lfo_depth: int = Field(0, ge=0, le=100)
+    pmod_lever: int = Field(0, ge=0, le=100)
+    pmod_at: int = Field(0, ge=0, le=100)
+    lfos: list[D50Lfo] = Field([D50Lfo(), D50Lfo(), D50Lfo()], min_length=3, max_length=3)
+    eq_low_freq: int = Field(0, ge=0, le=15)
+    eq_low_gain: int = Field(0, ge=-12, le=12)
+    eq_high_freq: int = Field(0, ge=0, le=21)
+    eq_high_q: int = Field(0, ge=0, le=8)
+    eq_high_gain: int = Field(0, ge=-12, le=12)
+    chorus_type: int = Field(1, ge=1, le=8)
+    chorus_rate: int = Field(0, ge=0, le=100)
+    chorus_depth: int = Field(0, ge=0, le=100)
+    chorus_balance: int = Field(0, ge=0, le=100)
+    partial_mute: int = Field(3, ge=0, le=3)  # bit0 P1 on, bit1 P2 on
+    partial_balance: int = Field(50, ge=0, le=100)
+
+
+class D50Tone(BaseModel):
+    """Tone = 2 partials + bloc commun."""
+
+    name: str = ""
+    partials: list[D50Partial] = Field([D50Partial(), D50Partial()], min_length=2, max_length=2)
+    common: D50Common = D50Common()
+
+
+class D50PatchModel(BaseModel):
+    """Roland D-50 — 2 tones (upper / lower), 7 structures, LA synthesis."""
+
+    name: str
+    kind: Literal["d50"] = "d50"
+    upper: D50Tone = D50Tone()
+    lower: D50Tone = D50Tone()
+    key_mode: int = Field(0, ge=0, le=8)  # WHOLE DUAL SPLIT SEP WHOL-S DUAL-S SPL-US SPL-LS SEP-S
+    split: int = Field(24, ge=0, le=60)  # C2 + n
+    key_shift_upper: int = Field(0, ge=-24, le=24)
+    key_shift_lower: int = Field(0, ge=-24, le=24)
+    tune_upper: int = Field(0, ge=-50, le=50)
+    tune_lower: int = Field(0, ge=-50, le=50)
+    reverb_type: int = Field(1, ge=1, le=32)
+    reverb_balance: int = Field(0, ge=0, le=100)
+    patch_volume: int = Field(100, ge=0, le=100)
+    tone_balance: int = Field(50, ge=0, le=100)
+    polyphony: int = Field(8, ge=1, le=16)
+    volume: float = Field(0.5, ge=0.0, le=2.0)
+    effects: list[EffectSpec] = []
+
+
+AnyPatch = PatchModel | Dx7PatchModel | DrumPatchModel | SolinaPatchModel | D50PatchModel

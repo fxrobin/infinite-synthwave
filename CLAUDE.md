@@ -103,6 +103,11 @@ Couches fixes : `LAYERS = drums, bass, arp, pad, lead, lead2, ambient, riser` (`
   `SolinaEnsemble` triple BBD 100 % wet, aussi effet `ensemble`) partagent cette interface ; le
   renderer les instancie par `isinstance` sur le modèle de patch. Un patch Solina = boutons +
   faders (`crescendo`, `sustain_length`, `bass_volume`), pas d'oscillateurs ni de filtre YAML.
+- `D50Synth` (`d50.py`, `kind: d50`) : LA synthesis, 2 tones × 2 partials, 7 structures (ring mod),
+  partial synthé LA32 (carré à flancs cosinus, saw à 2f, résonance) ou PCM (`d50_pcm.py` : 100 ondes
+  procédurales, lecture `f × 2048` mots/s), `Env5` TVF/TVA, `PitchEnv`, 3 LFO, EQ + chorus par tone,
+  reverb 32 types. Import sysex `d50_sysex_to_patches` (448 octets / patch) + CLI `import-d50`
+  (calibre `volume`). Valeurs panneau entières dans le modèle.
 - `effects.py` : `Effect.process(x)` sur blocs stéréo float32 ; les lignes à retard sont
   traitées par tranches ≤ délai. Un nouvel effet = classe `__init__(sr, bpm, **params)` +
   entrée dans `_REGISTRY` ; il devient alors utilisable dans les patches YAML, `--fx`,
@@ -112,13 +117,13 @@ Couches fixes : `LAYERS = drums, bass, arp, pad, lead, lead2, ambient, riser` (`
 ### Patches (`synthwave/patches/`)
 
 - `model.py` : pydantic (`PatchModel`, `DrumPatchModel` `kind: drums`, `Dx7PatchModel` `kind: dx7`,
-  `SolinaPatchModel` `kind: solina`), bornes validées.
+  `SolinaPatchModel` `kind: solina`, `D50PatchModel` `kind: d50`), bornes validées.
   Ajouter un paramètre = champ du modèle + prise en compte dans `Voice`/`DrumKit`.
 - `loader.py` : YAML de `patches/library/` ; `~/.config/synthwave/patches/` prime sur la
   bibliothèque. `set_param(patch, "filter.cutoff", 800)` reconstruit un modèle validé.
 - Un patch référencé par un `Mood` (`patches` ou `pools`) doit exister dans la bibliothèque,
   sinon `Renderer.__init__` lève `PatchError`. Tout patch de la bibliothèque doit être dans un
-  pool (test `test_every_library_patch_is_in_a_pool`). Un nouveau patch : mesurer peak/RMS contre
+  pool (test `test_every_library_patch_is_in_a_pool`, préfixes `dx7_` / `d50_` exemptés : imports en masse). Un nouveau patch : mesurer peak/RMS contre
   ses voisins de famille (pads/ambients sur 6 s à cause des attaques lentes) avant de fixer `volume`.
 
 ### Contrôle temps réel

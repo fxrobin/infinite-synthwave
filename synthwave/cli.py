@@ -317,6 +317,58 @@ def import_dx7(
     typer.echo(f"{len(patches)} patches importés depuis {syx}")
 
 
+@app.command(name="import-d50")
+def import_d50(
+    syx: str = typer.Argument(help="Fichier .syx D-50 bulk (64 patches, adresse 02-00-00)"),
+    out_dir: str = typer.Option("synthwave/patches/library", help="Dossier de sortie YAML"),
+    normalize: bool = typer.Option(
+        True, help="Calibre `volume` sur un accord de 3 notes (RMS ≈ 0.1)"
+    ),
+):
+    """Importe un bank D-50 .syx en patches YAML d50_* (2 tones, 7 structures, PCM procéduraux)."""
+    import re
+    from pathlib import Path
+
+    import numpy as np
+    import yaml
+
+    from .engine.d50 import D50Synth, d50_sysex_to_patches
+    from .engine.events import NoteEvent
+
+    p = Path(syx)
+    if not p.exists():
+        raise typer.BadParameter(f"fichier introuvable: {syx}")
+    try:
+        patches = d50_sysex_to_patches(p.read_bytes())
+    except Exception as e:
+        raise typer.BadParameter(f"syx invalide: {e}") from e
+    out = Path(out_dir)
+    out.mkdir(parents=True, exist_ok=True)
+    for patch in patches:
+        if normalize:
+            synth = D50Synth(patch, 44100, np.random.default_rng(0), 110)
+            evs = [NoteEvent(0, n, 0.8, True) for n in (48, 55, 64)]
+            sig = np.concatenate([synth.render(1024, evs if i == 0 else []) for i in range(90)])
+            rms = float(np.sqrt((sig[22050:] ** 2).mean()))
+            patch.volume = (
+                round(float(np.clip(0.5 * 0.1 / rms, 0.05, 2.0)), 3) if rms > 1e-5 else 0.5
+            )
+        safe = re.sub(r"[^A-Za-z0-9_-]+", "_", patch.name.strip()).strip("_") or "patch"
+        target = out / f"d50_{safe}.yaml"
+        n = 1
+        while target.exists():
+            target = out / f"d50_{safe}_{n}.yaml"
+            n += 1
+        patch.name = target.stem
+        target.write_text(
+            yaml.safe_dump(patch.model_dump(), sort_keys=False, allow_unicode=True),
+            encoding="utf-8",
+        )
+        st = f"{patch.upper.common.structure}/{patch.lower.common.structure}"
+        typer.echo(f"wrote {target.name} (structures {st}, vol {patch.volume})")
+    typer.echo(f"{len(patches)} patches importés depuis {syx}")
+
+
 @app.command()
 def patches():
     """Liste les patches disponibles (bibliothèque + ~/.config/synthwave/patches)."""

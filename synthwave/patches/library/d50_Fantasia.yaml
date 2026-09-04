@@ -1,0 +1,333 @@
+name: d50_Fantasia
+kind: d50
+upper:
+  name: Fantasynth
+  partials:
+  - coarse: 24
+    fine: 5
+    keyfollow: 11
+    lfo_mode: 1
+    penv_mode: 0
+    bend_mode: 1
+    wave: saw
+    pcm: 1
+    pw: 0
+    pw_velo: 0
+    pw_lfo: 2
+    pw_lfo_depth: 0
+    cutoff: 52
+    resonance: 0
+    cutoff_kf: 9
+    bias_point: 27
+    bias_level: 7
+    tvf_env_depth: 5
+    tvf_velo: 5
+    tvf_depth_kf: 0
+    tvf_time_kf: 0
+    tvf_env:
+      t:
+      - 75
+      - 97
+      - 0
+      - 0
+      - 54
+      l:
+      - 86
+      - 0
+      - 0
+      sustain: 0
+      end: 0
+    tvf_lfo: 2
+    tvf_lfo_depth: 0
+    tva_level: 100
+    tva_velo: 6
+    tva_bias_point: 27
+    tva_bias_level: 12
+    tva_env:
+      t:
+      - 36
+      - 90
+      - 92
+      - 92
+      - 64
+      l:
+      - 90
+      - 100
+      - 80
+      sustain: 63
+      end: 0
+    tva_velo_time: 0
+    tva_time_kf: 0
+    tva_lfo: 4
+    tva_lfo_depth: 10
+  - coarse: 24
+    fine: -8
+    keyfollow: 11
+    lfo_mode: 1
+    penv_mode: 0
+    bend_mode: 1
+    wave: saw
+    pcm: 1
+    pw: 14
+    pw_velo: 0
+    pw_lfo: 2
+    pw_lfo_depth: 0
+    cutoff: 48
+    resonance: 0
+    cutoff_kf: 6
+    bias_point: 27
+    bias_level: 7
+    tvf_env_depth: 12
+    tvf_velo: 5
+    tvf_depth_kf: 0
+    tvf_time_kf: 0
+    tvf_env:
+      t:
+      - 74
+      - 85
+      - 0
+      - 0
+      - 100
+      l:
+      - 100
+      - 0
+      - 0
+      sustain: 0
+      end: 0
+    tvf_lfo: 2
+    tvf_lfo_depth: 0
+    tva_level: 100
+    tva_velo: 4
+    tva_bias_point: 77
+    tva_bias_level: 2
+    tva_env:
+      t:
+      - 32
+      - 90
+      - 92
+      - 92
+      - 64
+      l:
+      - 88
+      - 100
+      - 80
+      sustain: 70
+      end: 0
+    tva_velo_time: 0
+    tva_time_kf: 0
+    tva_lfo: 5
+    tva_lfo_depth: 10
+  common:
+    structure: 1
+    penv_velo: 0
+    penv_time_kf: 0
+    penv_t:
+    - 20
+    - 20
+    - 20
+    - 20
+    penv_l:
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    pmod_lfo_depth: 8
+    pmod_lever: 22
+    pmod_at: 2
+    lfos:
+    - wave: 0
+      rate: 72
+      delay: 50
+      sync: 0
+    - wave: 0
+      rate: 50
+      delay: 0
+      sync: 0
+    - wave: 0
+      rate: 30
+      delay: 0
+      sync: 0
+    eq_low_freq: 3
+    eq_low_gain: 5
+    eq_high_freq: 12
+    eq_high_q: 0
+    eq_high_gain: 0
+    chorus_type: 1
+    chorus_rate: 52
+    chorus_depth: 53
+    chorus_balance: 48
+    partial_mute: 3
+    partial_balance: 50
+lower:
+  name: FantasyPCM
+  partials:
+  - coarse: 54
+    fine: 27
+    keyfollow: 11
+    lfo_mode: 0
+    penv_mode: 0
+    bend_mode: 0
+    wave: square
+    pcm: 13
+    pw: 0
+    pw_velo: 0
+    pw_lfo: 2
+    pw_lfo_depth: 0
+    cutoff: 60
+    resonance: 0
+    cutoff_kf: 7
+    bias_point: 27
+    bias_level: 7
+    tvf_env_depth: 0
+    tvf_velo: 0
+    tvf_depth_kf: 0
+    tvf_time_kf: 0
+    tvf_env:
+      t:
+      - 0
+      - 0
+      - 0
+      - 0
+      - 0
+      l:
+      - 100
+      - 100
+      - 100
+      sustain: 100
+      end: 0
+    tvf_lfo: 2
+    tvf_lfo_depth: 0
+    tva_level: 100
+    tva_velo: 31
+    tva_bias_point: 27
+    tva_bias_level: 12
+    tva_env:
+      t:
+      - 0
+      - 69
+      - 40
+      - 40
+      - 60
+      l:
+      - 100
+      - 0
+      - 0
+      sustain: 0
+      end: 0
+    tva_velo_time: 0
+    tva_time_kf: 0
+    tva_lfo: 4
+    tva_lfo_depth: 0
+  - coarse: 19
+    fine: 11
+    keyfollow: 11
+    lfo_mode: 0
+    penv_mode: 0
+    bend_mode: 0
+    wave: square
+    pcm: 69
+    pw: 0
+    pw_velo: 0
+    pw_lfo: 2
+    pw_lfo_depth: 0
+    cutoff: 60
+    resonance: 0
+    cutoff_kf: 7
+    bias_point: 27
+    bias_level: 7
+    tvf_env_depth: 0
+    tvf_velo: 0
+    tvf_depth_kf: 0
+    tvf_time_kf: 0
+    tvf_env:
+      t:
+      - 0
+      - 0
+      - 0
+      - 0
+      - 0
+      l:
+      - 100
+      - 100
+      - 100
+      sustain: 100
+      end: 0
+    tvf_lfo: 2
+    tvf_lfo_depth: 0
+    tva_level: 100
+    tva_velo: 30
+    tva_bias_point: 100
+    tva_bias_level: 9
+    tva_env:
+      t:
+      - 11
+      - 69
+      - 100
+      - 100
+      - 60
+      l:
+      - 100
+      - 0
+      - 0
+      sustain: 0
+      end: 0
+    tva_velo_time: 0
+    tva_time_kf: 0
+    tva_lfo: 4
+    tva_lfo_depth: 0
+  common:
+    structure: 6
+    penv_velo: 0
+    penv_time_kf: 0
+    penv_t:
+    - 20
+    - 20
+    - 20
+    - 20
+    penv_l:
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    pmod_lfo_depth: 0
+    pmod_lever: 22
+    pmod_at: 2
+    lfos:
+    - wave: 0
+      rate: 72
+      delay: 50
+      sync: 0
+    - wave: 0
+      rate: 50
+      delay: 0
+      sync: 0
+    - wave: 0
+      rate: 30
+      delay: 0
+      sync: 0
+    eq_low_freq: 3
+    eq_low_gain: 0
+    eq_high_freq: 12
+    eq_high_q: 0
+    eq_high_gain: 0
+    chorus_type: 1
+    chorus_rate: 48
+    chorus_depth: 58
+    chorus_balance: 46
+    partial_mute: 3
+    partial_balance: 50
+key_mode: 1
+split: 24
+key_shift_upper: 0
+key_shift_lower: 0
+tune_upper: 0
+tune_lower: 0
+reverb_type: 2
+reverb_balance: 38
+patch_volume: 92
+tone_balance: 78
+polyphony: 8
+volume: 2.0
+effects: []

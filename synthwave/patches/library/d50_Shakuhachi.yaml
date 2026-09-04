@@ -1,0 +1,333 @@
+name: d50_Shakuhachi
+kind: d50
+upper:
+  name: Shaku 1
+  partials:
+  - coarse: 12
+    fine: 0
+    keyfollow: 15
+    lfo_mode: 1
+    penv_mode: 0
+    bend_mode: 2
+    wave: saw
+    pcm: 37
+    pw: 0
+    pw_velo: 0
+    pw_lfo: 0
+    pw_lfo_depth: 0
+    cutoff: 100
+    resonance: 0
+    cutoff_kf: 11
+    bias_point: 0
+    bias_level: 7
+    tvf_env_depth: 100
+    tvf_velo: 0
+    tvf_depth_kf: 0
+    tvf_time_kf: 0
+    tvf_env:
+      t:
+      - 0
+      - 0
+      - 0
+      - 0
+      - 0
+      l:
+      - 100
+      - 100
+      - 100
+      sustain: 100
+      end: 0
+    tvf_lfo: 0
+    tvf_lfo_depth: 0
+    tva_level: 100
+    tva_velo: 48
+    tva_bias_point: 0
+    tva_bias_level: 12
+    tva_env:
+      t:
+      - 0
+      - 95
+      - 0
+      - 0
+      - 26
+      l:
+      - 100
+      - 0
+      - 0
+      sustain: 0
+      end: 0
+    tva_velo_time: 0
+    tva_time_kf: 0
+    tva_lfo: 0
+    tva_lfo_depth: 0
+  - coarse: 24
+    fine: 0
+    keyfollow: 15
+    lfo_mode: 1
+    penv_mode: 0
+    bend_mode: 2
+    wave: saw
+    pcm: 1
+    pw: 0
+    pw_velo: 0
+    pw_lfo: 0
+    pw_lfo_depth: 0
+    cutoff: 47
+    resonance: 3
+    cutoff_kf: 12
+    bias_point: 0
+    bias_level: 7
+    tvf_env_depth: 0
+    tvf_velo: 0
+    tvf_depth_kf: 0
+    tvf_time_kf: 3
+    tvf_env:
+      t:
+      - 14
+      - 19
+      - 48
+      - 91
+      - 42
+      l:
+      - 57
+      - 0
+      - 100
+      sustain: 12
+      end: 0
+    tvf_lfo: 0
+    tvf_lfo_depth: 0
+    tva_level: 100
+    tva_velo: 23
+    tva_bias_point: 0
+    tva_bias_level: 12
+    tva_env:
+      t:
+      - 28
+      - 0
+      - 78
+      - 64
+      - 22
+      l:
+      - 100
+      - 100
+      - 100
+      sustain: 100
+      end: 0
+    tva_velo_time: 0
+    tva_time_kf: 2
+    tva_lfo: 0
+    tva_lfo_depth: 0
+  common:
+    structure: 3
+    penv_velo: 0
+    penv_time_kf: 0
+    penv_t:
+    - 20
+    - 20
+    - 20
+    - 20
+    penv_l:
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    pmod_lfo_depth: 0
+    pmod_lever: 26
+    pmod_at: 23
+    lfos:
+    - wave: 0
+      rate: 75
+      delay: 0
+      sync: 0
+    - wave: 0
+      rate: 0
+      delay: 0
+      sync: 0
+    - wave: 0
+      rate: 0
+      delay: 0
+      sync: 0
+    eq_low_freq: 9
+    eq_low_gain: 3
+    eq_high_freq: 18
+    eq_high_q: 3
+    eq_high_gain: 10
+    chorus_type: 1
+    chorus_rate: 40
+    chorus_depth: 60
+    chorus_balance: 35
+    partial_mute: 3
+    partial_balance: 50
+lower:
+  name: Shaku 2
+  partials:
+  - coarse: 15
+    fine: 0
+    keyfollow: 13
+    lfo_mode: 1
+    penv_mode: 0
+    bend_mode: 2
+    wave: saw
+    pcm: 74
+    pw: 0
+    pw_velo: 0
+    pw_lfo: 0
+    pw_lfo_depth: 0
+    cutoff: 100
+    resonance: 0
+    cutoff_kf: 11
+    bias_point: 0
+    bias_level: 7
+    tvf_env_depth: 100
+    tvf_velo: 0
+    tvf_depth_kf: 0
+    tvf_time_kf: 0
+    tvf_env:
+      t:
+      - 0
+      - 0
+      - 0
+      - 0
+      - 0
+      l:
+      - 100
+      - 100
+      - 100
+      sustain: 100
+      end: 0
+    tvf_lfo: 0
+    tvf_lfo_depth: 0
+    tva_level: 84
+    tva_velo: 34
+    tva_bias_point: 0
+    tva_bias_level: 12
+    tva_env:
+      t:
+      - 22
+      - 22
+      - 0
+      - 0
+      - 26
+      l:
+      - 100
+      - 81
+      - 71
+      sustain: 58
+      end: 0
+    tva_velo_time: 0
+    tva_time_kf: 0
+    tva_lfo: 2
+    tva_lfo_depth: 79
+  - coarse: 24
+    fine: 0
+    keyfollow: 15
+    lfo_mode: 1
+    penv_mode: 0
+    bend_mode: 2
+    wave: saw
+    pcm: 1
+    pw: 0
+    pw_velo: 0
+    pw_lfo: 0
+    pw_lfo_depth: 0
+    cutoff: 47
+    resonance: 22
+    cutoff_kf: 12
+    bias_point: 0
+    bias_level: 7
+    tvf_env_depth: 0
+    tvf_velo: 0
+    tvf_depth_kf: 0
+    tvf_time_kf: 3
+    tvf_env:
+      t:
+      - 14
+      - 19
+      - 48
+      - 91
+      - 42
+      l:
+      - 57
+      - 0
+      - 100
+      sustain: 12
+      end: 0
+    tvf_lfo: 0
+    tvf_lfo_depth: 0
+    tva_level: 100
+    tva_velo: 22
+    tva_bias_point: 0
+    tva_bias_level: 12
+    tva_env:
+      t:
+      - 28
+      - 0
+      - 78
+      - 64
+      - 38
+      l:
+      - 100
+      - 100
+      - 100
+      sustain: 100
+      end: 0
+    tva_velo_time: 0
+    tva_time_kf: 2
+    tva_lfo: 0
+    tva_lfo_depth: 0
+  common:
+    structure: 3
+    penv_velo: 0
+    penv_time_kf: 0
+    penv_t:
+    - 20
+    - 20
+    - 20
+    - 20
+    penv_l:
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    pmod_lfo_depth: 8
+    pmod_lever: 26
+    pmod_at: 23
+    lfos:
+    - wave: 0
+      rate: 75
+      delay: 0
+      sync: 0
+    - wave: 0
+      rate: 0
+      delay: 0
+      sync: 0
+    - wave: 0
+      rate: 0
+      delay: 0
+      sync: 0
+    eq_low_freq: 9
+    eq_low_gain: 4
+    eq_high_freq: 16
+    eq_high_q: 7
+    eq_high_gain: 10
+    chorus_type: 1
+    chorus_rate: 40
+    chorus_depth: 60
+    chorus_balance: 35
+    partial_mute: 3
+    partial_balance: 50
+key_mode: 1
+split: 24
+key_shift_upper: 0
+key_shift_lower: 0
+tune_upper: 0
+tune_lower: 0
+reverb_type: 3
+reverb_balance: 46
+patch_volume: 100
+tone_balance: 44
+polyphony: 8
+volume: 0.149
+effects: []

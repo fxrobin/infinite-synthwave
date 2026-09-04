@@ -1,0 +1,333 @@
+name: d50_Oriental_Bells
+kind: d50
+upper:
+  name: Bell 1
+  partials:
+  - coarse: 0
+    fine: 1
+    keyfollow: 11
+    lfo_mode: 1
+    penv_mode: 0
+    bend_mode: 0
+    wave: saw
+    pcm: 13
+    pw: 0
+    pw_velo: 0
+    pw_lfo: 0
+    pw_lfo_depth: 0
+    cutoff: 36
+    resonance: 0
+    cutoff_kf: 11
+    bias_point: 0
+    bias_level: 7
+    tvf_env_depth: 22
+    tvf_velo: 0
+    tvf_depth_kf: 0
+    tvf_time_kf: 0
+    tvf_env:
+      t:
+      - 0
+      - 0
+      - 0
+      - 0
+      - 0
+      l:
+      - 100
+      - 100
+      - 100
+      sustain: 100
+      end: 0
+    tvf_lfo: 0
+    tvf_lfo_depth: 0
+    tva_level: 100
+    tva_velo: 32
+    tva_bias_point: 0
+    tva_bias_level: 12
+    tva_env:
+      t:
+      - 0
+      - 45
+      - 75
+      - 0
+      - 74
+      l:
+      - 100
+      - 86
+      - 16
+      sustain: 0
+      end: 0
+    tva_velo_time: 0
+    tva_time_kf: 3
+    tva_lfo: 0
+    tva_lfo_depth: 0
+  - coarse: 48
+    fine: 0
+    keyfollow: 15
+    lfo_mode: 1
+    penv_mode: 0
+    bend_mode: 0
+    wave: square
+    pcm: 1
+    pw: 14
+    pw_velo: 2
+    pw_lfo: 0
+    pw_lfo_depth: 0
+    cutoff: 36
+    resonance: 23
+    cutoff_kf: 8
+    bias_point: 0
+    bias_level: 7
+    tvf_env_depth: 22
+    tvf_velo: 0
+    tvf_depth_kf: 0
+    tvf_time_kf: 2
+    tvf_env:
+      t:
+      - 0
+      - 0
+      - 9
+      - 3
+      - 49
+      l:
+      - 100
+      - 59
+      - 23
+      sustain: 0
+      end: 0
+    tvf_lfo: 0
+    tvf_lfo_depth: 0
+    tva_level: 100
+    tva_velo: 24
+    tva_bias_point: 0
+    tva_bias_level: 12
+    tva_env:
+      t:
+      - 0
+      - 45
+      - 75
+      - 0
+      - 74
+      l:
+      - 100
+      - 86
+      - 16
+      sustain: 0
+      end: 0
+    tva_velo_time: 0
+    tva_time_kf: 3
+    tva_lfo: 0
+    tva_lfo_depth: 0
+  common:
+    structure: 3
+    penv_velo: 0
+    penv_time_kf: 0
+    penv_t:
+    - 20
+    - 20
+    - 20
+    - 20
+    penv_l:
+    - 0
+    - 0
+    - 0
+    - 0
+    - -9
+    pmod_lfo_depth: 0
+    pmod_lever: 20
+    pmod_at: 23
+    lfos:
+    - wave: 0
+      rate: 72
+      delay: 0
+      sync: 0
+    - wave: 0
+      rate: 0
+      delay: 0
+      sync: 0
+    - wave: 0
+      rate: 0
+      delay: 0
+      sync: 0
+    eq_low_freq: 9
+    eq_low_gain: 0
+    eq_high_freq: 18
+    eq_high_q: 0
+    eq_high_gain: 6
+    chorus_type: 1
+    chorus_rate: 40
+    chorus_depth: 60
+    chorus_balance: 20
+    partial_mute: 3
+    partial_balance: 69
+lower:
+  name: Bell 2
+  partials:
+  - coarse: 21
+    fine: 0
+    keyfollow: 15
+    lfo_mode: 1
+    penv_mode: 0
+    bend_mode: 0
+    wave: square
+    pcm: 69
+    pw: 33
+    pw_velo: 2
+    pw_lfo: 0
+    pw_lfo_depth: 0
+    cutoff: 36
+    resonance: 23
+    cutoff_kf: 8
+    bias_point: 0
+    bias_level: 7
+    tvf_env_depth: 22
+    tvf_velo: 0
+    tvf_depth_kf: 0
+    tvf_time_kf: 2
+    tvf_env:
+      t:
+      - 0
+      - 38
+      - 35
+      - 3
+      - 49
+      l:
+      - 100
+      - 79
+      - 25
+      sustain: 15
+      end: 0
+    tvf_lfo: 0
+    tvf_lfo_depth: 0
+    tva_level: 100
+    tva_velo: 24
+    tva_bias_point: 63
+    tva_bias_level: 8
+    tva_env:
+      t:
+      - 0
+      - 45
+      - 75
+      - 0
+      - 74
+      l:
+      - 100
+      - 86
+      - 16
+      sustain: 0
+      end: 0
+    tva_velo_time: 0
+    tva_time_kf: 3
+    tva_lfo: 0
+    tva_lfo_depth: 0
+  - coarse: 70
+    fine: 0
+    keyfollow: 15
+    lfo_mode: 1
+    penv_mode: 0
+    bend_mode: 0
+    wave: square
+    pcm: 1
+    pw: 33
+    pw_velo: 2
+    pw_lfo: 0
+    pw_lfo_depth: 0
+    cutoff: 39
+    resonance: 3
+    cutoff_kf: 8
+    bias_point: 0
+    bias_level: 7
+    tvf_env_depth: 22
+    tvf_velo: 0
+    tvf_depth_kf: 0
+    tvf_time_kf: 2
+    tvf_env:
+      t:
+      - 0
+      - 38
+      - 35
+      - 3
+      - 49
+      l:
+      - 100
+      - 79
+      - 25
+      sustain: 15
+      end: 0
+    tvf_lfo: 0
+    tvf_lfo_depth: 0
+    tva_level: 48
+    tva_velo: 24
+    tva_bias_point: 0
+    tva_bias_level: 12
+    tva_env:
+      t:
+      - 0
+      - 26
+      - 61
+      - 71
+      - 28
+      l:
+      - 100
+      - 86
+      - 16
+      sustain: 0
+      end: 0
+    tva_velo_time: 0
+    tva_time_kf: 3
+    tva_lfo: 0
+    tva_lfo_depth: 0
+  common:
+    structure: 3
+    penv_velo: 0
+    penv_time_kf: 0
+    penv_t:
+    - 20
+    - 20
+    - 20
+    - 20
+    penv_l:
+    - 0
+    - 0
+    - 0
+    - 0
+    - -9
+    pmod_lfo_depth: 0
+    pmod_lever: 0
+    pmod_at: 16
+    lfos:
+    - wave: 0
+      rate: 68
+      delay: 0
+      sync: 0
+    - wave: 0
+      rate: 0
+      delay: 0
+      sync: 0
+    - wave: 0
+      rate: 0
+      delay: 0
+      sync: 0
+    eq_low_freq: 9
+    eq_low_gain: 0
+    eq_high_freq: 15
+    eq_high_q: 4
+    eq_high_gain: 6
+    chorus_type: 1
+    chorus_rate: 40
+    chorus_depth: 60
+    chorus_balance: 100
+    partial_mute: 3
+    partial_balance: 60
+key_mode: 1
+split: 24
+key_shift_upper: 0
+key_shift_lower: 0
+tune_upper: 0
+tune_lower: 0
+reverb_type: 4
+reverb_balance: 38
+patch_volume: 100
+tone_balance: 81
+polyphony: 8
+volume: 0.247
+effects: []

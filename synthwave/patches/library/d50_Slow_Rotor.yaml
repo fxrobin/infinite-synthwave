@@ -1,0 +1,333 @@
+name: d50_Slow_Rotor
+kind: d50
+upper:
+  name: E-Organ 1
+  partials:
+  - coarse: 24
+    fine: -5
+    keyfollow: 11
+    lfo_mode: 2
+    penv_mode: 0
+    bend_mode: 1
+    wave: saw
+    pcm: 49
+    pw: 0
+    pw_velo: -7
+    pw_lfo: 0
+    pw_lfo_depth: 0
+    cutoff: 31
+    resonance: 0
+    cutoff_kf: 9
+    bias_point: 0
+    bias_level: 7
+    tvf_env_depth: 63
+    tvf_velo: 0
+    tvf_depth_kf: 2
+    tvf_time_kf: 0
+    tvf_env:
+      t:
+      - 75
+      - 97
+      - 0
+      - 0
+      - 100
+      l:
+      - 86
+      - 0
+      - 0
+      sustain: 0
+      end: 0
+    tvf_lfo: 0
+    tvf_lfo_depth: 0
+    tva_level: 94
+    tva_velo: 3
+    tva_bias_point: 103
+    tva_bias_level: 11
+    tva_env:
+      t:
+      - 0
+      - 100
+      - 100
+      - 100
+      - 6
+      l:
+      - 100
+      - 100
+      - 100
+      sustain: 100
+      end: 0
+    tva_velo_time: 0
+    tva_time_kf: 0
+    tva_lfo: 0
+    tva_lfo_depth: 0
+  - coarse: 36
+    fine: 3
+    keyfollow: 11
+    lfo_mode: 1
+    penv_mode: 0
+    bend_mode: 1
+    wave: saw
+    pcm: 50
+    pw: 0
+    pw_velo: -7
+    pw_lfo: 0
+    pw_lfo_depth: 0
+    cutoff: 31
+    resonance: 0
+    cutoff_kf: 6
+    bias_point: 0
+    bias_level: 7
+    tvf_env_depth: 63
+    tvf_velo: 0
+    tvf_depth_kf: 2
+    tvf_time_kf: 0
+    tvf_env:
+      t:
+      - 74
+      - 85
+      - 0
+      - 0
+      - 100
+      l:
+      - 100
+      - 0
+      - 0
+      sustain: 0
+      end: 0
+    tvf_lfo: 0
+    tvf_lfo_depth: 0
+    tva_level: 94
+    tva_velo: 3
+    tva_bias_point: 101
+    tva_bias_level: 9
+    tva_env:
+      t:
+      - 0
+      - 100
+      - 100
+      - 100
+      - 6
+      l:
+      - 100
+      - 100
+      - 100
+      sustain: 100
+      end: 0
+    tva_velo_time: 0
+    tva_time_kf: 0
+    tva_lfo: 0
+    tva_lfo_depth: 0
+  common:
+    structure: 6
+    penv_velo: 0
+    penv_time_kf: 0
+    penv_t:
+    - 0
+    - 15
+    - 0
+    - 22
+    penv_l:
+    - -9
+    - -2
+    - 0
+    - 0
+    - -9
+    pmod_lfo_depth: 5
+    pmod_lever: 20
+    pmod_at: 16
+    lfos:
+    - wave: 0
+      rate: 78
+      delay: 0
+      sync: 0
+    - wave: 0
+      rate: 0
+      delay: 0
+      sync: 0
+    - wave: 0
+      rate: 0
+      delay: 0
+      sync: 0
+    eq_low_freq: 5
+    eq_low_gain: 4
+    eq_high_freq: 21
+    eq_high_q: 0
+    eq_high_gain: 1
+    chorus_type: 1
+    chorus_rate: 45
+    chorus_depth: 62
+    chorus_balance: 53
+    partial_mute: 3
+    partial_balance: 50
+lower:
+  name: E-Organ 2
+  partials:
+  - coarse: 24
+    fine: -6
+    keyfollow: 11
+    lfo_mode: 0
+    penv_mode: 0
+    bend_mode: 1
+    wave: saw
+    pcm: 21
+    pw: 0
+    pw_velo: -7
+    pw_lfo: 0
+    pw_lfo_depth: 0
+    cutoff: 31
+    resonance: 0
+    cutoff_kf: 9
+    bias_point: 0
+    bias_level: 7
+    tvf_env_depth: 63
+    tvf_velo: 0
+    tvf_depth_kf: 2
+    tvf_time_kf: 0
+    tvf_env:
+      t:
+      - 75
+      - 97
+      - 0
+      - 0
+      - 100
+      l:
+      - 86
+      - 0
+      - 0
+      sustain: 0
+      end: 0
+    tvf_lfo: 0
+    tvf_lfo_depth: 0
+    tva_level: 100
+    tva_velo: 22
+    tva_bias_point: 91
+    tva_bias_level: 10
+    tva_env:
+      t:
+      - 0
+      - 53
+      - 100
+      - 100
+      - 6
+      l:
+      - 100
+      - 85
+      - 0
+      sustain: 0
+      end: 0
+    tva_velo_time: 0
+    tva_time_kf: 0
+    tva_lfo: 0
+    tva_lfo_depth: 0
+  - coarse: 36
+    fine: 0
+    keyfollow: 11
+    lfo_mode: 1
+    penv_mode: 0
+    bend_mode: 1
+    wave: saw
+    pcm: 49
+    pw: 0
+    pw_velo: -7
+    pw_lfo: 0
+    pw_lfo_depth: 0
+    cutoff: 100
+    resonance: 0
+    cutoff_kf: 6
+    bias_point: 0
+    bias_level: 7
+    tvf_env_depth: 0
+    tvf_velo: 0
+    tvf_depth_kf: 2
+    tvf_time_kf: 0
+    tvf_env:
+      t:
+      - 74
+      - 85
+      - 0
+      - 0
+      - 100
+      l:
+      - 100
+      - 0
+      - 0
+      sustain: 0
+      end: 0
+    tvf_lfo: 0
+    tvf_lfo_depth: 0
+    tva_level: 100
+    tva_velo: 7
+    tva_bias_point: 98
+    tva_bias_level: 10
+    tva_env:
+      t:
+      - 0
+      - 100
+      - 100
+      - 63
+      - 6
+      l:
+      - 100
+      - 100
+      - 0
+      sustain: 0
+      end: 0
+    tva_velo_time: 0
+    tva_time_kf: 0
+    tva_lfo: 0
+    tva_lfo_depth: 0
+  common:
+    structure: 6
+    penv_velo: 0
+    penv_time_kf: 0
+    penv_t:
+    - 0
+    - 11
+    - 0
+    - 22
+    penv_l:
+    - 42
+    - -2
+    - 0
+    - 0
+    - 42
+    pmod_lfo_depth: 2
+    pmod_lever: 0
+    pmod_at: 0
+    lfos:
+    - wave: 0
+      rate: 73
+      delay: 0
+      sync: 0
+    - wave: 0
+      rate: 0
+      delay: 0
+      sync: 0
+    - wave: 0
+      rate: 0
+      delay: 0
+      sync: 0
+    eq_low_freq: 0
+    eq_low_gain: 0
+    eq_high_freq: 13
+    eq_high_q: 0
+    eq_high_gain: 5
+    chorus_type: 6
+    chorus_rate: 57
+    chorus_depth: 45
+    chorus_balance: 55
+    partial_mute: 3
+    partial_balance: 20
+key_mode: 1
+split: 24
+key_shift_upper: 0
+key_shift_lower: 0
+tune_upper: 0
+tune_lower: 0
+reverb_type: 9
+reverb_balance: 40
+patch_volume: 88
+tone_balance: 38
+polyphony: 8
+volume: 0.507
+effects: []

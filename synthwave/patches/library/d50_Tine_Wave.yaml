@@ -1,0 +1,333 @@
+name: d50_Tine_Wave
+kind: d50
+upper:
+  name: Zitar
+  partials:
+  - coarse: 48
+    fine: -6
+    keyfollow: 11
+    lfo_mode: 3
+    penv_mode: 2
+    bend_mode: 1
+    wave: square
+    pcm: 60
+    pw: 82
+    pw_velo: 7
+    pw_lfo: 4
+    pw_lfo_depth: 0
+    cutoff: 52
+    resonance: 0
+    cutoff_kf: 14
+    bias_point: 38
+    bias_level: 7
+    tvf_env_depth: 0
+    tvf_velo: 100
+    tvf_depth_kf: 0
+    tvf_time_kf: 0
+    tvf_env:
+      t:
+      - 0
+      - 64
+      - 0
+      - 0
+      - 69
+      l:
+      - 100
+      - 0
+      - 0
+      sustain: 0
+      end: 0
+    tvf_lfo: 0
+    tvf_lfo_depth: 0
+    tva_level: 100
+    tva_velo: 36
+    tva_bias_point: 39
+    tva_bias_level: 6
+    tva_env:
+      t:
+      - 0
+      - 0
+      - 45
+      - 69
+      - 20
+      l:
+      - 25
+      - 100
+      - 0
+      sustain: 0
+      end: 0
+    tva_velo_time: 4
+    tva_time_kf: 0
+    tva_lfo: 0
+    tva_lfo_depth: 0
+  - coarse: 48
+    fine: 0
+    keyfollow: 11
+    lfo_mode: 3
+    penv_mode: 0
+    bend_mode: 1
+    wave: square
+    pcm: 60
+    pw: 82
+    pw_velo: 7
+    pw_lfo: 4
+    pw_lfo_depth: 0
+    cutoff: 52
+    resonance: 0
+    cutoff_kf: 14
+    bias_point: 32
+    bias_level: 2
+    tvf_env_depth: 0
+    tvf_velo: 33
+    tvf_depth_kf: 0
+    tvf_time_kf: 0
+    tvf_env:
+      t:
+      - 0
+      - 57
+      - 0
+      - 0
+      - 69
+      l:
+      - 100
+      - 0
+      - 0
+      sustain: 0
+      end: 0
+    tvf_lfo: 0
+    tvf_lfo_depth: 0
+    tva_level: 100
+    tva_velo: 23
+    tva_bias_point: 103
+    tva_bias_level: 7
+    tva_env:
+      t:
+      - 0
+      - 0
+      - 45
+      - 69
+      - 20
+      l:
+      - 25
+      - 100
+      - 90
+      sustain: 0
+      end: 0
+    tva_velo_time: 0
+    tva_time_kf: 0
+    tva_lfo: 0
+    tva_lfo_depth: 0
+  common:
+    structure: 6
+    penv_velo: 2
+    penv_time_kf: 0
+    penv_t:
+    - 11
+    - 0
+    - 24
+    - 0
+    penv_l:
+    - 7
+    - -2
+    - -2
+    - 0
+    - 1
+    pmod_lfo_depth: 17
+    pmod_lever: 25
+    pmod_at: 22
+    lfos:
+    - wave: 0
+      rate: 73
+      delay: 50
+      sync: 0
+    - wave: 0
+      rate: 50
+      delay: 0
+      sync: 0
+    - wave: 0
+      rate: 30
+      delay: 0
+      sync: 0
+    eq_low_freq: 4
+    eq_low_gain: -2
+    eq_high_freq: 15
+    eq_high_q: 0
+    eq_high_gain: 2
+    chorus_type: 1
+    chorus_rate: 69
+    chorus_depth: 25
+    chorus_balance: 24
+    partial_mute: 3
+    partial_balance: 44
+lower:
+  name: Bad Tines
+  partials:
+  - coarse: 72
+    fine: 10
+    keyfollow: 10
+    lfo_mode: 3
+    penv_mode: 1
+    bend_mode: 1
+    wave: square
+    pcm: 81
+    pw: 82
+    pw_velo: 7
+    pw_lfo: 4
+    pw_lfo_depth: 0
+    cutoff: 52
+    resonance: 0
+    cutoff_kf: 7
+    bias_point: 32
+    bias_level: 2
+    tvf_env_depth: 0
+    tvf_velo: 33
+    tvf_depth_kf: 0
+    tvf_time_kf: 0
+    tvf_env:
+      t:
+      - 0
+      - 57
+      - 0
+      - 0
+      - 69
+      l:
+      - 100
+      - 0
+      - 0
+      sustain: 0
+      end: 0
+    tvf_lfo: 0
+    tvf_lfo_depth: 0
+    tva_level: 80
+    tva_velo: 45
+    tva_bias_point: 112
+    tva_bias_level: 4
+    tva_env:
+      t:
+      - 0
+      - 22
+      - 56
+      - 77
+      - 29
+      l:
+      - 100
+      - 100
+      - 0
+      sustain: 0
+      end: 0
+    tva_velo_time: 0
+    tva_time_kf: 0
+    tva_lfo: 0
+    tva_lfo_depth: 0
+  - coarse: 43
+    fine: -10
+    keyfollow: 7
+    lfo_mode: 3
+    penv_mode: 0
+    bend_mode: 1
+    wave: square
+    pcm: 10
+    pw: 82
+    pw_velo: 7
+    pw_lfo: 4
+    pw_lfo_depth: 0
+    cutoff: 52
+    resonance: 0
+    cutoff_kf: 7
+    bias_point: 32
+    bias_level: 2
+    tvf_env_depth: 0
+    tvf_velo: 33
+    tvf_depth_kf: 0
+    tvf_time_kf: 0
+    tvf_env:
+      t:
+      - 0
+      - 57
+      - 0
+      - 0
+      - 69
+      l:
+      - 100
+      - 0
+      - 0
+      sustain: 0
+      end: 0
+    tvf_lfo: 0
+    tvf_lfo_depth: 0
+    tva_level: 100
+    tva_velo: 32
+    tva_bias_point: 91
+    tva_bias_level: 8
+    tva_env:
+      t:
+      - 0
+      - 46
+      - 30
+      - 77
+      - 47
+      l:
+      - 100
+      - 0
+      - 74
+      sustain: 80
+      end: 0
+    tva_velo_time: 0
+    tva_time_kf: 0
+    tva_lfo: 0
+    tva_lfo_depth: 0
+  common:
+    structure: 6
+    penv_velo: 2
+    penv_time_kf: 0
+    penv_t:
+    - 0
+    - 0
+    - 0
+    - 0
+    penv_l:
+    - -9
+    - -2
+    - -2
+    - 0
+    - 1
+    pmod_lfo_depth: 0
+    pmod_lever: 0
+    pmod_at: 0
+    lfos:
+    - wave: 0
+      rate: 73
+      delay: 50
+      sync: 0
+    - wave: 0
+      rate: 50
+      delay: 0
+      sync: 0
+    - wave: 0
+      rate: 30
+      delay: 0
+      sync: 0
+    eq_low_freq: 10
+    eq_low_gain: -8
+    eq_high_freq: 11
+    eq_high_q: 0
+    eq_high_gain: 4
+    chorus_type: 1
+    chorus_rate: 47
+    chorus_depth: 52
+    chorus_balance: 54
+    partial_mute: 3
+    partial_balance: 52
+key_mode: 1
+split: 24
+key_shift_upper: 0
+key_shift_lower: 0
+tune_upper: 0
+tune_lower: 0
+reverb_type: 10
+reverb_balance: 38
+patch_volume: 74
+tone_balance: 65
+polyphony: 8
+volume: 2.0
+effects: []
