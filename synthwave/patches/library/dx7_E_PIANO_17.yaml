@@ -2,7 +2,7 @@ name: E.PIANO 17
 kind: dx7
 algorithm: 8
 feedback: 7
-volume: 0.7
+volume: 0.525
 polyphony: 8
 glide: 0.0
 operators:

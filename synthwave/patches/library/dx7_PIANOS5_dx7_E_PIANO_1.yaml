@@ -2,7 +2,7 @@ name: dx7_PIANOS5_dx7_E_PIANO_1
 kind: dx7
 algorithm: 6
 feedback: 3
-volume: 0.7
+volume: 0.525
 polyphony: 8
 glide: 0.0
 operators:

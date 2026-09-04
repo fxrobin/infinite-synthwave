@@ -2,7 +2,7 @@ name: dx7_TX12_dx7_-_V_-_4
 kind: dx7
 algorithm: 4
 feedback: 6
-volume: 0.7
+volume: 0.574
 polyphony: 8
 glide: 0.0
 operators:

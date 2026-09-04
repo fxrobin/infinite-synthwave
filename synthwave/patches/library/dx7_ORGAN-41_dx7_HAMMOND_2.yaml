@@ -2,7 +2,7 @@ name: dx7_ORGAN-41_dx7_HAMMOND_2
 kind: dx7
 algorithm: 31
 feedback: 3
-volume: 0.7
+volume: 0.525
 polyphony: 8
 glide: 0.0
 operators:

@@ -2,7 +2,7 @@ name: LUTE 2
 kind: dx7
 algorithm: 14
 feedback: 7
-volume: 0.7
+volume: 0.574
 polyphony: 8
 glide: 0.0
 operators:

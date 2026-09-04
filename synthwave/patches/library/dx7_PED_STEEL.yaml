@@ -2,7 +2,7 @@ name: PED STEEL
 kind: dx7
 algorithm: 28
 feedback: 7
-volume: 0.7
+volume: 0.574
 polyphony: 8
 glide: 0.0
 operators:
