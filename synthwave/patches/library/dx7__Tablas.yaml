@@ -1,0 +1,105 @@
+name: '*Tablas'
+kind: dx7
+algorithm: 10
+feedback: 7
+volume: 0.7
+polyphony: 8
+glide: 0.0
+operators:
+- ratio: 0.5
+  detune: -1
+  level: 1.0
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 75
+  eg_level1: 99
+  eg_rate2: 83
+  eg_level2: 99
+  eg_rate3: 62
+  eg_level3: 34
+  eg_rate4: 34
+  eg_level4: 13
+- ratio: 2.0
+  detune: 0
+  level: 0.8484848484848485
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 75
+  eg_level1: 99
+  eg_rate2: 14
+  eg_level2: 99
+  eg_rate3: 69
+  eg_level3: 91
+  eg_rate4: 35
+  eg_level4: 0
+- ratio: 2.0
+  detune: -5
+  level: 0.0
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 99
+  eg_level1: 93
+  eg_rate2: 47
+  eg_level2: 66
+  eg_rate3: 40
+  eg_level3: 0
+  eg_rate4: 75
+  eg_level4: 0
+- ratio: 5.0
+  detune: 7
+  level: 1.0
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 89
+  eg_level1: 99
+  eg_rate2: 98
+  eg_level2: 99
+  eg_rate3: 47
+  eg_level3: 0
+  eg_rate4: 50
+  eg_level4: 0
+- ratio: 1.0
+  detune: -5
+  level: 0.7070707070707071
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 95
+  eg_level1: 99
+  eg_rate2: 31
+  eg_level2: 99
+  eg_rate3: 46
+  eg_level3: 87
+  eg_rate4: 0
+  eg_level4: 0
+- ratio: 5.0
+  detune: 4
+  level: 0.6666666666666666
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 99
+  eg_level1: 96
+  eg_rate2: 31
+  eg_level2: 69
+  eg_rate3: 46
+  eg_level3: 78
+  eg_rate4: 0
+  eg_level4: 0
+effects: []

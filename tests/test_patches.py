@@ -56,8 +56,10 @@ def test_every_library_patch_is_in_a_pool_and_every_pool_patch_exists():
 
     pooled = {name for m in MOODS.values() for names in m.pools.values() for name in names}
     library = set(list_patches())
+    # DX7 banks are bulk imports, available via --patch but not required in a mood pool
+    dx7_library = {n for n in library if n.lower().startswith("dx7_")}
     assert pooled <= library
-    assert library <= pooled | {n for m in MOODS.values() for n in m.patches.values()}
+    assert (library - dx7_library) <= pooled | {n for m in MOODS.values() for n in m.patches.values()}
     assert len(library) >= 51
 
 

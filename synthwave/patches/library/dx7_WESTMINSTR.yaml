@@ -1,0 +1,105 @@
+name: WESTMINSTR
+kind: dx7
+algorithm: 6
+feedback: 7
+volume: 0.7
+polyphony: 8
+glide: 0.0
+operators:
+- ratio: 4.0
+  detune: 0
+  level: 1.0
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 97
+  eg_level1: 99
+  eg_rate2: 27
+  eg_level2: 90
+  eg_rate3: 20
+  eg_level3: 80
+  eg_rate4: 37
+  eg_level4: 0
+- ratio: 8.0
+  detune: 0
+  level: 0.8181818181818182
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 97
+  eg_level1: 99
+  eg_rate2: 20
+  eg_level2: 90
+  eg_rate3: 20
+  eg_level3: 80
+  eg_rate4: 34
+  eg_level4: 0
+- ratio: 2.0
+  detune: -3
+  level: 1.0
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 93
+  eg_level1: 0
+  eg_rate2: 99
+  eg_level2: 90
+  eg_rate3: 20
+  eg_level3: 80
+  eg_rate4: 35
+  eg_level4: 0
+- ratio: 6.0
+  detune: 0
+  level: 0.6767676767676768
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 97
+  eg_level1: 99
+  eg_rate2: 90
+  eg_level2: 90
+  eg_rate3: 20
+  eg_level3: 80
+  eg_rate4: 34
+  eg_level4: 0
+- ratio: 2.0
+  detune: 3
+  level: 1.0
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 87
+  eg_level1: 0
+  eg_rate2: 99
+  eg_level2: 90
+  eg_rate3: 20
+  eg_level3: 80
+  eg_rate4: 37
+  eg_level4: 0
+- ratio: 3.0
+  detune: 0
+  level: 0.6666666666666666
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 97
+  eg_level1: 99
+  eg_rate2: 87
+  eg_level2: 90
+  eg_rate3: 20
+  eg_level3: 80
+  eg_rate4: 34
+  eg_level4: 0
+effects: []

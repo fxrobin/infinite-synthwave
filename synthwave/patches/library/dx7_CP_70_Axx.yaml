@@ -1,0 +1,105 @@
+name: CP 70 Axx
+kind: dx7
+algorithm: 11
+feedback: 7
+volume: 0.7
+polyphony: 8
+glide: 0.0
+operators:
+- ratio: 1.0
+  detune: -2
+  level: 1.0
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 99
+  eg_level1: 98
+  eg_rate2: 22
+  eg_level2: 89
+  eg_rate3: 35
+  eg_level3: 0
+  eg_rate4: 34
+  eg_level4: 0
+- ratio: 1.0
+  detune: -2
+  level: 0.8484848484848485
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 90
+  eg_level1: 99
+  eg_rate2: 49
+  eg_level2: 99
+  eg_rate3: 22
+  eg_level3: 0
+  eg_rate4: 21
+  eg_level4: 0
+- ratio: 5.0
+  detune: -2
+  level: 0.7575757575757576
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 91
+  eg_level1: 89
+  eg_rate2: 23
+  eg_level2: 76
+  eg_rate3: 0
+  eg_level3: 0
+  eg_rate4: 0
+  eg_level4: 0
+- ratio: 1.0
+  detune: 2
+  level: 0.7575757575757576
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 86
+  eg_level1: 99
+  eg_rate2: 48
+  eg_level2: 76
+  eg_rate3: 19
+  eg_level3: 0
+  eg_rate4: 31
+  eg_level4: 0
+- ratio: 11.0
+  detune: 2
+  level: 0.6363636363636364
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 99
+  eg_level1: 99
+  eg_rate2: 32
+  eg_level2: 76
+  eg_rate3: 19
+  eg_level3: 0
+  eg_rate4: 27
+  eg_level4: 0
+- ratio: 1.0
+  detune: 2
+  level: 0.7474747474747475
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 90
+  eg_level1: 99
+  eg_rate2: 52
+  eg_level2: 99
+  eg_rate3: 0
+  eg_level3: 0
+  eg_rate4: 0
+  eg_level4: 0
+effects: []

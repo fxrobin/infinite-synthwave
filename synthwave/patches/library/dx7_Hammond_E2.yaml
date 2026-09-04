@@ -1,0 +1,105 @@
+name: Hammond.E2
+kind: dx7
+algorithm: 20
+feedback: 6
+volume: 0.7
+polyphony: 8
+glide: 0.0
+operators:
+- ratio: 3.0
+  detune: 2
+  level: 1.0
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 90
+  eg_level1: 99
+  eg_rate2: 59
+  eg_level2: 51
+  eg_rate3: 99
+  eg_level3: 53
+  eg_rate4: 75
+  eg_level4: 0
+- ratio: 1.0
+  detune: 2
+  level: 1.0
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 90
+  eg_level1: 99
+  eg_rate2: 99
+  eg_level2: 99
+  eg_rate3: 99
+  eg_level3: 99
+  eg_rate4: 75
+  eg_level4: 0
+- ratio: 0.5
+  detune: 0
+  level: 0.7575757575757576
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 99
+  eg_level1: 99
+  eg_rate2: 99
+  eg_level2: 99
+  eg_rate3: 99
+  eg_level3: 99
+  eg_rate4: 99
+  eg_level4: 99
+- ratio: 0.5
+  detune: -7
+  level: 1.0
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 90
+  eg_level1: 99
+  eg_rate2: 99
+  eg_level2: 99
+  eg_rate3: 99
+  eg_level3: 99
+  eg_rate4: 75
+  eg_level4: 0
+- ratio: 0.5
+  detune: -2
+  level: 0.9393939393939394
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 90
+  eg_level1: 99
+  eg_rate2: 99
+  eg_level2: 99
+  eg_rate3: 99
+  eg_level3: 99
+  eg_rate4: 70
+  eg_level4: 0
+- ratio: 0.5
+  detune: 0
+  level: 0.7070707070707071
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 99
+  eg_level1: 99
+  eg_rate2: 99
+  eg_level2: 99
+  eg_rate3: 99
+  eg_level3: 99
+  eg_rate4: 99
+  eg_level4: 99
+effects: []

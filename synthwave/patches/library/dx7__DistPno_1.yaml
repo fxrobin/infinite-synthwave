@@ -1,0 +1,105 @@
+name: '"DistPno"1'
+kind: dx7
+algorithm: 18
+feedback: 2
+volume: 0.7
+polyphony: 8
+glide: 0.0
+operators:
+- ratio: 1.0
+  detune: -3
+  level: 1.0
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 80
+  eg_level1: 99
+  eg_rate2: 24
+  eg_level2: 62
+  eg_rate3: 10
+  eg_level3: 0
+  eg_rate4: 50
+  eg_level4: 0
+- ratio: 2.0
+  detune: 8
+  level: 1.0
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 95
+  eg_level1: 99
+  eg_rate2: 0
+  eg_level2: 75
+  eg_rate3: 25
+  eg_level3: 0
+  eg_rate4: 0
+  eg_level4: 0
+- ratio: 5.0
+  detune: 1
+  level: 0.898989898989899
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 90
+  eg_level1: 99
+  eg_rate2: 27
+  eg_level2: 85
+  eg_rate3: 20
+  eg_level3: 0
+  eg_rate4: 50
+  eg_level4: 0
+- ratio: 1.0
+  detune: 2
+  level: 0.43434343434343436
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 97
+  eg_level1: 99
+  eg_rate2: 27
+  eg_level2: 86
+  eg_rate3: 10
+  eg_level3: 48
+  eg_rate4: 25
+  eg_level4: 0
+- ratio: 0.5
+  detune: 4
+  level: 0.9090909090909091
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 90
+  eg_level1: 99
+  eg_rate2: 71
+  eg_level2: 0
+  eg_rate3: 33
+  eg_level3: 0
+  eg_rate4: 31
+  eg_level4: 0
+- ratio: 0.5
+  detune: 1
+  level: 1.0
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 92
+  eg_level1: 99
+  eg_rate2: 71
+  eg_level2: 0
+  eg_rate3: 58
+  eg_level3: 0
+  eg_rate4: 36
+  eg_level4: 0
+effects: []

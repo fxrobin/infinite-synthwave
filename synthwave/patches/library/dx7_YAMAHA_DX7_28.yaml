@@ -1,0 +1,105 @@
+name: dx7_YAMAHA_DX7_28
+kind: dx7
+algorithm: 1
+feedback: 0
+volume: 0.7
+polyphony: 8
+glide: 0.0
+operators:
+- ratio: 0.5
+  detune: -7
+  level: 0.0
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 0
+  eg_level1: 0
+  eg_rate2: 0
+  eg_level2: 0
+  eg_rate3: 0
+  eg_level3: 0
+  eg_rate4: 0
+  eg_level4: 0
+- ratio: 0.5
+  detune: -7
+  level: 0.0
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 0
+  eg_level1: 0
+  eg_rate2: 0
+  eg_level2: 0
+  eg_rate3: 0
+  eg_level3: 0
+  eg_rate4: 0
+  eg_level4: 0
+- ratio: 0.5
+  detune: -7
+  level: 0.0
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 0
+  eg_level1: 0
+  eg_rate2: 0
+  eg_level2: 0
+  eg_rate3: 0
+  eg_level3: 0
+  eg_rate4: 0
+  eg_level4: 0
+- ratio: 0.5
+  detune: -7
+  level: 0.0
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 0
+  eg_level1: 0
+  eg_rate2: 0
+  eg_level2: 0
+  eg_rate3: 0
+  eg_level3: 0
+  eg_rate4: 0
+  eg_level4: 0
+- ratio: 0.5
+  detune: -7
+  level: 0.0
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 0
+  eg_level1: 0
+  eg_rate2: 0
+  eg_level2: 0
+  eg_rate3: 0
+  eg_level3: 0
+  eg_rate4: 0
+  eg_level4: 0
+- ratio: 0.5
+  detune: -7
+  level: 0.0
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 0
+  eg_level1: 0
+  eg_rate2: 0
+  eg_level2: 0
+  eg_rate3: 0
+  eg_level3: 0
+  eg_rate4: 0
+  eg_level4: 0
+effects: []

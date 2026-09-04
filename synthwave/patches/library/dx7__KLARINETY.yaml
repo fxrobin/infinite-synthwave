@@ -1,0 +1,105 @@
+name: \KLARINETY
+kind: dx7
+algorithm: 17
+feedback: 6
+volume: 0.7
+polyphony: 8
+glide: 0.0
+operators:
+- ratio: 1.0
+  detune: 1
+  level: 1.0
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 60
+  eg_level1: 99
+  eg_rate2: 0
+  eg_level2: 127
+  eg_rate3: 12
+  eg_level3: 97
+  eg_rate4: 40
+  eg_level4: 0
+- ratio: 2.0
+  detune: -1
+  level: 0.6666666666666666
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 95
+  eg_level1: 99
+  eg_rate2: 95
+  eg_level2: 96
+  eg_rate3: 0
+  eg_level3: 89
+  eg_rate4: 0
+  eg_level4: 0
+- ratio: 4.0
+  detune: 0
+  level: 0.8282828282828283
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 98
+  eg_level1: 87
+  eg_rate2: 87
+  eg_level2: 86
+  eg_rate3: 0
+  eg_level3: 0
+  eg_rate4: 0
+  eg_level4: 0
+- ratio: 6.0
+  detune: 0
+  level: 0.5757575757575758
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 95
+  eg_level1: 99
+  eg_rate2: 92
+  eg_level2: 90
+  eg_rate3: 28
+  eg_level3: 0
+  eg_rate4: 40
+  eg_level4: 0
+- ratio: 8.0
+  detune: -2
+  level: 0.5252525252525253
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 85
+  eg_level1: 99
+  eg_rate2: 70
+  eg_level2: 65
+  eg_rate3: 97
+  eg_level3: 60
+  eg_rate4: 0
+  eg_level4: 0
+- ratio: 10.0
+  detune: 0
+  level: 0.45454545454545453
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 73
+  eg_level1: 99
+  eg_rate2: 70
+  eg_level2: 99
+  eg_rate3: 60
+  eg_level3: 97
+  eg_rate4: 0
+  eg_level4: 0
+effects: []

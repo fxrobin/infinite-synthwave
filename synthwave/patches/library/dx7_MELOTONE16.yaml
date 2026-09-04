@@ -1,0 +1,105 @@
+name: MELOTONE16
+kind: dx7
+algorithm: 16
+feedback: 7
+volume: 0.7
+polyphony: 8
+glide: 0.0
+operators:
+- ratio: 1.0
+  detune: 0
+  level: 0.9696969696969697
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 80
+  eg_level1: 99
+  eg_rate2: 24
+  eg_level2: 85
+  eg_rate3: 20
+  eg_level3: 70
+  eg_rate4: 56
+  eg_level4: 0
+- ratio: 1.0
+  detune: 0
+  level: 0.8888888888888888
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 90
+  eg_level1: 82
+  eg_rate2: 71
+  eg_level2: 92
+  eg_rate3: 17
+  eg_level3: 62
+  eg_rate4: 49
+  eg_level4: 0
+- ratio: 1.0
+  detune: 0
+  level: 0.8282828282828283
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 80
+  eg_level1: 99
+  eg_rate2: 45
+  eg_level2: 85
+  eg_rate3: 20
+  eg_level3: 82
+  eg_rate4: 54
+  eg_level4: 0
+- ratio: 1.0
+  detune: 0
+  level: 0.9595959595959596
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 47
+  eg_level1: 99
+  eg_rate2: 19
+  eg_level2: 92
+  eg_rate3: 20
+  eg_level3: 86
+  eg_rate4: 54
+  eg_level4: 0
+- ratio: 12.0
+  detune: 0
+  level: 0.6363636363636364
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 99
+  eg_level1: 86
+  eg_rate2: 67
+  eg_level2: 92
+  eg_rate3: 33
+  eg_level3: 42
+  eg_rate4: 73
+  eg_level4: 0
+- ratio: 1.0
+  detune: 0
+  level: 0.8686868686868687
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 96
+  eg_level1: 99
+  eg_rate2: 19
+  eg_level2: 92
+  eg_rate3: 20
+  eg_level3: 86
+  eg_rate4: 54
+  eg_level4: 0
+effects: []

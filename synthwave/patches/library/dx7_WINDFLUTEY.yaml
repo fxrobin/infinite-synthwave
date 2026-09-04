@@ -1,0 +1,105 @@
+name: WINDFLUTEY
+kind: dx7
+algorithm: 18
+feedback: 6
+volume: 0.7
+polyphony: 8
+glide: 0.0
+operators:
+- ratio: 0.5
+  detune: 0
+  level: 1.0
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 60
+  eg_level1: 79
+  eg_rate2: 71
+  eg_level2: 75
+  eg_rate3: 66
+  eg_level3: 95
+  eg_rate4: 64
+  eg_level4: 0
+- ratio: 2.15
+  detune: 0
+  level: 0.6363636363636364
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 59
+  eg_level1: 99
+  eg_rate2: 53
+  eg_level2: 59
+  eg_rate3: 61
+  eg_level3: 0
+  eg_rate4: 54
+  eg_level4: 0
+- ratio: 1.0
+  detune: 7
+  level: 0.8383838383838383
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 53
+  eg_level1: 88
+  eg_rate2: 38
+  eg_level2: 44
+  eg_rate3: 75
+  eg_level3: 21
+  eg_rate4: 61
+  eg_level4: 0
+- ratio: 0.5
+  detune: -7
+  level: 0.5858585858585859
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 61
+  eg_level1: 99
+  eg_rate2: 25
+  eg_level2: 99
+  eg_rate3: 25
+  eg_level3: 97
+  eg_rate4: 59
+  eg_level4: 0
+- ratio: 0.5
+  detune: 0
+  level: 0.898989898989899
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 65
+  eg_level1: 99
+  eg_rate2: 38
+  eg_level2: 0
+  eg_rate3: 0
+  eg_level3: 0
+  eg_rate4: 61
+  eg_level4: 0
+- ratio: 3.135
+  detune: 1
+  level: 0.8787878787878788
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 71
+  eg_level1: 99
+  eg_rate2: 68
+  eg_level2: 76
+  eg_rate3: 98
+  eg_level3: 52
+  eg_rate4: 61
+  eg_level4: 0
+effects: []

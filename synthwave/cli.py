@@ -292,10 +292,28 @@ def import_dx7(
         raise typer.BadParameter(f"syx invalide: {e}") from e
     out = Path(out_dir)
     out.mkdir(parents=True, exist_ok=True)
+    import re
+
     for patch in patches:
+        # sanitize DX7 name (may contain spaces/specials) -> filesystem safe
+        safe = re.sub(r"[^A-Za-z0-9_-]+", "_", patch.name.strip()) or f"DX7_{patch.algorithm:02d}"
+        if not safe.startswith("dx7_") and not safe.startswith("DX7_"):
+            safe = f"dx7_{safe}"
+        # ensure unique file
+        target = out / f"{safe}.yaml"
+        if target.exists():
+            # avoid overwrite from different banks with same name
+            base = p.stem.replace(" ", "_")
+            safe = f"dx7_{base}_{safe}"
+            target = out / f"{safe}.yaml"
+            n = 1
+            while target.exists():
+                target = out / f"{safe}_{n}.yaml"
+                n += 1
+            patch.name = target.stem  # keep YAML name in sync with filename
         yaml_text = yaml.safe_dump(patch.model_dump(), sort_keys=False, allow_unicode=True)
-        (out / f"{patch.name}.yaml").write_text(yaml_text, encoding="utf-8")
-        typer.echo(f"wrote {patch.name}.yaml (alg {patch.algorithm} fb {patch.feedback})")
+        target.write_text(yaml_text, encoding="utf-8")
+        typer.echo(f"wrote {target.name} (alg {patch.algorithm} fb {patch.feedback})")
     typer.echo(f"{len(patches)} patches importés depuis {syx}")
 
 

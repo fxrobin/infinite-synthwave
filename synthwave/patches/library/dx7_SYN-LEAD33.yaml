@@ -1,0 +1,105 @@
+name: SYN-LEAD33
+kind: dx7
+algorithm: 22
+feedback: 4
+volume: 0.7
+polyphony: 8
+glide: 0.0
+operators:
+- ratio: 32.0
+  detune: -7
+  level: 0.0
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 87
+  eg_level1: 99
+  eg_rate2: 20
+  eg_level2: 88
+  eg_rate3: 99
+  eg_level3: 42
+  eg_rate4: 71
+  eg_level4: 0
+- ratio: 3.0
+  detune: 0
+  level: 0.7878787878787878
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 0
+  eg_level1: 71
+  eg_rate2: 87
+  eg_level2: 99
+  eg_rate3: 20
+  eg_level3: 88
+  eg_rate4: 99
+  eg_level4: 42
+- ratio: 25.75
+  detune: 0
+  level: 0.0
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 79
+  eg_level1: 99
+  eg_rate2: 76
+  eg_level2: 88
+  eg_rate3: 99
+  eg_level3: 96
+  eg_rate4: 71
+  eg_level4: 0
+- ratio: 2.0
+  detune: -6
+  level: 1.0
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 0
+  eg_level1: 71
+  eg_rate2: 79
+  eg_level2: 99
+  eg_rate3: 76
+  eg_level3: 88
+  eg_rate4: 99
+  eg_level4: 96
+- ratio: 32.0
+  detune: 0
+  level: 1.0
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 87
+  eg_level1: 99
+  eg_rate2: 76
+  eg_level2: 88
+  eg_rate3: 99
+  eg_level3: 96
+  eg_rate4: 71
+  eg_level4: 0
+- ratio: 32.0
+  detune: -6
+  level: 0.0
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 0
+  eg_level1: 71
+  eg_rate2: 87
+  eg_level2: 99
+  eg_rate3: 76
+  eg_level3: 88
+  eg_rate4: 99
+  eg_level4: 96
+effects: []

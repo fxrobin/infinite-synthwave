@@ -1,0 +1,105 @@
+name: PCM-TRMPTY
+kind: dx7
+algorithm: 18
+feedback: 6
+volume: 0.7
+polyphony: 8
+glide: 0.0
+operators:
+- ratio: 1.0
+  detune: 0
+  level: 0.8787878787878788
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 70
+  eg_level1: 99
+  eg_rate2: 24
+  eg_level2: 96
+  eg_rate3: 19
+  eg_level3: 89
+  eg_rate4: 60
+  eg_level4: 0
+- ratio: 2.05
+  detune: 0
+  level: 0.7474747474747475
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 64
+  eg_level1: 85
+  eg_rate2: 60
+  eg_level2: 78
+  eg_rate3: 61
+  eg_level3: 0
+  eg_rate4: 50
+  eg_level4: 0
+- ratio: 1.0
+  detune: 0
+  level: 0.8383838383838383
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 48
+  eg_level1: 99
+  eg_rate2: 12
+  eg_level2: 99
+  eg_rate3: 22
+  eg_level3: 98
+  eg_rate4: 50
+  eg_level4: 0
+- ratio: 1.0
+  detune: 0
+  level: 0.8181818181818182
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 66
+  eg_level1: 99
+  eg_rate2: 76
+  eg_level2: 61
+  eg_rate3: 22
+  eg_level3: 61
+  eg_rate4: 50
+  eg_level4: 0
+- ratio: 6.12
+  detune: -1
+  level: 0.5959595959595959
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 70
+  eg_level1: 99
+  eg_rate2: 12
+  eg_level2: 61
+  eg_rate3: 22
+  eg_level3: 61
+  eg_rate4: 50
+  eg_level4: 0
+- ratio: 7.734999999999999
+  detune: 0
+  level: 0.8484848484848485
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 54
+  eg_level1: 99
+  eg_rate2: 56
+  eg_level2: 0
+  eg_rate3: 20
+  eg_level3: 0
+  eg_rate4: 70
+  eg_level4: 0
+effects: []

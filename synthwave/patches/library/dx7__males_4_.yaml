@@ -1,0 +1,105 @@
+name: ':males:4:'
+kind: dx7
+algorithm: 12
+feedback: 4
+volume: 0.7
+polyphony: 8
+glide: 0.0
+operators:
+- ratio: 1.0
+  detune: -3
+  level: 0.9595959595959596
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 55
+  eg_level1: 95
+  eg_rate2: 48
+  eg_level2: 95
+  eg_rate3: 99
+  eg_level3: 95
+  eg_rate4: 50
+  eg_level4: 0
+- ratio: 1.0
+  detune: 2
+  level: 0.5555555555555556
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 74
+  eg_level1: 99
+  eg_rate2: 74
+  eg_level2: 99
+  eg_rate3: 99
+  eg_level3: 99
+  eg_rate4: 42
+  eg_level4: 0
+- ratio: 3.0
+  detune: 3
+  level: 0.9595959595959596
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 50
+  eg_level1: 93
+  eg_rate2: 74
+  eg_level2: 93
+  eg_rate3: 99
+  eg_level3: 93
+  eg_rate4: 50
+  eg_level4: 0
+- ratio: 2.0
+  detune: -3
+  level: 0.36363636363636365
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 42
+  eg_level1: 98
+  eg_rate2: 44
+  eg_level2: 91
+  eg_rate3: 36
+  eg_level3: 89
+  eg_rate4: 40
+  eg_level4: 0
+- ratio: 1.0
+  detune: 3
+  level: 0.7373737373737373
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 58
+  eg_level1: 42
+  eg_rate2: 46
+  eg_level2: 99
+  eg_rate3: 99
+  eg_level3: 99
+  eg_rate4: 40
+  eg_level4: 0
+- ratio: 6.5
+  detune: -2
+  level: 0.36363636363636365
+  attack: 0.005
+  decay: 0.15
+  sustain: 0.8
+  release: 0.2
+  eg_type: dx7
+  eg_rate1: 57
+  eg_level1: 99
+  eg_rate2: 35
+  eg_level2: 99
+  eg_rate3: 99
+  eg_level3: 99
+  eg_rate4: 41
+  eg_level4: 0
+effects: []
