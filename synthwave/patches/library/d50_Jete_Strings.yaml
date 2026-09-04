@@ -1,0 +1,333 @@
+name: d50_Jete_Strings
+kind: d50
+upper:
+  name: Cello
+  partials:
+  - coarse: 42
+    fine: -6
+    keyfollow: 9
+    lfo_mode: 3
+    penv_mode: 0
+    bend_mode: 1
+    wave: square
+    pcm: 43
+    pw: 0
+    pw_velo: 0
+    pw_lfo: 4
+    pw_lfo_depth: 66
+    cutoff: 83
+    resonance: 0
+    cutoff_kf: 11
+    bias_point: 38
+    bias_level: 7
+    tvf_env_depth: 100
+    tvf_velo: 100
+    tvf_depth_kf: 0
+    tvf_time_kf: 0
+    tvf_env:
+      t:
+      - 0
+      - 64
+      - 0
+      - 0
+      - 69
+      l:
+      - 100
+      - 0
+      - 0
+      sustain: 0
+      end: 0
+    tvf_lfo: 0
+    tvf_lfo_depth: 0
+    tva_level: 95
+    tva_velo: 30
+    tva_bias_point: 98
+    tva_bias_level: 6
+    tva_env:
+      t:
+      - 8
+      - 57
+      - 40
+      - 54
+      - 47
+      l:
+      - 100
+      - 47
+      - 1
+      sustain: 0
+      end: 0
+    tva_velo_time: 4
+    tva_time_kf: 0
+    tva_lfo: 0
+    tva_lfo_depth: 0
+  - coarse: 36
+    fine: 0
+    keyfollow: 11
+    lfo_mode: 3
+    penv_mode: 0
+    bend_mode: 1
+    wave: square
+    pcm: 1
+    pw: 18
+    pw_velo: 0
+    pw_lfo: 4
+    pw_lfo_depth: 34
+    cutoff: 55
+    resonance: 0
+    cutoff_kf: 11
+    bias_point: 98
+    bias_level: 3
+    tvf_env_depth: 55
+    tvf_velo: 40
+    tvf_depth_kf: 0
+    tvf_time_kf: 0
+    tvf_env:
+      t:
+      - 3
+      - 44
+      - 92
+      - 72
+      - 69
+      l:
+      - 100
+      - 50
+      - 25
+      sustain: 25
+      end: 0
+    tvf_lfo: 0
+    tvf_lfo_depth: 0
+    tva_level: 95
+    tva_velo: 24
+    tva_bias_point: 95
+    tva_bias_level: 8
+    tva_env:
+      t:
+      - 20
+      - 30
+      - 66
+      - 77
+      - 44
+      l:
+      - 40
+      - 100
+      - 88
+      sustain: 95
+      end: 0
+    tva_velo_time: 0
+    tva_time_kf: 0
+    tva_lfo: 0
+    tva_lfo_depth: 0
+  common:
+    structure: 3
+    penv_velo: 0
+    penv_time_kf: 0
+    penv_t:
+    - 20
+    - 20
+    - 20
+    - 20
+    penv_l:
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    pmod_lfo_depth: 9
+    pmod_lever: 36
+    pmod_at: 22
+    lfos:
+    - wave: 0
+      rate: 74
+      delay: 0
+      sync: 0
+    - wave: 0
+      rate: 52
+      delay: 0
+      sync: 0
+    - wave: 0
+      rate: 61
+      delay: 0
+      sync: 0
+    eq_low_freq: 8
+    eq_low_gain: 4
+    eq_high_freq: 19
+    eq_high_q: 0
+    eq_high_gain: 2
+    chorus_type: 1
+    chorus_rate: 54
+    chorus_depth: 49
+    chorus_balance: 42
+    partial_mute: 3
+    partial_balance: 55
+lower:
+  name: Violins
+  partials:
+  - coarse: 24
+    fine: 42
+    keyfollow: 11
+    lfo_mode: 3
+    penv_mode: 0
+    bend_mode: 1
+    wave: square
+    pcm: 45
+    pw: 1
+    pw_velo: 0
+    pw_lfo: 4
+    pw_lfo_depth: 62
+    cutoff: 83
+    resonance: 0
+    cutoff_kf: 11
+    bias_point: 38
+    bias_level: 7
+    tvf_env_depth: 100
+    tvf_velo: 100
+    tvf_depth_kf: 0
+    tvf_time_kf: 0
+    tvf_env:
+      t:
+      - 0
+      - 64
+      - 0
+      - 0
+      - 69
+      l:
+      - 100
+      - 0
+      - 37
+      sustain: 0
+      end: 0
+    tvf_lfo: 0
+    tvf_lfo_depth: 0
+    tva_level: 95
+    tva_velo: 30
+    tva_bias_point: 25
+    tva_bias_level: 0
+    tva_env:
+      t:
+      - 2
+      - 89
+      - 40
+      - 54
+      - 47
+      l:
+      - 100
+      - 80
+      - 0
+      sustain: 0
+      end: 0
+    tva_velo_time: 4
+    tva_time_kf: 0
+    tva_lfo: 0
+    tva_lfo_depth: 0
+  - coarse: 36
+    fine: 0
+    keyfollow: 11
+    lfo_mode: 2
+    penv_mode: 0
+    bend_mode: 1
+    wave: square
+    pcm: 1
+    pw: 23
+    pw_velo: 0
+    pw_lfo: 4
+    pw_lfo_depth: 83
+    cutoff: 60
+    resonance: 0
+    cutoff_kf: 11
+    bias_point: 32
+    bias_level: 2
+    tvf_env_depth: 8
+    tvf_velo: 33
+    tvf_depth_kf: 0
+    tvf_time_kf: 0
+    tvf_env:
+      t:
+      - 0
+      - 57
+      - 0
+      - 0
+      - 69
+      l:
+      - 100
+      - 0
+      - 37
+      sustain: 0
+      end: 0
+    tvf_lfo: 0
+    tvf_lfo_depth: 0
+    tva_level: 95
+    tva_velo: 24
+    tva_bias_point: 20
+    tva_bias_level: 12
+    tva_env:
+      t:
+      - 23
+      - 36
+      - 55
+      - 77
+      - 46
+      l:
+      - 40
+      - 100
+      - 90
+      sustain: 95
+      end: 0
+    tva_velo_time: 0
+    tva_time_kf: 0
+    tva_lfo: 0
+    tva_lfo_depth: 0
+  common:
+    structure: 3
+    penv_velo: 0
+    penv_time_kf: 0
+    penv_t:
+    - 20
+    - 20
+    - 20
+    - 20
+    penv_l:
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    pmod_lfo_depth: 7
+    pmod_lever: 20
+    pmod_at: 18
+    lfos:
+    - wave: 0
+      rate: 77
+      delay: 11
+      sync: 0
+    - wave: 0
+      rate: 0
+      delay: 0
+      sync: 0
+    - wave: 0
+      rate: 76
+      delay: 0
+      sync: 0
+    eq_low_freq: 0
+    eq_low_gain: 0
+    eq_high_freq: 15
+    eq_high_q: 0
+    eq_high_gain: 2
+    chorus_type: 1
+    chorus_rate: 52
+    chorus_depth: 40
+    chorus_balance: 45
+    partial_mute: 3
+    partial_balance: 50
+key_mode: 1
+split: 24
+key_shift_upper: 0
+key_shift_lower: 0
+tune_upper: 2
+tune_lower: -2
+reverb_type: 9
+reverb_balance: 40
+patch_volume: 70
+tone_balance: 50
+polyphony: 8
+volume: 0.199
+effects: []

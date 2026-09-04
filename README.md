@@ -48,7 +48,9 @@ uv run synthwave play --duration 3m --seed 42 --export track.wav   # rendu hors-
 uv run synthwave play --fx pad:gate:rate=1/16,depth=0.8 --fx master:lofi:bits=8
 uv run synthwave play --mood minimal --patch bass:dx7_bass --patch pad:dx7_epiano  # DX7 6-op fidèle
 uv run synthwave play --mood retro --patch pad:solina_wywh --patch lead2:solina_horn  # Solina String Ensemble
-uv run synthwave patches                       # patches disponibles (660)
+uv run synthwave play --mood dreamy --patch pad:d50_Fantasia --patch arp:d50_Staccato_Heaven  # Roland D-50
+uv run synthwave patches                       # patches disponibles (724)
+uv run synthwave import-d50 PND50-00.syx       # importe un bank D-50 (64 patches) → YAML d50_*
 uv run synthwave import-dx7 bank.syx           # importe 32 voix DX7 bulk → YAML dx7_*
 uv run synthwave devices                       # périphériques audio
 uv run synthwave mcp                           # serveur MCP (stdio)
@@ -246,6 +248,28 @@ Moteur FM 6 opérateurs `sine` + 32 algorithmes Yamaha (flags `IN/OUT/FB/ADD`, b
 
 Sources : Wikipedia « ARP String Ensemble », Sound On Sound « Eminent 310 », jhaible « Triple Chorus », KVR « solina ensemble effect », guide Zoe Blade, manuel Arturia Solina V, guide Behringer Solina.
 
+### Roland D-50 — Linear Arithmetic (`synthwave/engine/d50.py`, `synthwave/engine/d50_pcm.py`)
+
+Émulation de l'architecture LA du D-50 (1987) : un patch = 2 **tones** (upper / lower, key mode
+WHOLE / DUAL / SPLIT), un tone = 2 **partials** + bloc commun, 7 **structures** (1 `S+S`, 2 `S×S`,
+3 `P+S`, 4 `P×S`, 5 `S×P`, 6 `P+P`, 7 `P×P` ; `×` = ring modulator, sortie `P1 + P1·P2`).
+Patches `kind: d50` en valeurs panneau entières, import sysex sans perte :
+`synthwave import-d50 bank.syx` (bulk dump 64 patches × 448 octets, checksums vérifiés,
+`volume` calibré automatiquement sur un accord).
+
+| Élément | Émulation |
+|---|---|
+| Partial synthé (LA32) | Pas de filtre : carré à flancs cosinus dont la demi-largeur `w = f / (2·cutoff)` s'élargit quand le cutoff baisse (sinus quand cutoff ≤ f, atténuation en dessous), résonance = sinus amorti à la fréquence de coupure relancé à chaque cycle, **saw = rampe à 2f** (une octave au-dessus du carré, comme sur la machine ; le bank d'usine est écrit autour de ça). PW 0–100, PWM par LFO. `cutoff_hz = f_C4 · 2^((cutoff−50)/8 + KF·(note−60)/12 + bias + env·depth + LFO)`. |
+| Partial PCM | Lit une des 100 ondes selon la règle du D-50 : `f × 2048` mots/s (une boucle de L mots sonne à `f·2048/L`, un one-shot joue à vitesse native pour f ≈ C0). Les ondes ROM étant copyrightées, elles sont **synthétisées** par famille (`d50_pcm.py`) avec les longueurs de la table reconstruite : 1–47 transitoires (maillets, pianos, cordes pincées, percussions, souffles, cuivres, archets), 48–76 boucles (orgues, EP, clavi, basses, cordes, sax, voix `Aah/Ooh/Male`, Spectrum 1–7, Noise), 77–100 boucles composites. |
+| Enveloppes | TVF / TVA : T1–T5 `0,004·20000^(v/100)` s (4 ms → 80 s), L1–L3, sustain, end ; TVA linéaire en dB, TVF linéaire. P-ENV : T `0,009·1000^(v/50)` s, niveaux ±1 / 1,5 / 2 octaves selon `penv_velo`. Keyfollow temps, vélocité (niveau, temps 1, profondeur TVF). |
+| LFO | 3 par tone, TRI / SAW / SQU / RND, rate `0,0004·67500^(v/100)` Hz, delay `10·(v/100)²` s. Vibrato ±600 cents × loi de profondeur Roland (double tous les 10 pas). Routage `+1 −1 +2 −2 +3 −3` vers pitch, PW, TVF, TVA. |
+| Bloc commun | EQ low shelf (16 fréquences) + peak (22 fréquences, 9 Q) ; chorus 8 types (chorus 1/2, flanger 1/2, feedback chorus, tremolo, chorus-tremolo, dimension) ; mute et balance des partials. |
+| Patch | Key mode, split, key shift / tune par tone, balance des tones, volume ; **reverb 32 types** mappés sur `Reverb` / `Delay` / `GatedReverb` avec les temps Roland (halls, rooms, delays 102–338 ms, cross delays, gate 200/480 ms, reverse gate, slap back, Twisted Space, Space). |
+
+Polyphonie 16 (8 en dual / split), vol de la plus ancienne. Hors périmètre : aftertouch, bender, portamento, modes mono `-S`, chargement de ROM.
+
+Sources : guide de paramètres Roland D-05, notes de service (plages temporelles), Wikipedia, modèle LA32 documenté par munt, format sysex vérifié par D50SysexBinConverter et d5_syx_to_patches.py, banks ROM Roland PN-D50-00…04 (bobbyblues.recup.ch, cultofd50).
+
 ---
 
 ## Effets — référence complète
@@ -339,12 +363,39 @@ effects:
   - {type: reverb, size: 0.9, damping: 0.5, mix: 0.3, predelay: 0.03}
 ```
 
+Patch D-50 (`kind: d50`) — valeurs panneau entières, voir « Roland D-50 » ; import `synthwave import-d50 bank.syx` :
+```yaml
+name: d50_Fantasia
+kind: d50
+key_mode: 1              # 0 WHOLE, 1 DUAL, 2 SPLIT (+ variantes)
+split: 24                # C2 + n
+reverb_type: 2           # 1..32 (Medium Hall)
+reverb_balance: 38
+tone_balance: 50
+patch_volume: 100
+upper:
+  common: {structure: 1, chorus_type: 1, chorus_rate: 40, chorus_depth: 60, chorus_balance: 50,
+           penv_t: [0, 0, 0, 0], penv_l: [0, 0, 0, 0, 0], lfos: [{wave: 0, rate: 74, delay: 0, sync: 0}, {}, {}],
+           partial_mute: 3, partial_balance: 50}
+  partials:
+    - {wave: saw, coarse: 24, fine: -5, keyfollow: 11, cutoff: 52, resonance: 0, cutoff_kf: 9,
+       tvf_env_depth: 52, tvf_env: {t: [17, 55, 44, 34, 88], l: [90, 62, 70], sustain: 44, end: 0},
+       tva_level: 100, tva_env: {t: [37, 58, 45, 78, 56], l: [64, 90, 100], sustain: 88, end: 0}}
+    - {wave: saw, coarse: 24, cutoff: 48, tva_level: 100}
+lower:
+  common: {structure: 6}
+  partials:
+    - {pcm: 13, coarse: 54}   # Bells (one-shot)
+    - {pcm: 69, coarse: 19}   # Spectrum 2 (boucle)
+volume: 0.45
+```
+
 Patch batterie (`kind: drums`) : `kick` (pitch, `sub`, `drive` saturation, `gain`), `snare`
 (gated reverb, `gain`), `hat`, `clap`, `tom`, `crash_gain`, et `perc_effects` : chaîne
 d'effets appliquée à toutes les percussions sauf le kick (écho ping‑pong + reverb dans
 `drums_dark.yaml`). Voir `drums_808.yaml`.
 
-### Bibliothèque livrée (660 patches — 96 soustractifs + 550 DX7 + 14 Solina)
+### Bibliothèque livrée (724 patches — 96 soustractifs + 550 DX7 + 14 Solina + 64 D-50)
 
 | Catégorie | Patch | Caractère |
 |---|---|---|
@@ -462,6 +513,12 @@ d'effets appliquée à toutes les percussions sauf le kick (écho ping‑pong + 
 | | `solina_contrabass` | Contrabass + cello, section basse seule, `bass_volume` 1.0 |
 | | `solina_violin` / `solina_viola` / `solina_trumpet` / `solina_horn` | Registres seuls (0.15 / 0.6 cordes, 0.05 / 0.4–0.5 cuivres) |
 | | `solina_dry` | Violin + viola sans ensemble, mono — son brut des diviseurs, organ-like |
+| **D-50** | `d50_Fantasia` | Le preset 1-1 : saws LA32 (upper) + Bells / Spectrum 2 PCM (lower), reverb Medium Hall |
+| | `d50_DigitalNativeDance` | Structure PCM rythmique, LFO carrés, chorus |
+| | `d50_Staccato_Heaven` | Pizz + saws courtes, gate reverb — arp |
+| | `d50_Pizzagogo` | Pizzicato PCM + synthé, delay — arp (Enya) |
+| | `d50_Soundtrack` / `d50_Spacious_Sweep` / `d50_Glass_Voices` / `d50_Nightmare` / `d50_Future_Pad` | Nappes et textures — pools pad / ambient |
+| | `d50_*` (64) | Bank ROM Roland PN-D50-00 importé par `import-d50` (volumes calibrés RMS ≈ 0.1) |
 
 ---
 
@@ -635,7 +692,7 @@ morceau et progression (mesures de la section / du morceau), tonalité, accord, 
 mood en attente, oscilloscope du master, VU-mètre par couche et gain courant de l'arrangeur.
 Contrôles live : Start (mood/BPM/seed/durée de morceau), Stop, section suivante, tempo,
 changement de mood (via outro + transition), mute / solo / volume par couche, patch par couche
-(liste filtrée par famille + 550 DX7 `dx7_*` et 14 Solina `solina_*` sur chaque couche hors `drums`, pastille jaune `DX7` / orange `SOLINA` quand actif), panneau **Tweak** (sliders générés depuis le patch : filtre,
+(liste filtrée par famille + 550 DX7 `dx7_*`, 14 Solina `solina_*` et 64 D-50 `d50_*` sur chaque couche hors `drums`, pastille jaune `DX7` / orange `SOLINA` / bleue `D-50` quand actif), panneau **Tweak** (sliders générés depuis le patch : filtre,
 enveloppes, LFO, oscillateurs, kick/snare/hats…) et chaîne d'effets par couche ou master
 (chips : clic = retirer, `+ effet` = ajouter avec des valeurs par défaut, `↺ auto` = rendre la
 main à l'arrangeur).

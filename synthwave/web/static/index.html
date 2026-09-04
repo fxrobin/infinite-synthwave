@@ -104,6 +104,7 @@
   .chip.add { color: var(--muted); background: transparent; border-style: dashed; }
   .chip.tweak { background: rgba(255,181,71,.12); color: var(--amber); cursor: default; }
   .chip.dx7 { background: rgba(255,214,0,.14); color: #ffd600; border-color: rgba(255,214,0,.35); cursor: default; font-weight: 700; letter-spacing: .08em; }
+  .chip.d50 { background: rgba(80,200,255,.14); color: #50c8ff; border-color: rgba(80,200,255,.35); cursor: default; font-weight: 700; letter-spacing: .08em; }
   .chip.solina { background: rgba(255,120,40,.14); color: #ff7828; border-color: rgba(255,120,40,.35); cursor: default; font-weight: 700; letter-spacing: .08em; }
   .mini { font-size: 11px; color: var(--muted); }
   .tweak { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); }
@@ -226,10 +227,11 @@ function buildLayers() {
     el.style.borderTop = "3px solid " + LAYER_COLORS[layer];
     const isDx7 = (p) => p.toLowerCase().startsWith("dx7_");
     const isSolina = (p) => p.startsWith("solina_");
-    const patches = state.meta.patches.filter(p => p.startsWith(layer + "_") || (layer !== "drums" && (isDx7(p) || isSolina(p))));
+    const isD50 = (p) => p.startsWith("d50_");
+    const patches = state.meta.patches.filter(p => p.startsWith(layer + "_") || (layer !== "drums" && (isDx7(p) || isSolina(p) || isD50(p))));
     // construction DOM sans innerHTML pour les patch names (XSS stocké)
     el.innerHTML = `
-      <div class="name"><span></span><span class="chip dx7 hidden" data-dx7 title="Patch DX7 6-op fidèle (32 algs)">DX7</span><span class="chip solina hidden" data-solina title="Solina String Ensemble : divide-down, keyers RC, triple BBD">SOLINA</span><span class="mini" data-gain></span></div>
+      <div class="name"><span></span><span class="chip dx7 hidden" data-dx7 title="Patch DX7 6-op fidèle (32 algs)">DX7</span><span class="chip solina hidden" data-solina title="Solina String Ensemble : divide-down, keyers RC, triple BBD">SOLINA</span><span class="chip d50 hidden" data-d50 title="Roland D-50 : LA synthesis, 2 tones × 2 partials, 7 structures">D-50</span><span class="mini" data-gain></span></div>
       <div class="meter"><i data-meter></i></div>
       <div style="display:flex;gap:6px;align-items:center">
         <button class="small" data-mute>M</button><button class="small" data-solo>S</button>
@@ -294,6 +296,8 @@ function fxChips(container, layer, specs, manual) {
 // ---------- tweak panel ----------
 const TWEAK_FIELDS = [
   ["volume", 0, 2, 0.01], ["glide", 0, 0.3, 0.005],
+  ["reverb_balance", 0, 100, 1], ["tone_balance", 0, 100, 1], ["patch_volume", 0, 100, 1],
+  ["upper.common.chorus_balance", 0, 100, 1], ["upper.partials.0.cutoff", 0, 100, 1], ["upper.partials.1.cutoff", 0, 100, 1],
   ["crescendo", 0.005, 2, 0.005, "log"], ["sustain_length", 0.05, 4, 0.01, "log"], ["bass_volume", 0, 1.5, 0.01], ["tune", -100, 100, 1],
   ["filter.cutoff", 20, 20000, 1, "log"], ["filter.resonance", 0, 1, 0.01],
   ["filter.env.amount", 0, 5000, 10], ["filter.env.attack", 0, 3, 0.01], ["filter.env.decay", 0, 3, 0.01],
@@ -370,6 +374,8 @@ function render(st) {
     if (dx7) dx7.classList.toggle("hidden", !L.patch.toLowerCase().startsWith("dx7_"));
     const sol = card.querySelector("[data-solina]");
     if (sol) sol.classList.toggle("hidden", !L.patch.startsWith("solina_"));
+    const d50 = card.querySelector("[data-d50]");
+    if (d50) d50.classList.toggle("hidden", !L.patch.startsWith("d50_"));
     card.querySelector("[data-gain]").textContent = `gain ${L.gain.toFixed(2)}`;
     card.querySelector("[data-meter]").style.width = (100 * Math.min(1, st.levels[layer] || 0)) + "%";
     card.querySelector("[data-mute]").classList.toggle("active", L.muted);

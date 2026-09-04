@@ -7,7 +7,13 @@ from synthwave.patches.loader import (
     patch_from_dict,
     set_param,
 )
-from synthwave.patches.model import DrumPatchModel, Dx7PatchModel, PatchModel, SolinaPatchModel
+from synthwave.patches.model import (
+    D50PatchModel,
+    DrumPatchModel,
+    Dx7PatchModel,
+    PatchModel,
+    SolinaPatchModel,
+)
 
 
 def test_library_lists_and_loads_all():
@@ -16,7 +22,9 @@ def test_library_lists_and_loads_all():
     assert expected <= set(names)
     for n in names:
         p = load_patch(n)
-        assert isinstance(p, (PatchModel, DrumPatchModel, Dx7PatchModel, SolinaPatchModel))
+        assert isinstance(
+            p, (PatchModel, DrumPatchModel, Dx7PatchModel, SolinaPatchModel, D50PatchModel)
+        )
 
 
 def test_drum_patch_discriminated():
@@ -56,8 +64,8 @@ def test_every_library_patch_is_in_a_pool_and_every_pool_patch_exists():
 
     pooled = {name for m in MOODS.values() for names in m.pools.values() for name in names}
     library = set(list_patches())
-    # DX7 banks are bulk imports, available via --patch but not required in a mood pool
-    dx7_library = {n for n in library if n.lower().startswith("dx7_")}
+    # DX7 / D-50 banks are bulk imports, available via --patch but not required in a mood pool
+    dx7_library = {n for n in library if n.lower().startswith(("dx7_", "d50_"))}
     assert pooled <= library
     assert (library - dx7_library) <= pooled | {
         n for m in MOODS.values() for n in m.patches.values()

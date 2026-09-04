@@ -1,0 +1,333 @@
+name: d50_Slap_Bass_n_Brass
+kind: d50
+upper:
+  name: TouchBrass
+  partials:
+  - coarse: 0
+    fine: 4
+    keyfollow: 11
+    lfo_mode: 1
+    penv_mode: 0
+    bend_mode: 1
+    wave: saw
+    pcm: 28
+    pw: 0
+    pw_velo: 0
+    pw_lfo: 5
+    pw_lfo_depth: 0
+    cutoff: 48
+    resonance: 0
+    cutoff_kf: 8
+    bias_point: 108
+    bias_level: 4
+    tvf_env_depth: 90
+    tvf_velo: 90
+    tvf_depth_kf: 0
+    tvf_time_kf: 0
+    tvf_env:
+      t:
+      - 38
+      - 67
+      - 0
+      - 0
+      - 94
+      l:
+      - 100
+      - 0
+      - 0
+      sustain: 0
+      end: 0
+    tvf_lfo: 2
+    tvf_lfo_depth: 0
+    tva_level: 100
+    tva_velo: 2
+    tva_bias_point: 95
+    tva_bias_level: 12
+    tva_env:
+      t:
+      - 0
+      - 97
+      - 67
+      - 0
+      - 37
+      l:
+      - 100
+      - 0
+      - 0
+      sustain: 0
+      end: 0
+    tva_velo_time: 0
+    tva_time_kf: 0
+    tva_lfo: 5
+    tva_lfo_depth: 29
+  - coarse: 0
+    fine: 13
+    keyfollow: 11
+    lfo_mode: 2
+    penv_mode: 2
+    bend_mode: 1
+    wave: saw
+    pcm: 28
+    pw: 0
+    pw_velo: 0
+    pw_lfo: 4
+    pw_lfo_depth: 0
+    cutoff: 48
+    resonance: 0
+    cutoff_kf: 8
+    bias_point: 108
+    bias_level: 4
+    tvf_env_depth: 90
+    tvf_velo: 90
+    tvf_depth_kf: 0
+    tvf_time_kf: 0
+    tvf_env:
+      t:
+      - 38
+      - 67
+      - 0
+      - 0
+      - 94
+      l:
+      - 100
+      - 0
+      - 0
+      sustain: 0
+      end: 0
+    tvf_lfo: 2
+    tvf_lfo_depth: 0
+    tva_level: 100
+    tva_velo: 50
+    tva_bias_point: 95
+    tva_bias_level: 12
+    tva_env:
+      t:
+      - 0
+      - 97
+      - 67
+      - 0
+      - 37
+      l:
+      - 100
+      - 0
+      - 0
+      sustain: 0
+      end: 0
+    tva_velo_time: 0
+    tva_time_kf: 0
+    tva_lfo: 4
+    tva_lfo_depth: 29
+  common:
+    structure: 1
+    penv_velo: 2
+    penv_time_kf: 0
+    penv_t:
+    - 7
+    - 20
+    - 20
+    - 20
+    penv_l:
+    - -9
+    - 0
+    - 0
+    - 0
+    - 0
+    pmod_lfo_depth: 0
+    pmod_lever: 24
+    pmod_at: 24
+    lfos:
+    - wave: 0
+      rate: 73
+      delay: 59
+      sync: 2
+    - wave: 1
+      rate: 100
+      delay: 0
+      sync: 0
+    - wave: 0
+      rate: 1
+      delay: 0
+      sync: 1
+    eq_low_freq: 5
+    eq_low_gain: 2
+    eq_high_freq: 0
+    eq_high_q: 0
+    eq_high_gain: 0
+    chorus_type: 1
+    chorus_rate: 49
+    chorus_depth: 61
+    chorus_balance: 34
+    partial_mute: 3
+    partial_balance: 52
+lower:
+  name: SlapBass 2
+  partials:
+  - coarse: 36
+    fine: 0
+    keyfollow: 11
+    lfo_mode: 3
+    penv_mode: 0
+    bend_mode: 1
+    wave: square
+    pcm: 28
+    pw: 82
+    pw_velo: 7
+    pw_lfo: 4
+    pw_lfo_depth: 0
+    cutoff: 60
+    resonance: 0
+    cutoff_kf: 7
+    bias_point: 27
+    bias_level: 7
+    tvf_env_depth: 0
+    tvf_velo: 0
+    tvf_depth_kf: 0
+    tvf_time_kf: 0
+    tvf_env:
+      t:
+      - 0
+      - 0
+      - 0
+      - 0
+      - 0
+      l:
+      - 100
+      - 100
+      - 100
+      sustain: 100
+      end: 0
+    tvf_lfo: 2
+    tvf_lfo_depth: 0
+    tva_level: 100
+    tva_velo: 50
+    tva_bias_point: 95
+    tva_bias_level: 7
+    tva_env:
+      t:
+      - 0
+      - 97
+      - 0
+      - 0
+      - 31
+      l:
+      - 100
+      - 0
+      - 0
+      sustain: 0
+      end: 0
+    tva_velo_time: 4
+    tva_time_kf: 0
+    tva_lfo: 0
+    tva_lfo_depth: 0
+  - coarse: 12
+    fine: 1
+    keyfollow: 11
+    lfo_mode: 3
+    penv_mode: 0
+    bend_mode: 1
+    wave: square
+    pcm: 53
+    pw: 60
+    pw_velo: 0
+    pw_lfo: 4
+    pw_lfo_depth: 0
+    cutoff: 40
+    resonance: 0
+    cutoff_kf: 8
+    bias_point: 27
+    bias_level: 7
+    tvf_env_depth: 100
+    tvf_velo: 36
+    tvf_depth_kf: 0
+    tvf_time_kf: 2
+    tvf_env:
+      t:
+      - 0
+      - 27
+      - 69
+      - 76
+      - 69
+      l:
+      - 100
+      - 57
+      - 33
+      sustain: 0
+      end: 0
+    tvf_lfo: 2
+    tvf_lfo_depth: 0
+    tva_level: 100
+    tva_velo: 2
+    tva_bias_point: 37
+    tva_bias_level: 12
+    tva_env:
+      t:
+      - 0
+      - 0
+      - 74
+      - 0
+      - 0
+      l:
+      - 100
+      - 100
+      - 0
+      sustain: 0
+      end: 0
+    tva_velo_time: 0
+    tva_time_kf: 3
+    tva_lfo: 0
+    tva_lfo_depth: 0
+  common:
+    structure: 3
+    penv_velo: 2
+    penv_time_kf: 0
+    penv_t:
+    - 20
+    - 20
+    - 20
+    - 20
+    penv_l:
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    pmod_lfo_depth: 0
+    pmod_lever: 22
+    pmod_at: 8
+    lfos:
+    - wave: 0
+      rate: 75
+      delay: 0
+      sync: 2
+    - wave: 1
+      rate: 100
+      delay: 0
+      sync: 0
+    - wave: 1
+      rate: 45
+      delay: 0
+      sync: 1
+    eq_low_freq: 5
+    eq_low_gain: 10
+    eq_high_freq: 0
+    eq_high_q: 0
+    eq_high_gain: 0
+    chorus_type: 8
+    chorus_rate: 54
+    chorus_depth: 53
+    chorus_balance: 0
+    partial_mute: 3
+    partial_balance: 50
+key_mode: 2
+split: 25
+key_shift_upper: 12
+key_shift_lower: 12
+tune_upper: -6
+tune_lower: -1
+reverb_type: 15
+reverb_balance: 22
+patch_volume: 80
+tone_balance: 40
+polyphony: 8
+volume: 0.173
+effects: []

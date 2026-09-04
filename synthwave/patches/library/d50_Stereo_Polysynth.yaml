@@ -1,0 +1,333 @@
+name: d50_Stereo_Polysynth
+kind: d50
+upper:
+  name: Percussive
+  partials:
+  - coarse: 12
+    fine: 0
+    keyfollow: 11
+    lfo_mode: 1
+    penv_mode: 0
+    bend_mode: 1
+    wave: saw
+    pcm: 28
+    pw: 0
+    pw_velo: 0
+    pw_lfo: 5
+    pw_lfo_depth: 0
+    cutoff: 56
+    resonance: 0
+    cutoff_kf: 8
+    bias_point: 107
+    bias_level: 5
+    tvf_env_depth: 94
+    tvf_velo: 94
+    tvf_depth_kf: 0
+    tvf_time_kf: 0
+    tvf_env:
+      t:
+      - 0
+      - 52
+      - 59
+      - 72
+      - 61
+      l:
+      - 100
+      - 41
+      - 0
+      sustain: 64
+      end: 0
+    tvf_lfo: 4
+    tvf_lfo_depth: 0
+    tva_level: 98
+    tva_velo: 2
+    tva_bias_point: 27
+    tva_bias_level: 12
+    tva_env:
+      t:
+      - 0
+      - 97
+      - 67
+      - 0
+      - 52
+      l:
+      - 100
+      - 0
+      - 0
+      sustain: 0
+      end: 0
+    tva_velo_time: 0
+    tva_time_kf: 0
+    tva_lfo: 4
+    tva_lfo_depth: 40
+  - coarse: 12
+    fine: -9
+    keyfollow: 11
+    lfo_mode: 2
+    penv_mode: 2
+    bend_mode: 1
+    wave: saw
+    pcm: 28
+    pw: 0
+    pw_velo: 0
+    pw_lfo: 4
+    pw_lfo_depth: 0
+    cutoff: 56
+    resonance: 0
+    cutoff_kf: 8
+    bias_point: 107
+    bias_level: 5
+    tvf_env_depth: 94
+    tvf_velo: 94
+    tvf_depth_kf: 0
+    tvf_time_kf: 0
+    tvf_env:
+      t:
+      - 0
+      - 52
+      - 59
+      - 72
+      - 61
+      l:
+      - 100
+      - 41
+      - 0
+      sustain: 64
+      end: 0
+    tvf_lfo: 4
+    tvf_lfo_depth: 0
+    tva_level: 98
+    tva_velo: 45
+    tva_bias_point: 27
+    tva_bias_level: 12
+    tva_env:
+      t:
+      - 0
+      - 97
+      - 67
+      - 0
+      - 52
+      l:
+      - 100
+      - 0
+      - 0
+      sustain: 0
+      end: 0
+    tva_velo_time: 0
+    tva_time_kf: 0
+    tva_lfo: 4
+    tva_lfo_depth: 40
+  common:
+    structure: 1
+    penv_velo: 2
+    penv_time_kf: 0
+    penv_t:
+    - 7
+    - 0
+    - 0
+    - 0
+    penv_l:
+    - -3
+    - 0
+    - 0
+    - 0
+    - 0
+    pmod_lfo_depth: 0
+    pmod_lever: 22
+    pmod_at: 14
+    lfos:
+    - wave: 0
+      rate: 73
+      delay: 59
+      sync: 2
+    - wave: 1
+      rate: 100
+      delay: 0
+      sync: 0
+    - wave: 0
+      rate: 28
+      delay: 0
+      sync: 1
+    eq_low_freq: 0
+    eq_low_gain: 4
+    eq_high_freq: 0
+    eq_high_q: 0
+    eq_high_gain: 0
+    chorus_type: 1
+    chorus_rate: 24
+    chorus_depth: 0
+    chorus_balance: 0
+    partial_mute: 3
+    partial_balance: 61
+lower:
+  name: Synths
+  partials:
+  - coarse: 12
+    fine: 0
+    keyfollow: 11
+    lfo_mode: 1
+    penv_mode: 0
+    bend_mode: 1
+    wave: saw
+    pcm: 28
+    pw: 0
+    pw_velo: 0
+    pw_lfo: 5
+    pw_lfo_depth: 0
+    cutoff: 56
+    resonance: 0
+    cutoff_kf: 8
+    bias_point: 107
+    bias_level: 5
+    tvf_env_depth: 94
+    tvf_velo: 94
+    tvf_depth_kf: 0
+    tvf_time_kf: 0
+    tvf_env:
+      t:
+      - 0
+      - 52
+      - 59
+      - 72
+      - 61
+      l:
+      - 100
+      - 41
+      - 0
+      sustain: 64
+      end: 0
+    tvf_lfo: 4
+    tvf_lfo_depth: 0
+    tva_level: 98
+    tva_velo: 2
+    tva_bias_point: 27
+    tva_bias_level: 12
+    tva_env:
+      t:
+      - 0
+      - 97
+      - 67
+      - 0
+      - 52
+      l:
+      - 100
+      - 0
+      - 0
+      sustain: 0
+      end: 0
+    tva_velo_time: 0
+    tva_time_kf: 0
+    tva_lfo: 5
+    tva_lfo_depth: 40
+  - coarse: 12
+    fine: -9
+    keyfollow: 11
+    lfo_mode: 2
+    penv_mode: 2
+    bend_mode: 1
+    wave: saw
+    pcm: 28
+    pw: 0
+    pw_velo: 0
+    pw_lfo: 4
+    pw_lfo_depth: 0
+    cutoff: 56
+    resonance: 0
+    cutoff_kf: 8
+    bias_point: 107
+    bias_level: 5
+    tvf_env_depth: 94
+    tvf_velo: 94
+    tvf_depth_kf: 0
+    tvf_time_kf: 0
+    tvf_env:
+      t:
+      - 0
+      - 52
+      - 59
+      - 72
+      - 61
+      l:
+      - 100
+      - 41
+      - 0
+      sustain: 64
+      end: 0
+    tvf_lfo: 4
+    tvf_lfo_depth: 0
+    tva_level: 98
+    tva_velo: 45
+    tva_bias_point: 27
+    tva_bias_level: 12
+    tva_env:
+      t:
+      - 0
+      - 97
+      - 67
+      - 0
+      - 52
+      l:
+      - 100
+      - 0
+      - 0
+      sustain: 0
+      end: 0
+    tva_velo_time: 0
+    tva_time_kf: 0
+    tva_lfo: 5
+    tva_lfo_depth: 40
+  common:
+    structure: 1
+    penv_velo: 2
+    penv_time_kf: 0
+    penv_t:
+    - 7
+    - 0
+    - 0
+    - 0
+    penv_l:
+    - -3
+    - 0
+    - 0
+    - 0
+    - 0
+    pmod_lfo_depth: 0
+    pmod_lever: 22
+    pmod_at: 0
+    lfos:
+    - wave: 0
+      rate: 73
+      delay: 59
+      sync: 2
+    - wave: 1
+      rate: 100
+      delay: 0
+      sync: 0
+    - wave: 0
+      rate: 28
+      delay: 0
+      sync: 1
+    eq_low_freq: 0
+    eq_low_gain: 4
+    eq_high_freq: 0
+    eq_high_q: 0
+    eq_high_gain: 0
+    chorus_type: 1
+    chorus_rate: 24
+    chorus_depth: 0
+    chorus_balance: 0
+    partial_mute: 3
+    partial_balance: 61
+key_mode: 1
+split: 24
+key_shift_upper: 0
+key_shift_lower: 0
+tune_upper: 6
+tune_lower: -6
+reverb_type: 1
+reverb_balance: 23
+patch_volume: 70
+tone_balance: 50
+polyphony: 8
+volume: 0.395
+effects: []

@@ -1,0 +1,333 @@
+name: d50_Syn_Marimba
+kind: d50
+upper:
+  name: PcmMarimba
+  partials:
+  - coarse: 36
+    fine: 0
+    keyfollow: 11
+    lfo_mode: 0
+    penv_mode: 0
+    bend_mode: 1
+    wave: square
+    pcm: 8
+    pw: 8
+    pw_velo: -7
+    pw_lfo: 0
+    pw_lfo_depth: 0
+    cutoff: 10
+    resonance: 21
+    cutoff_kf: 13
+    bias_point: 11
+    bias_level: 14
+    tvf_env_depth: 66
+    tvf_velo: 0
+    tvf_depth_kf: 0
+    tvf_time_kf: 4
+    tvf_env:
+      t:
+      - 0
+      - 43
+      - 9
+      - 75
+      - 54
+      l:
+      - 19
+      - 32
+      - 31
+      sustain: 21
+      end: 0
+    tvf_lfo: 0
+    tvf_lfo_depth: 0
+    tva_level: 100
+    tva_velo: 23
+    tva_bias_point: 96
+    tva_bias_level: 5
+    tva_env:
+      t:
+      - 0
+      - 50
+      - 50
+      - 50
+      - 50
+      l:
+      - 100
+      - 80
+      - 0
+      sustain: 0
+      end: 0
+    tva_velo_time: 0
+    tva_time_kf: 1
+    tva_lfo: 0
+    tva_lfo_depth: 0
+  - coarse: 24
+    fine: 31
+    keyfollow: 11
+    lfo_mode: 0
+    penv_mode: 0
+    bend_mode: 1
+    wave: square
+    pcm: 4
+    pw: 9
+    pw_velo: 7
+    pw_lfo: 0
+    pw_lfo_depth: 0
+    cutoff: 38
+    resonance: 0
+    cutoff_kf: 11
+    bias_point: 127
+    bias_level: 14
+    tvf_env_depth: 57
+    tvf_velo: 0
+    tvf_depth_kf: 2
+    tvf_time_kf: 1
+    tvf_env:
+      t:
+      - 9
+      - 50
+      - 30
+      - 33
+      - 76
+      l:
+      - 36
+      - 44
+      - 52
+      sustain: 61
+      end: 0
+    tvf_lfo: 0
+    tvf_lfo_depth: 0
+    tva_level: 100
+    tva_velo: 25
+    tva_bias_point: 32
+    tva_bias_level: 5
+    tva_env:
+      t:
+      - 0
+      - 90
+      - 100
+      - 100
+      - 50
+      l:
+      - 100
+      - 80
+      - 0
+      sustain: 0
+      end: 0
+    tva_velo_time: 0
+    tva_time_kf: 1
+    tva_lfo: 0
+    tva_lfo_depth: 0
+  common:
+    structure: 6
+    penv_velo: 0
+    penv_time_kf: 0
+    penv_t:
+    - 20
+    - 20
+    - 20
+    - 20
+    penv_l:
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    pmod_lfo_depth: 100
+    pmod_lever: 25
+    pmod_at: 15
+    lfos:
+    - wave: 0
+      rate: 0
+      delay: 0
+      sync: 0
+    - wave: 0
+      rate: 0
+      delay: 0
+      sync: 0
+    - wave: 0
+      rate: 0
+      delay: 54
+      sync: 0
+    eq_low_freq: 14
+    eq_low_gain: 2
+    eq_high_freq: 16
+    eq_high_q: 0
+    eq_high_gain: 6
+    chorus_type: 1
+    chorus_rate: 0
+    chorus_depth: 0
+    chorus_balance: 0
+    partial_mute: 3
+    partial_balance: 44
+lower:
+  name: SynMarimba
+  partials:
+  - coarse: 36
+    fine: 10
+    keyfollow: 11
+    lfo_mode: 3
+    penv_mode: 0
+    bend_mode: 1
+    wave: square
+    pcm: 67
+    pw: 0
+    pw_velo: 0
+    pw_lfo: 1
+    pw_lfo_depth: 0
+    cutoff: 28
+    resonance: 0
+    cutoff_kf: 8
+    bias_point: 0
+    bias_level: 7
+    tvf_env_depth: 50
+    tvf_velo: 44
+    tvf_depth_kf: 0
+    tvf_time_kf: 4
+    tvf_env:
+      t:
+      - 0
+      - 50
+      - 54
+      - 61
+      - 75
+      l:
+      - 100
+      - 55
+      - 30
+      sustain: 5
+      end: 0
+    tvf_lfo: 0
+    tvf_lfo_depth: 0
+    tva_level: 100
+    tva_velo: 10
+    tva_bias_point: 103
+    tva_bias_level: 10
+    tva_env:
+      t:
+      - 0
+      - 43
+      - 54
+      - 50
+      - 46
+      l:
+      - 100
+      - 70
+      - 33
+      sustain: 0
+      end: 0
+    tva_velo_time: 0
+    tva_time_kf: 1
+    tva_lfo: 2
+    tva_lfo_depth: 30
+  - coarse: 36
+    fine: -10
+    keyfollow: 15
+    lfo_mode: 3
+    penv_mode: 0
+    bend_mode: 1
+    wave: square
+    pcm: 67
+    pw: 0
+    pw_velo: 0
+    pw_lfo: 1
+    pw_lfo_depth: 0
+    cutoff: 28
+    resonance: 0
+    cutoff_kf: 8
+    bias_point: 0
+    bias_level: 7
+    tvf_env_depth: 50
+    tvf_velo: 44
+    tvf_depth_kf: 0
+    tvf_time_kf: 4
+    tvf_env:
+      t:
+      - 0
+      - 79
+      - 87
+      - 0
+      - 75
+      l:
+      - 100
+      - 53
+      - 30
+      sustain: 8
+      end: 0
+    tvf_lfo: 0
+    tvf_lfo_depth: 0
+    tva_level: 100
+    tva_velo: 10
+    tva_bias_point: 103
+    tva_bias_level: 10
+    tva_env:
+      t:
+      - 0
+      - 42
+      - 53
+      - 50
+      - 46
+      l:
+      - 100
+      - 71
+      - 33
+      sustain: 0
+      end: 0
+    tva_velo_time: 0
+    tva_time_kf: 1
+    tva_lfo: 3
+    tva_lfo_depth: 30
+  common:
+    structure: 1
+    penv_velo: 0
+    penv_time_kf: 0
+    penv_t:
+    - 20
+    - 20
+    - 20
+    - 20
+    penv_l:
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    pmod_lfo_depth: 0
+    pmod_lever: 23
+    pmod_at: 14
+    lfos:
+    - wave: 0
+      rate: 77
+      delay: 0
+      sync: 0
+    - wave: 0
+      rate: 50
+      delay: 0
+      sync: 0
+    - wave: 0
+      rate: 30
+      delay: 0
+      sync: 0
+    eq_low_freq: 8
+    eq_low_gain: 2
+    eq_high_freq: 3
+    eq_high_q: 0
+    eq_high_gain: 2
+    chorus_type: 1
+    chorus_rate: 36
+    chorus_depth: 52
+    chorus_balance: 25
+    partial_mute: 3
+    partial_balance: 50
+key_mode: 1
+split: 24
+key_shift_upper: 0
+key_shift_lower: 0
+tune_upper: 0
+tune_lower: 0
+reverb_type: 8
+reverb_balance: 30
+patch_volume: 90
+tone_balance: 50
+polyphony: 8
+volume: 0.809
+effects: []

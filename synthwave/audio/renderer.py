@@ -13,6 +13,7 @@ import numpy as np
 from ..composer.arranger import LAYERS, TRACK_SECONDS, Arranger, BarPlan
 from ..composer.harmony import Harmony
 from ..composer.moods import MOODS
+from ..engine.d50 import D50Synth
 from ..engine.drums import DrumKit
 from ..engine.dx7 import Dx7Synth
 from ..engine.effects import Effect, Limiter, Sidechain, build_effects
@@ -20,7 +21,14 @@ from ..engine.risers import RiserKit
 from ..engine.solina import SolinaSynth
 from ..engine.synth import Synth
 from ..patches.loader import PatchError, apply_tweaks, load_patch, set_param
-from ..patches.model import AnyPatch, DrumPatchModel, Dx7PatchModel, PatchModel, SolinaPatchModel
+from ..patches.model import (
+    AnyPatch,
+    D50PatchModel,
+    DrumPatchModel,
+    Dx7PatchModel,
+    PatchModel,
+    SolinaPatchModel,
+)
 from ..sequencer.tracker import Tracker
 from ..sequencer.transport import Transport
 
@@ -126,7 +134,7 @@ class Renderer:
         )
         self.arranger.mood_locked = cfg.mood is not None
         self.tracker = Tracker(self.transport, self.arranger)
-        self.instruments: dict[str, Synth | Dx7Synth | SolinaSynth | DrumKit] = {}
+        self.instruments: dict[str, Synth | Dx7Synth | SolinaSynth | D50Synth | DrumKit] = {}
         self.patch_names: dict[str, str] = {}
         # loaded + manual edits
         self.base_patch: dict[str, AnyPatch] = {}
@@ -197,6 +205,13 @@ class Renderer:
             elif isinstance(patch, SolinaPatchModel):
                 if inst is None or not isinstance(inst, SolinaSynth):
                     inst = SolinaSynth(patch, self.sr, self.rng, self.bpm)
+                elif live:
+                    inst.update_patch(patch)
+                else:
+                    inst.set_patch(patch)
+            elif isinstance(patch, D50PatchModel):
+                if inst is None or not isinstance(inst, D50Synth):
+                    inst = D50Synth(patch, self.sr, self.rng, self.bpm)
                 elif live:
                     inst.update_patch(patch)
                 else:

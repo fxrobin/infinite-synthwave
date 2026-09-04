@@ -93,6 +93,9 @@ DARK_POOLS = {
         "solina_wywh",
         "solina_dry",
         "solina_contrabass",
+        "d50_Soundtrack",
+        "d50_Spacious_Sweep",
+        "d50_Glass_Voices",
     ],
     "arp": [
         "arp_dark",
@@ -112,6 +115,8 @@ DARK_POOLS = {
         "ambient_bells",
         "ambient_tape",
         "solina_oxygene",
+        "d50_Nightmare",
+        "d50_Future_Pad",
     ],
     "drums": [
         "drums_dark",
@@ -169,6 +174,9 @@ BRIGHT_POOLS = {
         "solina_horn",
         "solina_trumpet",
         "solina_radio_star",
+        "d50_Staccato_Heaven",
+        "d50_Pizzagogo",
+        "d50_Living_Calliope",
     ],
     "pad": [
         "pad_juno",
@@ -188,8 +196,14 @@ BRIGHT_POOLS = {
         "solina_dream_weaver",
         "solina_violin",
         "solina_viola",
+        "d50_Fantasia",
+        "d50_String_Ensemble",
+        "d50_Stereo_Polysynth",
+        "d50_D-50_Voices",
     ],
     "arp": [
+        "d50_Staccato_Heaven",
+        "d50_Pizzagogo",
         "arp_pluck",
         "arp_saw",
         "arp_square",
