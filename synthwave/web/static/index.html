@@ -54,6 +54,7 @@
     border-radius: 8px; padding: 7px 9px; font: inherit; font-size: 13px; min-width: 0;
   }
   select option { background: #160d2e; }
+  select[data-patch] { overflow: hidden; text-overflow: ellipsis; }
   input[type=range] { accent-color: var(--pink); width: 100%; }
   button {
     font: inherit; font-size: 13px; font-weight: 600; letter-spacing: .04em; cursor: pointer;
@@ -89,7 +90,7 @@
   canvas { width: 100%; height: 150px; display: block; border-radius: 10px;
            background: rgba(0,0,0,.35); }
   .layers { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); }
-  .layer { display: grid; gap: 9px; position: relative; }
+  .layer { display: grid; gap: 9px; position: relative; min-width: 0; overflow: hidden; }
   .layer .name { display: flex; justify-content: space-between; align-items: center;
                  font-weight: 800; letter-spacing: .1em; text-transform: uppercase; font-size: 13px; }
   .meter { height: 6px; border-radius: 999px; background: rgba(255,255,255,.06); overflow: hidden; }
@@ -234,8 +235,8 @@ function buildLayers() {
         <span class="mini" data-volv>1.00</span>
       </div>
       ${layer === "riser" ? `<div class="mini">annonces de chorus (built-in)</div>` : `
-      <div style="display:flex;gap:6px;align-items:center">
-        <select data-patch style="flex:1"></select>
+      <div style="display:flex;gap:6px;align-items:center;min-width:0">
+        <select data-patch style="flex:1;min-width:0;max-width:100%"></select>
         <button class="small" data-tweak>tweak</button>
       </div>
       <div class="chips" data-fx></div>
