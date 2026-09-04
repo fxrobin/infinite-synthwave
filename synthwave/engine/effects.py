@@ -542,8 +542,16 @@ class Flanger(Effect):
         return (x * (1 - self.mix) + out * self.mix).astype(np.float32)
 
 
+def _ensemble(sr: int, bpm: float, **kw):
+    """Triple BBD du Solina (import différé : solina.py importe ce module)."""
+    from .solina import SolinaEnsemble
+
+    return SolinaEnsemble(sr, bpm, **kw)
+
+
 _REGISTRY = {
     "chorus": Chorus,
+    "ensemble": _ensemble,
     "delay": Delay,
     "reverb": Reverb,
     "gated_reverb": GatedReverb,
