@@ -98,6 +98,11 @@ Couches fixes : `LAYERS = drums, bass, arp, pad, lead, lead2, ambient, riser` (`
 - `Synth` (voix polyphoniques `Voice` : oscillateurs polyBLEP/FM, ADSR amp + filtre, biquad, LFO,
   glide) et `DrumKit` (hits pré-rendus à l'init, `perc_effects` sur tout sauf le kick) exposent
   la même interface : `render(n, events)`, `set_patch`, `set_bpm`.
+- `Dx7Synth` (`dx7.py`, FM 6-op, `kind: dx7`) et `SolinaSynth` (`solina.py`, `kind: solina` :
+  divide-down phase-locké, `RcKeyer` par touche, bus de registres filtrés, basse mono ≤ `split_note`,
+  `SolinaEnsemble` triple BBD 100 % wet, aussi effet `ensemble`) partagent cette interface ; le
+  renderer les instancie par `isinstance` sur le modèle de patch. Un patch Solina = boutons +
+  faders (`crescendo`, `sustain_length`, `bass_volume`), pas d'oscillateurs ni de filtre YAML.
 - `effects.py` : `Effect.process(x)` sur blocs stéréo float32 ; les lignes à retard sont
   traitées par tranches ≤ délai. Un nouvel effet = classe `__init__(sr, bpm, **params)` +
   entrée dans `_REGISTRY` ; il devient alors utilisable dans les patches YAML, `--fx`,
@@ -106,7 +111,8 @@ Couches fixes : `LAYERS = drums, bass, arp, pad, lead, lead2, ambient, riser` (`
 
 ### Patches (`synthwave/patches/`)
 
-- `model.py` : pydantic (`PatchModel`, `DrumPatchModel` avec `kind: drums`), bornes validées.
+- `model.py` : pydantic (`PatchModel`, `DrumPatchModel` `kind: drums`, `Dx7PatchModel` `kind: dx7`,
+  `SolinaPatchModel` `kind: solina`), bornes validées.
   Ajouter un paramètre = champ du modèle + prise en compte dans `Voice`/`DrumKit`.
 - `loader.py` : YAML de `patches/library/` ; `~/.config/synthwave/patches/` prime sur la
   bibliothèque. `set_param(patch, "filter.cutoff", 800)` reconstruit un modèle validé.
