@@ -24,7 +24,6 @@ from .patterns import (
     Pattern,
     add_roll,
     add_straight_fill,
-    cut_after,
     drum_layer,
     filter_mono_drums,
     gen_ambient,
@@ -32,7 +31,6 @@ from .patterns import (
     gen_bass,
     gen_drums,
     gen_pad,
-    gen_predrop,
     gen_theme,
     harmonize,
     mutate,
@@ -77,7 +75,6 @@ _ROLL_SECTIONS = (Section.VERSE, Section.CHORUS, Section.OUTRO)
 # Bright moods stay close to clean tape, dark ones wear the tape out.
 _MASTER_COLORS_BRIGHT = (("tape", 5), ("clean", 3), ("vhs", 2), ("mic", 1))
 _MASTER_COLORS_DARK = (("vhs", 4), ("mic", 3), ("tape", 2), ("crush", 1))
-_BREAK_COLORS = ("vhs", "mic", "crush")  # a break drops the mix onto worn tape
 # Ladder from cleanest to dirtiest: sections move along it around the track's colour.
 _COLOR_LADDER = ("clean", "tape", "vhs", "mic", "crush")
 
@@ -92,7 +89,7 @@ _GAINS = {
         drums=1.0, bass=1.0, arp=1.0, pad=1.0, lead=1.0, lead2=0.7, ambient=0.5, riser=1.0
     ),
     Section.BREAK: dict(
-        drums=1.0, bass=0.6, arp=0.7, pad=1.0, lead=0.6, lead2=0.45, ambient=1.0, riser=1.0
+        drums=0.85, bass=0.85, arp=0.8, pad=1.0, lead=0.6, lead2=0.45, ambient=1.0, riser=1.0
     ),
     Section.TRANSITION: dict(
         drums=0.0, bass=0.0, arp=0.0, pad=0.5, lead=0.0, lead2=0.0, ambient=1.0, riser=1.0
@@ -106,7 +103,9 @@ _ENTRY = {
     Section.INTRO: {"arp": 2, "drums": 4, "bass": 6},
     Section.VERSE: {"arp": 2, "lead": 4, "lead2": 8},
     Section.CHORUS: {"lead": 2, "lead2": 4},
-    Section.BREAK: {"lead": 2, "lead2": 4, "arp": 2, "bass": 4, "drums": 6},
+    # a break is a melodic change, not a change of band: everything stays, only the
+    # melody re-enters (counter-melody) a bar or two in.
+    Section.BREAK: {"lead": 1, "lead2": 2},
 }
 # Tear-down (outro): bar from which a layer is gone.
 _EXIT = {Section.OUTRO: {"arp": 2, "bass": 6, "drums": 6}}
@@ -150,7 +149,7 @@ _GESTURE_PROB = {
     Section.INTRO: 0.5,
     Section.VERSE: 0.45,
     Section.CHORUS: 0.55,
-    Section.BREAK: 0.7,
+    Section.BREAK: 0.25,  # a break keeps its timbres: melody changes, instruments do not
     Section.OUTRO: 0.4,
     Section.TRANSITION: 0.0,
 }
@@ -160,7 +159,7 @@ _DRUM_LEVELS = {
     Section.INTRO: ((0, 0), (6, 1)),
     Section.VERSE: ((0, 1), (4, 2)),
     Section.CHORUS: ((0, 2),),
-    Section.BREAK: ((0, 0),),
+    Section.BREAK: ((0, 1),),
     Section.OUTRO: ((0, 1), (4, 0)),
 }
 
@@ -284,15 +283,26 @@ class Arranger:
         styles = self.mood.bass_styles or {"eighths": 3, "octaves": 2, "syncopated": 1}
         w = np.array(list(styles.values()), dtype=float)
         self.bass_style = str(list(styles)[int(r.choice(len(styles), p=w / w.sum()))])
-        self.section_patches = {
-            layer: str(pool[int(r.integers(len(pool)))]) for layer, pool in self.mood.pools.items()
-        }
+        is_break = self.section == Section.BREAK
+        prev_patches = getattr(self, "section_patches", None)
+        if is_break and prev_patches:
+            # a break changes the melody, not the band: keep the instruments in place
+            self.patches_changed = False
+        else:
+            self.section_patches = {
+                layer: str(pool[int(r.integers(len(pool)))])
+                for layer, pool in self.mood.pools.items()
+            }
+            self.patches_changed = True
         self.bass_base: Pattern | None = None
         modes, weights = ["up", "updown", "random"], [0.45, 0.4, 0.15]
         if self.mood.straight:  # eighties: the arp is a fixed ostinato, never a random walk
             modes, weights = ["up", "updown"], [0.5, 0.5]
         self.arp_mode = str(r.choice(modes, p=weights))
         self.arp_on = self.section == Section.CHORUS or r.random() < self.mood.arp_prob
+        if is_break and getattr(self, "_prev_arp_on", None) is not None:
+            self.arp_on = bool(self._prev_arp_on)  # the arp does not vanish on a break
+        self._prev_arp_on = self.arp_on
         # second lead: a diatonic third or sixth under the theme, fixed for the section
         self.harmony_degrees = int(r.choice([-2, -2, -2, -5, -7]))
         m = self.mood
@@ -351,10 +361,10 @@ class Arranger:
         drops onto worn tape, an intro often comes in one notch dirtier, a chorus often
         opens up one notch cleaner, everything else plays the track colour.
         """
-        if self.section == Section.BREAK:
-            return str(self.rng.choice(_BREAK_COLORS))
         step = 0
-        if self.section == Section.INTRO and self.rng.random() < 0.5:
+        if self.section == Section.BREAK:
+            step = 1  # one notch dirtier only: the mix must stay recognisable
+        elif self.section == Section.INTRO and self.rng.random() < 0.5:
             step = 1
         elif self.section == Section.CHORUS and self.rng.random() < 0.4:
             step = -1
@@ -527,6 +537,8 @@ class Arranger:
         """Percussion cut before a hit: last bar before a chorus, or mid-chorus (bar
         7).
         """
+        if getattr(self.mood, "mono_drums", False):
+            return False  # minimal/programming: the hypnotic loop never opens a hole
         last = self.section_bar == self.section_len - 1
         if last and self._going_to_chorus():
             return True
@@ -549,9 +561,13 @@ class Arranger:
         for layer, at in _EXIT.get(self.section, {}).items():
             if self.section_bar >= at:
                 gains[layer] = 0.0
-        if predrop:  # the melody clears out before the drop, harmony included
-            gains["lead"] = gains["lead2"] = 0.0
-            gains["drums"] = 1.0
+        if predrop:
+            # the drop is a hole: everything stops but a distant pad, a tail of ambient
+            # and the riser that fills the bar.
+            gains.update(drums=0.0, bass=0.0, arp=0.0, lead=0.0, lead2=0.0)
+            gains["pad"] = min(gains["pad"], 0.35)
+            gains["ambient"] = min(gains["ambient"], 0.5)
+            gains["riser"] = 1.0
         if not self.arp_on:
             gains["arp"] = 0.0
         return gains
@@ -561,14 +577,11 @@ class Arranger:
         if self.section == Section.TRANSITION:
             return []
         # minimal/programming: hypnotic mono groove — no drops, no fills, no rolls, no crash
+        if predrop:
+            return []  # the drop is silent: no roll, no pulse, only the riser
         if getattr(self.mood, "mono_drums", False):
-            if predrop:
-                # keep the same sparse pulse, just mute hats on beat 4 if present
-                return [n for n in self.drums_base if n.step < 12]
             return list(self.drums_base)
         first, last = self.section_bar == 0, self.section_bar == self.section_len - 1
-        if predrop:
-            return gen_predrop(r, self.drums_base)
         base = drum_layer(self.drums_base, self._drum_level())
         if last and self.section != Section.OUTRO:
             # fill on the 4: a plain snare crescendo for a straight groove, a tom roll otherwise
@@ -609,9 +622,10 @@ class Arranger:
         if going_to_chorus and remaining == 2:
             p.append(Note(0, RISER_UP, 0.9, 32))
         if predrop:
-            p.append(Note(0, RISER_REV, 1.0, 16))
+            p.append(Note(0, RISER_REV, 1.0, 16))  # reverse swell over the empty bar
+            p.append(Note(8, RISER_UP, 1.0, 8))  # climbs into the downbeat of the drop
             if self.rng.random() < 0.35:
-                p.append(Note(8, RISER_SCREAM, 0.7, 8))
+                p.append(Note(12, RISER_SCREAM, 0.7, 4))
         if (
             remaining == 1
             and not going_to_chorus
@@ -629,9 +643,9 @@ class Arranger:
         """Regenerate on the chord each bar; every second bar apply a light mutation
         (eighties moods keep the line as a strict ostinato instead).
         """
-        p = gen_bass(r, chord, self.bass_style, straight=self.mood.straight)
         if predrop:
-            return cut_after(p, 12)
+            return []  # silence under the drop
+        p = gen_bass(r, chord, self.bass_style, straight=self.mood.straight)
         if not self.mood.straight and self.section_bar % 2 == 1:
             root = chord.bass_note()
             p = mutate(r, p, 0.2, [root, root + 12, root + 7, root + 1, root + 6])
@@ -648,9 +662,12 @@ class Arranger:
         scale = self.harmony.scale_notes(lo, lo + 19)
         sec, bar = self.section, self.section_bar
         if sec == Section.BREAK:
-            if r.random() < 0.8:
-                return render_motif(r, self.theme.counter, chord, scale, vary=0.1, vel=0.7)
-            return []
+            # same instruments as the section before: the contrast is melodic only —
+            # the counter-melody, freely varied, an octave up in the second half.
+            octave = 12 if bar >= self.section_len // 2 and self.mood.pad_octave <= 3 else 0
+            return render_motif(
+                r, self.theme.counter, chord, scale, octave=octave, vary=0.3, vel=0.7
+            )
         p = max(self.mood.lead_prob, 0.7) if sec == Section.CHORUS else self.mood.lead_prob * 0.5
         if sec == Section.VERSE and bar >= self.section_len // 2 and r.random() < 0.3:
             return render_motif(r, self.theme.counter, chord, scale, vary=0.15, vel=0.7)
@@ -784,7 +801,7 @@ class Arranger:
             fx=self.fx,
             bpm=self.bar_bpm,
             mood=self.mood.name if self.mood_changed else None,
-            patches=self.section_patches if first else None,
+            patches=self.section_patches if (first and self.patches_changed) else None,
             drop=predrop,
             track=self.track,
             track_bar=self.track_bar,

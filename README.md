@@ -89,7 +89,7 @@ uv run synthwave ui --port 8765 --no-browser   # interface web
 | `minimal` | 90–108 | dorien | non | 4/4 droit² mono‡ | 0.18 / 0.22 / 0.10 | 0.70 | `minimal` | bass: sub/pulse/moog/808/pluck/sh101/dub/thump/juno60/soft · lead: hollow/organ/juno | eighths 4, octaves 3, sync 1 |
 | `programming` | 88–104 | mineur | non | 4/4 droit² mono‡ | 0.14 / 0.18 / 0.08 | 0.65 | `minimal` | idem minimal (hypnotique) | eighths 4, octaves 3, sync 1 |
 
-*`major_prob` : dreamy 0.35, retro 0.5, les autres 0.0. `²4/4 droit` = `Mood.straight` : groove années 80 figé sur la grille, kits de percussion secs (voir « Batterie synthétisée »). `†drive` pools = moog/sub/pulse/reese + saw/pulse/scream. `‡minimal/programming` : `mono_drums` = une seule voix par section `kick xor snare xor hat` (pas de fills/rolls/crash/predrop théâtral), FX/gestures/risers réduits au minimum pour boucle hypnotique `I-IV` (Basic Channel / dub-techno). `pad_octave` 3 (dark/cyberpunk/horror/desert) vs 4 (les autres).
+*`major_prob` : dreamy 0.35, retro 0.5, les autres 0.0. `²4/4 droit` = `Mood.straight` : groove années 80 figé sur la grille, kits de percussion secs (voir « Batterie synthétisée »). `†drive` pools = moog/sub/pulse/reese + saw/pulse/scream. `‡minimal/programming` : `mono_drums` = une seule voix par section `kick xor snare xor hat` (pas de fills/rolls/crash, pas de drop), FX/gestures/risers réduits au minimum pour boucle hypnotique `I-IV` (Basic Channel / dub-techno). `pad_octave` 3 (dark/cyberpunk/horror/desert) vs 4 (les autres).
 
 Sans `--mood`, le mood est tiré au hasard au démarrage et retiré à chaque transition ;
 `--mood X` le fige (en MCP, `set_mood("random")` rend la main au hasard).
@@ -129,13 +129,24 @@ transition (directement la transition pendant l'intro).
 
 **Build-up** : dans chaque section les couches entrent toutes les 2 mesures. Intro : pad+ambient,
 arp à 2, kick à 4, basse à 6. Verse : kick/snare + hats en croches, arp à 2, groove complet et lead
-à 4. Chorus : tout d'un coup (le drop), lead à 2. Break : pad+ambient, arp à 2, basse à 4, kick à 6.
+à 4. Chorus : tout d'un coup (le drop), lead à 2. Break : **tout reste en place**, seule la
+mélodie rentre (lead à 1, lead2 à 2).
 
-**Drops** : la dernière mesure avant un chorus est un *pre-drop* (`BarPlan.drop`) : kick sur le
-1, roulement de caisse claire / toms crescendo en doubles sur les temps 2–3, puis silence sur le
-temps 4 (batterie et basse coupées, lead muet), cymbale reverse + cri ; le chorus tombe avec un
-impact, une batterie 4/4 pleine et un crash. Un chorus sur ~2,5 a aussi un drop au milieu
-(pre-drop mesure 8, impact mesure 9).
+**Breaks** : un break est un *changement mélodique*, pas un changement de groupe. Les patches de
+la section précédente sont conservés (aucun `BarPlan.patches` sur sa première mesure), l'arp ne
+disparaît pas, batterie et basse continuent (gains 0.85), la couleur master ne descend que d'un
+cran sur l'échelle et les gestes de patch tombent à 25 % de probabilité. Le contraste vient de la
+**contre-mélodie** du thème, jouée à chaque mesure (variation 0.3, octave supérieure en 2e moitié)
+sur un nouveau style de basse, un nouveau mode d'arp et une batterie regénérée.
+
+**Drops** : la dernière mesure avant un chorus est un *drop* (`BarPlan.drop`) : un trou. Batterie,
+basse, arp, lead et lead2 sont coupés (gain 0), il ne reste qu'un pad lointain (0.35) et une queue
+d'ambient (0.5) ; la mesure est remplie par une cymbale reverse (pas 0, 16 pas) puis un riser qui
+monte sur la seconde moitié (pas 8) et un cri 35 % du temps sur le dernier temps — l'énergie
+culmine pile sur le downbeat suivant. Le chorus tombe alors avec un impact, une batterie 4/4
+pleine et un crash. Un chorus sur ~2,5 a aussi un drop au milieu (mesure 8, impact mesure 9).
+Les moods `minimal`/`programming` (`mono_drums`) n'ont pas de drop : la boucle hypnotique ne
+s'interrompt jamais.
 
 **Transitions douces** : le mood suivant est tiré avec un poids favorisant les tempos voisins,
 le même feel (half-time) et la même gamme ; le tempo reste au plus près du tempo courant dans la
@@ -160,11 +171,11 @@ L'arrangeur module les patches en direct (`BarPlan.tweaks`, multiplicateurs appl
 `apply_tweaks` sur le patch de base, sans couper les voix grâce à `Synth.update_patch`) :
 
 - **Gestes de section** (`_GESTURES` dans `arranger.py`, tirés par couche avec une probabilité
-  par section : break 0.7, chorus 0.55, intro 0.5, verse 0.45, outro 0.4) : cutoff ×0.6–1.5,
+  par section : chorus 0.55, intro 0.5, verse 0.45, outro 0.4, break 0.25) : cutoff ×0.6–1.5,
   résonance ×1.8–2.5, LFO rate/amount, attaque/decay d'enveloppe, détune ×1.5–1.6, glide,
   mix du premier effet, PWM…
 - **Build-up** : sur les 4 mesures avant un chorus, le cutoff de pad et arp s'ouvre de ×0.55 à
-  ×1.6 et la résonance du pad monte (×1 → ×2.2) ; pre-drop : basse ×0.5.
+  ×1.6 et la résonance du pad monte (×1 → ×2.2) ; drop : basse ×0.5.
 - **Break** : pad et basse assombris (×0.7). **Intro** : pad qui s'ouvre de ×0.5 à ×1.
 - Les réglages manuels (`set_patch_param`, panneau Tweak de l'UI) vivent sous les gestes et
   sont conservés. `set_auto_tweaks(false)` (MCP), `POST /api/auto_tweaks`, bouton
@@ -549,12 +560,12 @@ aléatoire), snare **et** clap superposés sur 2 et 4, charleys fermés sur les 
 chorus), open hat sur 14, aucun roll en milieu de section, fill de fin de phrase = quatre doubles
 de snare crescendo sous un kick qui ne s'interrompt pas. Les pools de ces moods n'utilisent que des
 kits secs (pas de `delay` sur le bus percussions : `drums_808`, `drums_linn`, `drums_dmx`,
-`drums_tight`, `drums_acoustic`, `drums_soft80`). `minimal`/`programming` ajoutent `mono_drums` : une seule voix par section (`kick xor snare xor hat`, pas de rolls/fills/crash/predrop `hat`/`snare`, risers réduits à l'impact). Les moods sombres (`dark`, `noir`, `cyberpunk`,
+`drums_tight`, `drums_acoustic`, `drums_soft80`). `minimal`/`programming` ajoutent `mono_drums` : une seule voix par section (`kick xor snare xor hat`, pas de rolls/fills/crash, pas de drop, risers réduits à l'impact). Les moods sombres (`dark`, `noir`, `cyberpunk`,
 `horror`, `desert`) gardent le groove génératif avec kicks syncopés, rolls et kits humides.
 
 Le flag `straight` ne touche pas que la batterie : la basse joue des notes détachées en ostinato, l'arpège garde la même figure sur un accord donné, et la mélodie est jouée staccato (notes courtes séparées par un silence) au lieu d'être tenue jusqu'à la note suivante. Mesuré sur 400 mesures : durée moyenne d'une note de lead 2.0 pas et 98 % des notes détachées en `outrun`, contre 4.9 pas et 19 % en `dark`.
 
-Couleurs de percussion par mood (tirées par section) : `snap_prob` (claquements de doigts sur le backbeat, remplacent la snare hors chorus, s'y superposent en chorus), `ride_prob` (ride à la place des charleys sur les croches), `shaker_prob` (shaker en doubles). chill 0.8/0.4/0.6, dreamy 0.4/0.3/0.3, retro 0.35/0.5/0.2, noir 0.5/0.3/0, desert 0.2/0/0.5, outrun ride 0.3, drive ride 0.35. `tick_prob` (défaut 0.5, chill/retro 0.8) : charley fermé sec sur toutes les croches à la place des hats bruités. Charleys : croches accentuées + off-beats selon la densité, open hat sur 6/10/14, gains ×1.45 sur tous les kits. Cymbales : crash au début de verse/chorus/break, 60 % aux mesures 9 et 13 du chorus ; **roulement de cymbale** systématique sur la mesure de pre-drop (monte jusqu'au drop) et 40 % sur les fills de fin de section.
+Couleurs de percussion par mood (tirées par section) : `snap_prob` (claquements de doigts sur le backbeat, remplacent la snare hors chorus, s'y superposent en chorus), `ride_prob` (ride à la place des charleys sur les croches), `shaker_prob` (shaker en doubles). chill 0.8/0.4/0.6, dreamy 0.4/0.3/0.3, retro 0.35/0.5/0.2, noir 0.5/0.3/0, desert 0.2/0/0.5, outrun ride 0.3, drive ride 0.35. `tick_prob` (défaut 0.5, chill/retro 0.8) : charley fermé sec sur toutes les croches à la place des hats bruités. Charleys : croches accentuées + off-beats selon la densité, open hat sur 6/10/14, gains ×1.45 sur tous les kits. Cymbales : crash au début de verse/chorus/break, 60 % aux mesures 9 et 13 du chorus ; **roulement de cymbale** 40 % sur les fills de fin de section (la mesure de drop, elle, est vide de batterie : seuls les risers la remplissent).
 
 ## Risers & transitions (`synthwave/engine/risers.py:32`)
 
@@ -573,7 +584,7 @@ Annonces arrangeur (`synthwave/composer/arranger.py:219`) : `uplifter` à J-2 du
 ## Mix, sidechain & master (`synthwave/audio/renderer.py:25`)
 
 - **Sidechain** (`engine/effects.py:209`) : ducking `gain = 1 - depth*exp(-t/release)` déclenché sur chaque kick, `depth 0.45 / release 0.22 s`. Atténuation par couche : `pad 100%`, `bass 60%`, `ambient 60%`, `arp 50%`.
-- **Gains de section** : `intro drums 0.6/lead 0.0` → `verse` → `chorus full` → `break drums 0.0/lead 0.0` → `transition drums/bass/arp/lead 0.0` → `outro` avec `fade` linéaire sur 8 bars.
+- **Gains de section** : `intro drums 0.6/lead 0.0` → `verse` → `chorus full` → `break drums 0.85/bass 0.85/lead 0.6` → `drop tout à 0 sauf pad 0.35, ambient 0.5, riser` → `transition drums/bass/arp/lead 0.0` → `outro` avec `fade` linéaire sur 8 bars.
 - **Trim par couche** (`audio/renderer.py:26`) : `LAYER_TRIM = {"lead": 2.5}` + `DX7 ×0.85` (`×0.72` sur `lead/lead2`) — DX7 6-op plus présent, volumes calibrés `0.574` (`0.525` leads) pour équilibrer.
 - **Master** : rampe de gain par couche (`current→target` sur un bloc, appliquée **avant** les effets de la couche pour que les queues de delay/reverb continuent de sonner) → inserts `master` (auto/manuels) → `master_volume 0.7` × `fade` linéaire → **couleur master** → `Limiter threshold 0.95`.
 - **Couleur master** (`MASTER_COLORS`, `--master-color`, MCP `set_master_color`, `POST /api/master_color`) : étage de saturation permanent placé après le volume, donc toujours attaqué au même niveau. **Choisie par la composition** par défaut (`auto`) : une couleur tirée par morceau selon la luminosité du mood (moods clairs `tape`/`clean`, moods sombres `vhs`/`mic`), puis déplacée d'un cran sur l'échelle `clean < tape < vhs < mic < crush` selon la section — intro plus sale (50 %), chorus plus propre (40 %), break sur bande usée. Une valeur donnée à la main (`--master-color vhs`, MCP, UI) verrouille le choix ; `auto` rend la main. `clean` (aucun), `tape` (défaut : saturation douce + bitcrush 13 bits), `vhs` (bande usée : disto + lofi 10 bits, wobble, souffle), `mic` (micro saturé : disto drive 3.2, bande 4.5 kHz, lofi 11 bits), `crush` (bitcrush 8 bits + disto). Le `lofi` n'y apparaît qu'en mix 1.0 : son chemin humide est retardé par le wobble, un mix partiel filtrerait le master en peigne. Mesuré sur un rendu `outrun` de 15 s :
@@ -666,8 +677,8 @@ Markov : poids par mood, anti-répétition `×0.25` si même progression que pr�
 | `arp` | `gen_arp` | 3 modes : `up`, `updown`, `random` ; 2 octaves ; 16 doubles par bar. **Moods droits** : mode `random` exclu, la figure d'un accord revient identique à chaque mesure |
 | `pad` | `gen_pad` | Tenue `STEPS` sur notes de l'accord, voicing grave si root≥6, octave ajoutée si triade |
 | `ambient` | `gen_ambient` | Tenue root + 5th (octave 3) |
-| `lead` | `gen_theme` + `render_motif` | **Thème par morceau** : motif *question* (2–5 notes sur la grille des croches, note d'accord sur les temps forts, pas ≤ tierce) + *réponse* (même rythme, contour retouché, résout sur la tonique) + *contre-mélodie* (contour inversé, notes longues). Rendu par accord en **séquence diatonique** (offsets en degrés depuis la fondamentale) avec ornements (`vary`) : question/réponse alternées par mesure en verse/chorus, octave sup. en 2e moitié de chorus, contre-mélodie dans les breaks (80 %) et en 2e moitié de verse (30 %). Tessiture `lo=55` (dark/noir) sinon `60`. **Moods droits** : phrasé staccato — chaque note dure au plus 3 pas et laisse un silence avant la suivante (durée `min(3, écart-1)` au lieu de tenir jusqu'à la note suivante), ornements divisés par 2.5 : le thème revient tel quel |
-| `lead2` | `harmonize` | Voix d'harmonie : le motif du lead transposé de −2 (tierce), −5 (sixte) ou −7 degrés diatoniques, tirage figé par section ; même rythme, vélocité ×0.75, notes bornées à la gamme. Muette dès que le lead se tait et pendant un pre-drop. Patch propre (`pools["lead2"]` : voix douces), trim ×1.6 contre ×2.5 pour le lead |
+| `lead` | `gen_theme` + `render_motif` | **Thème par morceau** : motif *question* (2–5 notes sur la grille des croches, note d'accord sur les temps forts, pas ≤ tierce) + *réponse* (même rythme, contour retouché, résout sur la tonique) + *contre-mélodie* (contour inversé, notes longues). Rendu par accord en **séquence diatonique** (offsets en degrés depuis la fondamentale) avec ornements (`vary`) : question/réponse alternées par mesure en verse/chorus, octave sup. en 2e moitié de chorus, contre-mélodie systématique dans les breaks (variation 0.3, octave sup. en 2e moitié) et en 2e moitié de verse (30 %). Tessiture `lo=55` (dark/noir) sinon `60`. **Moods droits** : phrasé staccato — chaque note dure au plus 3 pas et laisse un silence avant la suivante (durée `min(3, écart-1)` au lieu de tenir jusqu'à la note suivante), ornements divisés par 2.5 : le thème revient tel quel |
+| `lead2` | `harmonize` | Voix d'harmonie : le motif du lead transposé de −2 (tierce), −5 (sixte) ou −7 degrés diatoniques, tirage figé par section ; même rythme, vélocité ×0.75, notes bornées à la gamme. Muette dès que le lead se tait et pendant un drop. Patch propre (`pools["lead2"]` : voix douces), trim ×1.6 contre ×2.5 pour le lead |
 | `riser` | `_risers` | Voir ci-dessus |
 | `mutate` | `mutate` | Drop 30%, nudge ±1 step 30%, substitution note 40%, insertion libre 50% ; utilisé basse/drums/ambient |
 
@@ -676,13 +687,13 @@ Markov : poids par mood, anti-répétition `×0.25` si même progression que pr�
 | Section | Bars | Gains particuliers | FX auto possibles |
 |---|---|---|---|
 | `intro` | 8 | build-up : arp 2, kick 4, basse 6 | `master lofi` 50% ; couleur master d'un cran plus sale 50 % |
-| `verse` | 16 | arp 0.85 pad 0.9 lead 0.35 lead2 0.25 ; arp à 2, lead à 4, lead2 à 8 ; pre-drop en dernière mesure si chorus suit | `arp gate 1/32` 25% |
+| `verse` | 16 | arp 0.85 pad 0.9 lead 0.35 lead2 0.25 ; arp à 2, lead à 4, lead2 à 8 ; drop en dernière mesure si chorus suit | `arp gate 1/32` 25% |
 | `chorus` | 16 | full + lead 1.0 (à 2) + lead2 0.7 (à 4) ; drop au milieu 40 % | `pad gate 1/16-1/32` 35–55%, `arp bitcrush`, `lead` 6 pools (autopan / gate+autopan / disto+autopan / bitcrush / phaser 6 stages / flanger+disto) ; couleur master d'un cran plus propre 40 % |
-| `break` | 8 | pad+ambient, lead 0.6 (à 2) + lead2 0.45 (à 4), arp à 2, basse à 4, kick à 6, pre-drop si chorus suit | `master lofi` 60% sinon `pad gate 1/8` ; couleur master `vhs`/`mic`/`crush` |
+| `break` | 8 | mêmes instruments que la section précédente (aucun changement de patch), drums 0.85 / bass 0.85 / arp 0.8, contre-mélodie lead 0.6 (à 1) + lead2 0.45 (à 2), drop si chorus suit | `master lofi` 60% sinon `pad gate 1/8` ; couleur master d'un cran plus sale |
 | `transition` | 4 | drums/bass/arp/lead 0.0 pad 0.5 ambient 1.0, accord pivot | — (porte tonalité/tempo/mood) |
 | `outro` | 8 | arp off à 2, kick seul à 4, basse+batterie off à 6 ; fade 1→0 en mode durée seulement | — |
 
-Enchaînement : `intro→verse→(chorus 2×/break pondéré)→…→outro→transition→intro` ; l'outro arrive quand le morceau atteint sa durée (`--track`, sections raccourcies à un multiple de 4 pour tenir), après 8 sections, ou sur `set_mood`. Mode durée : outro final avec fondu quand `bar ≥ total_bars-8`. Basse/lead pool resélectionnés chaque section ; `arp_on` selon `arp_prob` (0.45 dark → 0.95 outrun) ; `lead` proba `0.2–0.55` (≥0.7 en chorus) ; batterie figée par section, rolls en fin de phrase (voir `drums`).
+Enchaînement : `intro→verse→(chorus 2×/break pondéré)→…→outro→transition→intro` ; l'outro arrive quand le morceau atteint sa durée (`--track`, sections raccourcies à un multiple de 4 pour tenir), après 8 sections, ou sur `set_mood`. Mode durée : outro final avec fondu quand `bar ≥ total_bars-8`. Basse/lead pool resélectionnés chaque section **sauf en break** (les instruments y sont conservés) ; `arp_on` selon `arp_prob` (0.45 dark → 0.95 outrun) ; `lead` proba `0.2–0.55` (≥0.7 en chorus) ; batterie figée par section, rolls en fin de phrase (voir `drums`).
 
 ## Interface web
 
