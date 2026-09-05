@@ -145,12 +145,22 @@ def test_groove_is_stable_within_verse_and_chorus():
 
 
 def test_rolls_on_beat_three_appear_at_phrase_ends_only():
-    a = make(seed=11, mood="outrun")
-    plans = [a.next_bar() for _ in range(200)]
-    rolled = [p for p in plans if len(_rolls_on_three(p)) >= 4]
+    """A bar carries more snare/tom on beat three than the bar before it only at the end
+    of a four-bar phrase (bar 4 excluded: the drum level itself steps up there).
+    """
+    a = make(seed=0, mood="cyberpunk")  # generative, no halftime: rolls land on 8..11
+    prev, rolled = None, 0
+    for _ in range(400):
+        p = a.next_bar()
+        if p.section not in (Section.VERSE, Section.CHORUS) or p.fill or p.drop:
+            prev = None
+            continue
+        n = len(_rolls_on_three(p))
+        if prev is not None and p.section_bar - prev[0] == 1 and p.section_bar != 4 and n > prev[1]:
+            assert p.section_bar % 4 == 3
+            rolled += 1
+        prev = (p.section_bar, n)
     assert rolled
-    for p in rolled:
-        assert (p.section_bar % 4 == 3 and (not p.fill or p.section == Section.OUTRO)) or p.drop
 
 
 def test_fill_bar_keeps_section_groove():
@@ -195,20 +205,22 @@ def test_layers_build_up_every_two_bars_in_verse():
     assert any(offbeat_hats(p) for p in verse[4:])  # full groove
 
 
-def test_predrop_cuts_percussion_before_chorus_and_chorus_hits():
+def test_drop_is_a_hole_before_the_chorus():
+    """The bar before a chorus is near silence: no drums, bass, arp or melody, only a
+    distant pad, a tail of ambient and the riser; the chorus then lands full.
+    """
     a = make(seed=5, mood="outrun")
+    a.mood_locked = True  # a mood change could bring in a mood without drops
     plans = [a.next_bar() for _ in range(200)]
     starts = [i for i, p in enumerate(plans) if p.section == Section.CHORUS and p.section_bar == 0]
     assert starts
     for i in starts:
         pre = plans[i - 1]
         assert pre.drop and pre.fill
-        drums = pre.patterns["drums"]
-        assert not any(n.step >= 12 for n in drums)  # silence on beat 4
-        assert not any(n.note == 42 for n in drums)  # no hats
-        assert len([n for n in drums if n.note in (38, 45, 47)]) == 8  # snare roll 4..11
-        assert not any(n.step >= 12 for n in pre.patterns["bass"])
-        assert pre.gains["lead"] == 0
+        for layer in ("drums", "bass", "arp", "lead", "lead2"):
+            assert not pre.patterns[layer] or pre.gains[layer] == 0.0
+        assert pre.gains["pad"] <= 0.35 and pre.gains["ambient"] <= 0.5
+        assert pre.gains["riser"] == 1.0 and pre.patterns["riser"]
         assert any(n.note == 63 for n in plans[i].patterns["riser"])  # impact = drop
         assert plans[i].gains["drums"] == 1.0 and plans[i].gains["bass"] == 1.0
 
@@ -295,11 +307,19 @@ def test_live_composer_gestures_and_build_up_sweep():
             assert not p.tweaks
 
 
-def test_predrop_carries_a_cymbal_roll():
+def test_drop_swells_and_peaks_at_the_end_of_the_bar():
+    """The empty bar is filled by a reverse swell from step 0 and a riser on its second
+    half, so the energy peaks right on the downbeat that follows.
+    """
     a = make(seed=5, mood="outrun")
+    a.mood_locked = True  # a mood change could bring in a mood without drops
     plans = [a.next_bar() for _ in range(200)]
     pre = [p for p in plans if p.drop]
-    assert pre and all(any(n.note == 57 and n.step == 0 for n in p.patterns["drums"]) for p in pre)
+    assert pre
+    for p in pre:
+        risers = p.patterns["riser"]
+        assert any(n.note == 60 and n.step == 0 for n in risers)  # reverse swell
+        assert any(n.note == 61 and n.step == 8 for n in risers)  # climb into the drop
 
 
 def test_straight_mood_groove_never_moves_inside_a_section():
@@ -397,4 +417,32 @@ def test_master_color_is_composed_per_track_and_per_section():
     assert {p.master_color for p in sent} <= set(MASTER_COLORS)
     assert len({p.master_color for p in sent}) >= 2  # it moves between sections/tracks
     breaks = [p.master_color for p in sent if p.section == Section.BREAK]
-    assert breaks and set(breaks) <= {"crush", "mic", "vhs"}  # breaks go grittier
+    # a break goes one notch grittier than the track, never back to a clean mix
+    assert breaks and set(breaks) <= {"tape", "vhs", "mic", "crush"}
+
+
+def test_break_keeps_the_instruments_of_the_previous_section():
+    """A break is a melodic change, not a change of band: no patch swap on its first bar,
+    and drums / bass / arp keep playing.
+    """
+    a = make(seed=4, mood="dark")
+    a.mood_locked = True
+    plans = [a.next_bar() for _ in range(400)]
+    breaks = [i for i, p in enumerate(plans) if p.section == Section.BREAK and p.section_bar == 0]
+    assert breaks
+    for i in breaks:
+        assert plans[i].patches is None  # instruments carried over from the section before
+    for p in plans:
+        if p.section != Section.BREAK or p.drop:
+            continue
+        assert p.gains["drums"] > 0.0 and p.gains["bass"] > 0.0
+        assert p.patterns["drums"] and p.patterns["bass"]
+
+
+def test_break_changes_the_melody():
+    """The break plays the counter-melody on every bar where the lead is open."""
+    a = make(seed=4, mood="dark")
+    a.mood_locked = True
+    plans = [a.next_bar() for _ in range(400)]
+    lead_bars = [p for p in plans if p.section == Section.BREAK and p.gains["lead"] > 0]
+    assert lead_bars and all(p.patterns["lead"] for p in lead_bars)

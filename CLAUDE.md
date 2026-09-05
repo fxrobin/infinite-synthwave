@@ -116,8 +116,12 @@ Couches fixes : `LAYERS = drums, bass, arp, pad, lead, lead2, ambient, riser` (`
   créé par `gen_theme` une fois par morceau, joué sur chaque accord par `render_motif`.
 - `arranger.py` : machine à états `Section` par **morceau** (~`track_s` = 210 s) :
   intro→verse/chorus/break…→outro→transition→intro suivant. Build-up par tables `_ENTRY` /
-  `_EXIT` / `_DRUM_LEVELS` (une couche entre toutes les 2 mesures) ; pre-drop (`BarPlan.drop`)
-  sur la dernière mesure avant un chorus et au milieu d'un chorus ; la transition tient un accord
+  `_EXIT` / `_DRUM_LEVELS` (une couche entre toutes les 2 mesures) ; **drop** (`BarPlan.drop`)
+  sur la dernière mesure avant un chorus et au milieu d'un chorus : un trou (batterie, basse,
+  arp, lead, lead2 à 0 ; pad 0.35, ambient 0.5) rempli par la cymbale reverse + un riser sur la
+  seconde moitié, sauf pour les moods `mono_drums`. Un **break** ne change pas d'instruments :
+  `_new_styles` y conserve `section_patches` et `arp_on`, le contraste est mélodique
+  (contre-mélodie du thème) ; la transition tient un accord
   pivot et porte tonalité/tempo/mood (`Harmony.change_key`, `pivot_chord`, `draw_bpm` proche du
   tempo courant). Choisit aussi les FX auto (`BarPlan.fx`), les patches de section
   (`BarPlan.patches`) et les risers (notes 60–64). `mood_locked` fige le mood (`--mood`).
