@@ -15,9 +15,9 @@ tone, EQ + chorus par tone, reverb (32 types) par patch. Import sysex : ``d50_sy
 from __future__ import annotations
 
 import numpy as np
-from scipy.signal import lfilter
 
 from ..patches.model import D50Common, D50Env, D50Lfo, D50Partial, D50PatchModel, D50Tone
+from .blocks import lfilter
 from .d50_pcm import PCM_SR, WORDS_PER_HZ, pcm_wave
 from .effects import Chorus, Delay, Effect, Flanger, GatedReverb, Reverb, build_effects
 from .events import NoteEvent

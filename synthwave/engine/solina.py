@@ -16,9 +16,12 @@ Chaîne fidèle à l'original :
 from __future__ import annotations
 
 import numpy as np
-from scipy.signal import lfilter
 
 from ..patches.model import SolinaPatchModel
+from .blocks import arange as _arange
+from .blocks import arange1 as _arange1
+from .blocks import lfilter
+from .blocks import segments as _segments
 from .effects import Effect, build_effects
 from .events import NoteEvent
 from .filter import biquad_coeffs
@@ -71,13 +74,25 @@ class RcKeyer:
         return self.gate | (self.level > 1e-4)
 
     def render(self, n: int) -> np.ndarray:
-        """(n, n_keys) niveaux ; met à jour l'état."""
-        t = np.arange(1, n + 1)[:, None]
-        up = 1.0 - (1.0 - self.level[None, :]) * np.exp(-t / self.tau_a)
-        down = self.level[None, :] * np.exp(-t / self.tau_r)
-        out = np.where(self.gate[None, :], up, down)
-        self.level = out[-1].copy()
-        self.level[self.level < 1e-6] = 0.0
+        """(n, n_keys) niveaux ; met à jour l'état.
+
+        Seules les touches ouvertes ou encore en release sont calculées : une touche au
+        repos a ``gate=False`` et ``level`` exactement nul, donc sa colonne vaut zéro et
+        le résultat est identique au calcul sur les 49 touches.
+        """
+        act = np.flatnonzero(self.gate | (self.level > 0.0))
+        out = np.zeros((n, self.n))
+        if act.size == 0:
+            return out
+        t = _arange1(n)[:, None]
+        lvl = self.level[act][None, :]
+        up = 1.0 - (1.0 - lvl) * np.exp(-t / self.tau_a)
+        down = lvl * np.exp(-t / self.tau_r)
+        col = np.where(self.gate[act][None, :], up, down)
+        out[:, act] = col
+        last = col[-1].copy()
+        last[last < 1e-6] = 0.0
+        self.level[act] = last
         return out
 
 
@@ -190,9 +205,9 @@ class SolinaEnsemble(Effect):
         for f in self.pre:
             mono = f.process(mono)
         mono = np.tanh(mono * 1.3) / 1.3  # compression douce des BBD
-        widx = (self.pos + np.arange(n)) % self.size
-        self.buf[widx] = mono
-        t = np.arange(1, n + 1)
+        for b0, b1, o0, o1 in _segments(self.pos, n, self.size):
+            self.buf[b0:b1] = mono[o0:o1]
+        t = _arange1(n)
         pc = (self.ph_c + self.cr / self.sr * t) % 1.0
         pv = (self.ph_v + self.vr / self.sr * t) % 1.0
         self.ph_c, self.ph_v = float(pc[-1]), float(pv[-1])
@@ -204,10 +219,13 @@ class SolinaEnsemble(Effect):
                 + self.cd * np.sin(2 * np.pi * (pc + off))
                 + self.vd * np.sin(2 * np.pi * (pv + off))
             )
-            p = self.pos + np.arange(n) - d
+            p = self.pos + _arange(n) - d
             i0 = np.floor(p).astype(int)
             fr = p - i0
-            line = self.buf[i0 % self.size] * (1 - fr) + self.buf[(i0 + 1) % self.size] * fr
+            i0 %= self.size
+            i1 = i0 + 1
+            i1[i1 == self.size] = 0
+            line = self.buf[i0] * (1 - fr) + self.buf[i1] * fr
             for f in self.post[i]:
                 line = f.process(line)
             if self.stereo:

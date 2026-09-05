@@ -685,9 +685,7 @@ class Arranger:
         if getattr(self.mood, "mono_drums", False):
             # minimal: keep mix static — only section gestures, no build-up sweeps
             return {
-                k: {p: round(f, 4) for p, f in v.items()}
-                for k, v in self.gestures.items()
-                if v
+                k: {p: round(f, 4) for p, f in v.items()} for k, v in self.gestures.items() if v
             }
         out = {k: dict(v) for k, v in self.gestures.items()}
 
