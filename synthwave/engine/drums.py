@@ -4,6 +4,8 @@ demand.
 
 from __future__ import annotations
 
+import hashlib
+
 import numpy as np
 from scipy.signal import lfilter
 
@@ -29,6 +31,53 @@ DRUM_NOTES = {
 }
 NOTE_TO_DRUM = {v: k for k, v in DRUM_NOTES.items()}
 
+# Resynthétiser les 13 frappes coûte ~80 ms (les gated reverbs de caisse claire, clap et
+# snap dominent) : c'était fait sur le thread audio à chaque changement de kit de
+# section, soit un bloc à 100-250 ms et une coupure. Les buffers ne dépendent que du
+# patch et de la fréquence d'échantillonnage, donc on les mémorise. Le bruit est tiré
+# d'un RNG dérivé du contenu du patch et non du RNG partagé du renderer : le rendu reste
+# déterministe pour un seed donné, que le cache soit chaud ou froid.
+_KIT_CACHE: dict[tuple[str, int], dict[str, np.ndarray]] = {}
+_ROLL_CACHE: dict[tuple[str, int, float], np.ndarray] = {}
+_CACHE_MAX = 32
+
+
+# `name` n'est qu'une étiquette, `volume` et `perc_effects` s'appliquent au rendu et pas à
+# la synthèse : deux patches qui n'en diffèrent que par là partagent les mêmes frappes.
+_NON_SYNTH_FIELDS = {"name", "volume", "perc_effects"}
+
+
+def _patch_key(patch: DrumPatchModel) -> str:
+    """Stable identity of the fields a drum patch's hits are synthesised from."""
+    return patch.model_dump_json(exclude=_NON_SYNTH_FIELDS)
+
+
+def _patch_rng(key: str) -> np.random.Generator:
+    """Deterministic per-patch RNG, independent of the renderer's shared stream."""
+    digest = hashlib.blake2b(key.encode("utf-8"), digest_size=8).digest()
+    return np.random.default_rng(int.from_bytes(digest, "big"))
+
+
+def _cache_put(cache: dict, key, value):
+    """Insert into a bounded cache."""
+    if len(cache) >= _CACHE_MAX:
+        cache.clear()
+    cache[key] = value
+    return value
+
+
+def prewarm_drums(patches, sr: int) -> None:
+    """Build and cache the hits of *patches* ahead of time.
+
+    Appelé depuis un thread de fond au démarrage : le premier usage d'un kit ne coûte
+    alors plus rien au thread de rendu. Sans danger en concurrence — les buffers sont
+    déterministes, donc deux constructions simultanées produisent la même valeur.
+    """
+    for patch in patches:
+        key = (_patch_key(patch), sr)
+        if key not in _KIT_CACHE:
+            _cache_put(_KIT_CACHE, key, _build_samples(patch, sr))
+
 
 def _t(sr: int, seconds: float) -> np.ndarray:
     """T."""
@@ -45,6 +94,100 @@ def _filt(kind: str, x: np.ndarray, cutoff: float, res: float, sr: int) -> np.nd
     """Filt."""
     b, a = biquad_coeffs(kind, cutoff, res, sr)
     return lfilter(b, a, x)
+
+
+def _build_samples(patch: DrumPatchModel, sr: int) -> dict[str, np.ndarray]:
+    """Synthesise every hit of *patch*: the expensive part, cached by the callers."""
+    rng = _patch_rng(_patch_key(patch))
+    k, s, h, c, tm = patch.kick, patch.snare, patch.hat, patch.clap, patch.tom
+    sn, rd, sh, tk = patch.snap, patch.ride, patch.shaker, patch.tick
+    # kick: sine with exponential pitch drop + short click
+    t = _t(sr, k.decay * 3)
+    f = k.pitch_end + (k.pitch_start - k.pitch_end) * np.exp(-t / k.pitch_decay)
+    body = np.sin(2 * np.pi * np.cumsum(f) / sr) * np.exp(-t / k.decay)
+    sub = k.sub * np.sin(2 * np.pi * k.pitch_end * t) * np.exp(-t / k.sub_decay)
+    if k.beater > 0:  # felt beater: soft lowpassed thump instead of a sharp click
+        nb = int(0.02 * sr)
+        thump = _filt("lp", rng.uniform(-1, 1, nb), 900, 0.1, sr)
+        thump *= np.exp(-_t(sr, 0.02)[:nb] / 0.006)
+        body[:nb] += k.beater * 0.8 * thump
+    kick = np.tanh(k.drive * (body + sub)) / np.tanh(k.drive)
+    nclick = int(0.002 * sr)
+    kick[:nclick] += k.click * rng.uniform(-1, 1, nclick)
+    # snare: tonal body + highpassed noise, through gated reverb
+    t = _t(sr, 1.2)
+    tone = np.sin(2 * np.pi * s.tone * t) * np.exp(-t / s.tone_decay)
+    noise = _filt("hp", rng.uniform(-1, 1, len(t)), 1800, 0.2, sr) * np.exp(-t / s.noise_decay)
+    snare = GatedReverb(
+        sr, 120, size=s.reverb_size, hold=s.gate_hold, threshold=0.2, mix=s.reverb_mix
+    ).process(_stereo(0.6 * tone + noise))[:, 0]
+    # clap: four noise bursts then a tail, through gated reverb
+    t = _t(sr, 1.0)
+    noise = _filt("bp", rng.uniform(-1, 1, len(t)), 1500, 0.3, sr)
+    env = np.zeros_like(t)
+    for i in range(4):
+        start = int(i * 0.011 * sr)
+        env[start:] = np.maximum(env[start:], np.exp(-t[: len(t) - start] / 0.012))
+    env = np.maximum(env, 0.7 * np.exp(-t / c.decay) * (t > 0.03))
+    clap = GatedReverb(
+        sr, 120, size=0.85, hold=c.gate_hold, threshold=0.2, mix=c.reverb_mix
+    ).process(_stereo(noise * env))[:, 0]
+    # hats: highpassed noise, short / long decay
+    t = _t(sr, h.open_decay * 3)
+    base = _filt("hp", rng.uniform(-1, 1, len(t)), h.cutoff, 0.3, sr)
+    hat_c = base * np.exp(-t / h.closed_decay)
+    hat_o = base * np.exp(-t / h.open_decay)
+    # toms: sine with pitch bend
+    toms = {}
+    for name, pitch in (("tom_low", tm.pitch_low), ("tom_mid", tm.pitch_mid)):
+        t = _t(sr, tm.decay * 3)
+        f = pitch * (1 + 0.6 * np.exp(-t / 0.04))
+        toms[name] = np.sin(2 * np.pi * np.cumsum(f) / sr) * np.exp(-t / tm.decay)
+    # finger snap: two very close bandpassed bursts + a small low knuckle thump
+    t = _t(sr, 0.6)
+    burst = _filt("bp", rng.uniform(-1, 1, len(t)), sn.tone, 0.45, sr)
+    env = np.exp(-t / sn.decay)
+    second = int(0.006 * sr)
+    env[second:] = np.maximum(env[second:], 0.8 * np.exp(-t[: len(t) - second] / sn.decay))
+    thump = sn.body * np.sin(2 * np.pi * 320.0 * t) * np.exp(-t / 0.025)
+    snap = GatedReverb(sr, 120, size=0.7, hold=0.12, threshold=0.2, mix=sn.reverb_mix).process(
+        _stereo(burst * env + thump)
+    )[:, 0]
+    # ride: highpassed noise wash + inharmonic metallic partials, long decay
+    t = _t(sr, rd.decay * 3)
+    wash = _filt("hp", rng.uniform(-1, 1, len(t)), rd.cutoff, 0.2, sr) * np.exp(-t / rd.decay)
+    ping = sum(
+        np.sin(2 * np.pi * f * t) * np.exp(-t / (rd.decay * 0.6)) / (i + 1)
+        for i, f in enumerate((3150.0, 4720.0, 6390.0, 7810.0))
+    )
+    ride = wash * 0.7 + rd.ping * ping * 0.3
+    # tick: dry, very short highpassed click (drum-machine closed hat on the 8ths)
+    t = _t(sr, 0.08)
+    tick = _filt("hp", rng.uniform(-1, 1, len(t)), tk.cutoff, 0.4, sr) * np.exp(-t / tk.decay)
+    # shaker: bandpassed noise with a soft attack
+    t = _t(sr, sh.decay * 4)
+    shaker = (
+        _filt("bp", rng.uniform(-1, 1, len(t)), sh.cutoff, 0.35, sr)
+        * np.minimum(1.0, t / 0.004)
+        * np.exp(-t / sh.decay)
+    )
+    # crash: bandpassed noise, long decay
+    t = _t(sr, 2.0)
+    crash = _filt("bp", rng.uniform(-1, 1, len(t)), 6000, 0.1, sr) * np.exp(-t / 0.7)
+    return {
+        "kick": _stereo(kick) * k.gain,
+        "snare": _stereo(snare) * s.gain,
+        "clap": _stereo(clap) * c.gain,
+        "hat_closed": _stereo(hat_c) * h.gain,
+        "hat_open": _stereo(hat_o) * h.gain * 0.85,
+        "tom_low": _stereo(toms["tom_low"]) * tm.gain,
+        "tom_mid": _stereo(toms["tom_mid"]) * tm.gain,
+        "crash": _stereo(crash) * patch.crash_gain,
+        "snap": _stereo(snap) * sn.gain,
+        "ride": _stereo(ride) * rd.gain,
+        "shaker": _stereo(shaker) * sh.gain,
+        "tick": _stereo(tick) * tk.gain,
+    }
 
 
 class DrumKit:
@@ -64,7 +207,11 @@ class DrumKit:
         self.perc_fx = build_effects(
             [e.model_dump() for e in self.patch.perc_effects], self.sr, bpm
         )
-        self.samples["crash_roll"] = self._crash_roll(bpm)
+        key = (self.patch_key, self.sr, float(bpm))
+        roll = _ROLL_CACHE.get(key)
+        if roll is None:
+            roll = _cache_put(_ROLL_CACHE, key, self._crash_roll(bpm))
+        self.samples["crash_roll"] = roll
 
     def _crash_roll(self, bpm: float) -> np.ndarray:
         """One bar of mallet roll on the crash: dense strokes (~14/s) whose level swells
@@ -73,7 +220,7 @@ class DrumKit:
         sr = self.sr
         bar = 4.0 * 60.0 / bpm
         t = _t(sr, bar + 0.8)
-        noise = _filt("bp", self.rng.uniform(-1, 1, len(t)), 5500, 0.12, sr)
+        noise = _filt("bp", _patch_rng(self.patch_key).uniform(-1, 1, len(t)), 5500, 0.12, sr)
         strokes = 0.55 + 0.45 * np.abs(np.sin(np.pi * t * 14.0)) ** 0.3
         swell = np.where(t < bar, (t / bar) ** 2.2, np.exp(-(t - bar) / 0.6))
         return _stereo(noise * strokes * swell) * self.patch.crash_roll_gain
@@ -81,97 +228,19 @@ class DrumKit:
     def set_patch(self, patch: DrumPatchModel) -> None:
         """Set patch."""
         self.patch = patch
-        sr, rng = self.sr, self.rng
-        k, s, h, c, tm = patch.kick, patch.snare, patch.hat, patch.clap, patch.tom
-        sn, rd, sh, tk = patch.snap, patch.ride, patch.shaker, patch.tick
-        # kick: sine with exponential pitch drop + short click
-        t = _t(sr, k.decay * 3)
-        f = k.pitch_end + (k.pitch_start - k.pitch_end) * np.exp(-t / k.pitch_decay)
-        body = np.sin(2 * np.pi * np.cumsum(f) / sr) * np.exp(-t / k.decay)
-        sub = k.sub * np.sin(2 * np.pi * k.pitch_end * t) * np.exp(-t / k.sub_decay)
-        if k.beater > 0:  # felt beater: soft lowpassed thump instead of a sharp click
-            nb = int(0.02 * sr)
-            thump = _filt("lp", rng.uniform(-1, 1, nb), 900, 0.1, sr)
-            thump *= np.exp(-_t(sr, 0.02)[:nb] / 0.006)
-            body[:nb] += k.beater * 0.8 * thump
-        kick = np.tanh(k.drive * (body + sub)) / np.tanh(k.drive)
-        nclick = int(0.002 * sr)
-        kick[:nclick] += k.click * rng.uniform(-1, 1, nclick)
-        # snare: tonal body + highpassed noise, through gated reverb
-        t = _t(sr, 1.2)
-        tone = np.sin(2 * np.pi * s.tone * t) * np.exp(-t / s.tone_decay)
-        noise = _filt("hp", rng.uniform(-1, 1, len(t)), 1800, 0.2, sr) * np.exp(-t / s.noise_decay)
-        snare = GatedReverb(
-            sr, 120, size=s.reverb_size, hold=s.gate_hold, threshold=0.2, mix=s.reverb_mix
-        ).process(_stereo(0.6 * tone + noise))[:, 0]
-        # clap: four noise bursts then a tail, through gated reverb
-        t = _t(sr, 1.0)
-        noise = _filt("bp", rng.uniform(-1, 1, len(t)), 1500, 0.3, sr)
-        env = np.zeros_like(t)
-        for i in range(4):
-            start = int(i * 0.011 * sr)
-            env[start:] = np.maximum(env[start:], np.exp(-t[: len(t) - start] / 0.012))
-        env = np.maximum(env, 0.7 * np.exp(-t / c.decay) * (t > 0.03))
-        clap = GatedReverb(
-            sr, 120, size=0.85, hold=c.gate_hold, threshold=0.2, mix=c.reverb_mix
-        ).process(_stereo(noise * env))[:, 0]
-        # hats: highpassed noise, short / long decay
-        t = _t(sr, h.open_decay * 3)
-        base = _filt("hp", rng.uniform(-1, 1, len(t)), h.cutoff, 0.3, sr)
-        hat_c = base * np.exp(-t / h.closed_decay)
-        hat_o = base * np.exp(-t / h.open_decay)
-        # toms: sine with pitch bend
-        toms = {}
-        for name, pitch in (("tom_low", tm.pitch_low), ("tom_mid", tm.pitch_mid)):
-            t = _t(sr, tm.decay * 3)
-            f = pitch * (1 + 0.6 * np.exp(-t / 0.04))
-            toms[name] = np.sin(2 * np.pi * np.cumsum(f) / sr) * np.exp(-t / tm.decay)
-        # finger snap: two very close bandpassed bursts + a small low knuckle thump
-        t = _t(sr, 0.6)
-        burst = _filt("bp", rng.uniform(-1, 1, len(t)), sn.tone, 0.45, sr)
-        env = np.exp(-t / sn.decay)
-        second = int(0.006 * sr)
-        env[second:] = np.maximum(env[second:], 0.8 * np.exp(-t[: len(t) - second] / sn.decay))
-        thump = sn.body * np.sin(2 * np.pi * 320.0 * t) * np.exp(-t / 0.025)
-        snap = GatedReverb(sr, 120, size=0.7, hold=0.12, threshold=0.2, mix=sn.reverb_mix).process(
-            _stereo(burst * env + thump)
-        )[:, 0]
-        # ride: highpassed noise wash + inharmonic metallic partials, long decay
-        t = _t(sr, rd.decay * 3)
-        wash = _filt("hp", rng.uniform(-1, 1, len(t)), rd.cutoff, 0.2, sr) * np.exp(-t / rd.decay)
-        ping = sum(
-            np.sin(2 * np.pi * f * t) * np.exp(-t / (rd.decay * 0.6)) / (i + 1)
-            for i, f in enumerate((3150.0, 4720.0, 6390.0, 7810.0))
-        )
-        ride = wash * 0.7 + rd.ping * ping * 0.3
-        # tick: dry, very short highpassed click (drum-machine closed hat on the 8ths)
-        t = _t(sr, 0.08)
-        tick = _filt("hp", rng.uniform(-1, 1, len(t)), tk.cutoff, 0.4, sr) * np.exp(-t / tk.decay)
-        # shaker: bandpassed noise with a soft attack
-        t = _t(sr, sh.decay * 4)
-        shaker = (
-            _filt("bp", rng.uniform(-1, 1, len(t)), sh.cutoff, 0.35, sr)
-            * np.minimum(1.0, t / 0.004)
-            * np.exp(-t / sh.decay)
-        )
-        # crash: bandpassed noise, long decay
-        t = _t(sr, 2.0)
-        crash = _filt("bp", rng.uniform(-1, 1, len(t)), 6000, 0.1, sr) * np.exp(-t / 0.7)
-        self.samples = {
-            "kick": _stereo(kick) * k.gain,
-            "snare": _stereo(snare) * s.gain,
-            "clap": _stereo(clap) * c.gain,
-            "hat_closed": _stereo(hat_c) * h.gain,
-            "hat_open": _stereo(hat_o) * h.gain * 0.85,
-            "tom_low": _stereo(toms["tom_low"]) * tm.gain,
-            "tom_mid": _stereo(toms["tom_mid"]) * tm.gain,
-            "crash": _stereo(crash) * patch.crash_gain,
-            "snap": _stereo(snap) * sn.gain,
-            "ride": _stereo(ride) * rd.gain,
-            "shaker": _stereo(shaker) * sh.gain,
-            "tick": _stereo(tick) * tk.gain,
-        }
+        self.patch_key = _patch_key(patch)
+        key = (self.patch_key, self.sr)
+        samples = _KIT_CACHE.get(key)
+        if samples is None:
+            samples = _cache_put(_KIT_CACHE, key, self._build_samples(patch))
+        # copie du mapping : set_bpm y ajoute "crash_roll" ; les buffers restent partagés
+        # (ils ne sont lus qu'en tranches par render).
+        self.samples = dict(samples)
         self.set_bpm(self.bpm)
+
+    def _build_samples(self, patch: DrumPatchModel) -> dict[str, np.ndarray]:
+        """Synthesise every hit of *patch* (the expensive part, cached by caller)."""
+        return _build_samples(patch, self.sr)
 
     def render(self, n: int, events: list[NoteEvent], gain: np.ndarray | None = None) -> np.ndarray:  # noqa: C901 - drum routing branches
         """Render ``n`` samples; ``gain`` (per-sample) is applied before ``perc_fx``."""

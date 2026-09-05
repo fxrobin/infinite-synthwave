@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import numpy as np
 
+from .blocks import arange1
+
 
 class LFO:
     """Lfo."""
@@ -13,7 +15,7 @@ class LFO:
     def render(self, n: int) -> np.ndarray:
         """Render."""
         dt = self.rate / self.sr
-        ph = (self.phase + dt * np.arange(1, n + 1)) % 1.0
+        ph = (self.phase + dt * arange1(n)) % 1.0
         self.phase = float(ph[-1])
         if self.wave == "sine":
             return np.sin(2 * np.pi * ph)

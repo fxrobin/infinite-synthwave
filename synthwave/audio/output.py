@@ -19,7 +19,13 @@ from .renderer import Renderer
 class Player:
     """Player."""
 
-    def __init__(self, renderer: Renderer, blocksize: int = 1024, prefill: int = 6, device=None):
+    # ~370 ms d'avance : de quoi absorber la construction d'un instrument sur le thread
+    # de rendu (premier usage d'un kit de batterie : ~80 ms) sans coupure.
+    DEFAULT_PREFILL = 16
+
+    def __init__(
+        self, renderer: Renderer, blocksize: int = 1024, prefill: int = DEFAULT_PREFILL, device=None
+    ):
         """Initialize."""
         self.renderer, self.blocksize, self.prefill = renderer, blocksize, prefill
         self.device = device
@@ -64,11 +70,12 @@ class Player:
             raise RuntimeError("sounddevice not available")
         self.thread = threading.Thread(target=self._produce, daemon=True, name="synthwave-render")
         self.thread.start()
+        # fill the whole queue before opening the stream: starting on two blocks left
+        # only ~45 ms of headroom and the first callbacks under-ran while the render
+        # thread was still warming up (first-call numpy/scipy allocations).
         deadline = time.time() + 5
-        while (
-            self.queue.qsize() < min(self.prefill, 2) and time.time() < deadline and not self.error
-        ):
-            time.sleep(0.01)
+        while self.queue.qsize() < self.prefill and time.time() < deadline and not self.error:
+            time.sleep(0.005)
         if self.error:
             raise self.error
         self.stream = sd.OutputStream(

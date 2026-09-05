@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import numpy as np
 
+from .blocks import arange1
+
 WAVES = ("saw", "square", "triangle", "sine", "noise", "fm")
 
 
@@ -91,7 +93,7 @@ class Oscillator:
         """Render."""
         out = np.zeros((n, 2), dtype=np.float64)
         pwm = self.pwm if pwm is None else pwm
-        idx = np.arange(1, n + 1)
+        idx = arange1(n)
         for i in range(self.unison):
             dt = freq_hz * self.transpose * self.ratios[i] / self.sr
             phase = self.phases[i] + dt * idx

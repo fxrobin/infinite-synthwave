@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import numpy as np
-from scipy.signal import lfilter
+
+from .blocks import lfilter
 
 
 def biquad_coeffs(kind: str, cutoff_hz: float, resonance: float, sr: int):
@@ -31,13 +32,22 @@ class Filter:
     def __init__(self, kind: str, sr: int):
         """Initialize."""
         self.kind, self.sr = kind, sr
-        self.zi = [np.zeros(2), np.zeros(2)]
+        # state for both channels at once: lfilter runs along axis 0 in a single call,
+        # which halves the (dominant) scipy call overhead per block.
+        self.zi = np.zeros((2, 2))
+        self._key: tuple[float, float] | None = None
+        self._coeffs: tuple[np.ndarray, np.ndarray] | None = None
+
+    def _coeffs_for(self, cutoff_hz: float, resonance: float):
+        """Biquad coefficients, memoised while cutoff/resonance are unchanged."""
+        key = (cutoff_hz, resonance)
+        if key != self._key:
+            self._coeffs = biquad_coeffs(self.kind, cutoff_hz, resonance, self.sr)
+            self._key = key
+        return self._coeffs
 
     def process(self, x: np.ndarray, cutoff_hz: float, resonance: float) -> np.ndarray:
         """Process."""
-        b, a = biquad_coeffs(self.kind, cutoff_hz, resonance, self.sr)
-        y = np.empty_like(x, dtype=np.float32)
-        for ch in (0, 1):
-            yc, self.zi[ch] = lfilter(b, a, x[:, ch].astype(np.float64), zi=self.zi[ch])
-            y[:, ch] = yc
-        return y
+        b, a = self._coeffs_for(cutoff_hz, resonance)
+        y, self.zi = lfilter(b, a, x.astype(np.float64), axis=0, zi=self.zi)
+        return y.astype(np.float32)

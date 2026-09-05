@@ -7,8 +7,10 @@ Delay lines are processed in chunks no longer than their delay.
 from __future__ import annotations
 
 import numpy as np
-from scipy.signal import lfilter
 
+from .blocks import arange as _arange
+from .blocks import lfilter
+from .blocks import segments as _segments
 from .filter import Filter
 from .lfo import LFO
 
@@ -75,15 +77,25 @@ class Chorus(Effect):
     def process(self, x: np.ndarray) -> np.ndarray:
         """Process."""
         n = len(x)
-        idx = (self.pos + np.arange(n)) % self.size
-        self.buf[idx] = x
+        if n <= self.size:
+            # the write window is contiguous in the ring: two slices, no index array
+            for b0, b1, o0, o1 in _segments(self.pos, n, self.size):
+                self.buf[b0:b1] = x[o0:o1]
+        else:
+            # whole-signal call (offline analysis): the window laps the ring, so keep the
+            # wrapping fancy-index write, where the last lap wins.
+            self.buf[(self.pos + _arange(n)) % self.size] = x
         out = np.empty((n, 2))
+        base = self.pos + _arange(n)
         for ch in (0, 1):
             d = self.base + self.depth * (1.0 + self.lfo[ch].render(n))
-            p = self.pos + np.arange(n) - d
+            p = base - d
             i0 = np.floor(p).astype(int)
             fr = p - i0
-            wet = self.buf[i0 % self.size, ch] * (1 - fr) + self.buf[(i0 + 1) % self.size, ch] * fr
+            i0 %= self.size
+            i1 = i0 + 1
+            i1[i1 == self.size] = 0
+            wet = self.buf[i0, ch] * (1 - fr) + self.buf[i1, ch] * fr
             out[:, ch] = x[:, ch] * (1 - self.mix) + wet * self.mix
         self.pos = (self.pos + n) % self.size
         return out.astype(np.float32)
@@ -124,15 +136,21 @@ class Delay(Effect):
         while start < n:
             k = min(self.d, n - start)
             xs = x[start : start + k]
-            ridx = (self.pos + np.arange(k) - self.d) % self.size
-            y = self.buf[ridx]
-            widx = (self.pos + np.arange(k)) % self.size
+            y = np.empty((k, 2))
+            for b0, b1, o0, o1 in _segments(self.pos - self.d, k, self.size):
+                y[o0:o1] = self.buf[b0:b1]
+            wseg = _segments(self.pos, k, self.size)
             if self.pingpong:
                 mono = xs.mean(axis=1)
-                self.buf[widx, 0] = mono + y[:, 1] * self.feedback
-                self.buf[widx, 1] = y[:, 0] * self.feedback
+                left = mono + y[:, 1] * self.feedback
+                right = y[:, 0] * self.feedback
+                for b0, b1, o0, o1 in wseg:
+                    self.buf[b0:b1, 0] = left[o0:o1]
+                    self.buf[b0:b1, 1] = right[o0:o1]
             else:
-                self.buf[widx] = xs + y * self.feedback
+                w = xs + y * self.feedback
+                for b0, b1, o0, o1 in wseg:
+                    self.buf[b0:b1] = w[o0:o1]
             out[start : start + k] = xs * (1 - self.mix) + y * self.mix
             self.pos = (self.pos + k) % self.size
             start += k
@@ -176,21 +194,57 @@ class Reverb(Effect):
         predelay = float(np.clip(predelay, 0, _MAX_DELAY_SEC))
         self.pre = max(0, int(predelay * sr))
         self.pre_line = _Line(self.pre + 8192) if self.pre else None
+        # shared damping one-pole: filtered for all combs of a channel in one call
+        self._damp_b = np.array([1 - self.damp])
+        self._damp_a = np.array([1.0, -self.damp])
+        self._damp_zi = [np.zeros((len(self.combs[ch]), 1)) for ch in (0, 1)]
+        self._min_comb = min(c.len for ch in (0, 1) for c in self.combs[ch])
+        self._scratch: list[np.ndarray] | None = None
 
     def _comb(self, c: _Line, x: np.ndarray) -> np.ndarray:
-        """Comb."""
+        """One damped comb; used when the block is longer than the shortest line."""
         out = np.empty_like(x)
         start = 0
         while start < len(x):
             k = min(c.len, len(x) - start)
-            idx = (c.pos + np.arange(k)) % c.len
-            y = c.buf[idx]
-            lp, c.zi = lfilter([1 - self.damp], [1, -self.damp], y, zi=c.zi)
-            c.buf[idx] = x[start : start + k] + lp * self.fb
-            out[start : start + k] = y
+            y = out[start : start + k]
+            for b0, b1, o0, o1 in _segments(c.pos, k, c.len):
+                y[o0:o1] = c.buf[b0:b1]
+            lp, c.zi = lfilter(self._damp_b, self._damp_a, y, zi=c.zi)
+            lp *= self.fb
+            lp += x[start : start + k]
+            for b0, b1, o0, o1 in _segments(c.pos, k, c.len):
+                c.buf[b0:b1] = lp[o0:o1]
             c.pos = (c.pos + k) % c.len
             start += k
         return out
+
+    def _combs_block(self, ch: int, x: np.ndarray) -> np.ndarray:
+        """All eight combs of one channel in a single ``lfilter`` call.
+
+        Valid while the block fits in the shortest line, which is the normal case
+        (shortest comb ~1116 samples vs. a 1024-sample block).
+        """
+        combs = self.combs[ch]
+        k = len(x)
+        y = self._scratch[ch]
+        for i, c in enumerate(combs):
+            row = y[i]
+            for b0, b1, o0, o1 in _segments(c.pos, k, c.len):
+                row[o0:o1] = c.buf[b0:b1]
+        lp, self._damp_zi[ch] = lfilter(self._damp_b, self._damp_a, y, axis=1, zi=self._damp_zi[ch])
+        lp *= self.fb
+        lp += x
+        for i, c in enumerate(combs):
+            row = lp[i]
+            for b0, b1, o0, o1 in _segments(c.pos, k, c.len):
+                c.buf[b0:b1] = row[o0:o1]
+            c.pos = (c.pos + k) % c.len
+        # accumulate in comb order, matching the previous left-fold sum()
+        wet = y[0].copy()
+        for i in range(1, len(combs)):
+            wet += y[i]
+        return wet
 
     @staticmethod
     def _allpass(a: _Line, x: np.ndarray) -> np.ndarray:
@@ -199,11 +253,15 @@ class Reverb(Effect):
         start = 0
         while start < len(x):
             k = min(a.len, len(x) - start)
-            idx = (a.pos + np.arange(k)) % a.len
-            z = a.buf[idx]
             xs = x[start : start + k]
-            a.buf[idx] = xs + z * 0.5
-            out[start : start + k] = z - xs
+            z = out[start : start + k]
+            for b0, b1, o0, o1 in _segments(a.pos, k, a.len):
+                z[o0:o1] = a.buf[b0:b1]
+            w = z * 0.5
+            w += xs
+            for b0, b1, o0, o1 in _segments(a.pos, k, a.len):
+                a.buf[b0:b1] = w[o0:o1]
+            z -= xs
             a.pos = (a.pos + k) % a.len
             start += k
         return out
@@ -218,23 +276,34 @@ class Reverb(Effect):
         start = 0
         while start < n:
             k = min(self.pre, n - start)
-            widx = (p.pos + np.arange(k)) % p.len
-            ridx = (p.pos + np.arange(k) - self.pre) % p.len
-            out[start : start + k] = p.buf[ridx]
-            p.buf[widx] = x[start : start + k]
+            dst = out[start : start + k]
+            for b0, b1, o0, o1 in _segments(p.pos - self.pre, k, p.len):
+                dst[o0:o1] = p.buf[b0:b1]
+            src = x[start : start + k]
+            for b0, b1, o0, o1 in _segments(p.pos, k, p.len):
+                p.buf[b0:b1] = src[o0:o1]
             p.pos = (p.pos + k) % p.len
             start += k
         return out
 
     def process(self, x: np.ndarray) -> np.ndarray:
         """Process."""
+        n = len(x)
         mono = self._predelay(x.astype(np.float64).mean(axis=1)) * 0.03
-        out = np.empty((len(x), 2))
+        out = np.empty((n, 2))
+        batched = n <= self._min_comb
+        if batched and (self._scratch is None or self._scratch[0].shape[1] != n):
+            self._scratch = [np.empty((len(self.combs[ch]), n)) for ch in (0, 1)]
         for ch in (0, 1):
-            wet = sum(self._comb(c, mono) for c in self.combs[ch])
+            if batched:
+                wet = self._combs_block(ch, mono)
+            else:
+                wet = sum(self._comb(c, mono) for c in self.combs[ch])
             for a in self.allp[ch]:
                 wet = self._allpass(a, wet)
-            out[:, ch] = x[:, ch] * (1 - self.mix) + wet * self.mix
+            wet *= self.mix
+            wet += x[:, ch] * (1 - self.mix)
+            out[:, ch] = wet
         return out.astype(np.float32)
 
 
@@ -467,7 +536,8 @@ class Phaser(Effect):
         self.depth, self.mix = float(np.clip(depth, 0, 1)), mix
         self.fb = float(np.clip(feedback, 0, 0.9))
         self.stages = int(np.clip(stages, 2, 8))
-        self.zi = [[np.zeros(1) for _ in range(self.stages)] for _ in (0, 1)]
+        # one state per stage, holding both channels: each stage is a single lfilter call
+        self.zi = [np.zeros((1, 2)) for _ in range(self.stages)]
         self.last = np.zeros(2)
 
     def process(self, x: np.ndarray) -> np.ndarray:
@@ -481,13 +551,13 @@ class Phaser(Effect):
             sweep = 0.5 + 0.5 * float(lfo[start:end].mean())
             fc = 300.0 * (8.0 ** (sweep * self.depth))  # 300 Hz .. 2.4 kHz
             g = (1.0 - np.tan(np.pi * fc / self.sr)) / (1.0 + np.tan(np.pi * fc / self.sr))
-            for ch in (0, 1):
-                seg = x[start:end, ch].astype(np.float64)
-                seg[0] += self.fb * self.last[ch]
-                for s in range(self.stages):
-                    seg, self.zi[ch][s] = lfilter([g, -1.0], [1.0, -g], seg, zi=self.zi[ch][s])
-                self.last[ch] = seg[-1]
-                out[start:end, ch] = seg
+            b, a = np.array([g, -1.0]), np.array([1.0, -g])
+            seg = x[start:end].astype(np.float64)
+            seg[0] += self.fb * self.last
+            for st in range(self.stages):
+                seg, self.zi[st] = lfilter(b, a, seg, axis=0, zi=self.zi[st])
+            self.last = seg[-1].copy()
+            out[start:end] = seg
         return (x * (1 - self.mix) + out * self.mix).astype(np.float32)
 
 
@@ -531,12 +601,16 @@ class Flanger(Effect):
             end = min(n, start + chunk)
             k = end - start
             d = self.base + self.depth * (1.0 + lfo[start:end])
-            p = self.pos + np.arange(k) - d
+            p = self.pos + _arange(k) - d
             i0 = np.floor(p).astype(int)
             fr = (p - i0)[:, None]
-            wet = self.buf[i0 % self.size] * (1 - fr) + self.buf[(i0 + 1) % self.size] * fr
-            widx = (self.pos + np.arange(k)) % self.size
-            self.buf[widx] = x[start:end] + wet * self.fb
+            i0 %= self.size
+            i1 = i0 + 1
+            i1[i1 == self.size] = 0
+            wet = self.buf[i0] * (1 - fr) + self.buf[i1] * fr
+            w = x[start:end] + wet * self.fb
+            for b0, b1, o0, o1 in _segments(self.pos, k, self.size):
+                self.buf[b0:b1] = w[o0:o1]
             out[start:end] = wet
             self.pos = (self.pos + k) % self.size
         return (x * (1 - self.mix) + out * self.mix).astype(np.float32)

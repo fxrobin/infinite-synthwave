@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import math
 import queue
+import threading
 from dataclasses import dataclass, field
 
 import numpy as np
@@ -14,7 +15,7 @@ from ..composer.arranger import LAYERS, TRACK_SECONDS, Arranger, BarPlan
 from ..composer.harmony import Harmony
 from ..composer.moods import MOODS
 from ..engine.d50 import D50Synth
-from ..engine.drums import DrumKit
+from ..engine.drums import DrumKit, prewarm_drums
 from ..engine.dx7 import Dx7Synth
 from ..engine.effects import Effect, Limiter, Sidechain, build_effects
 from ..engine.risers import RiserKit
@@ -148,6 +149,7 @@ class Renderer:
                 continue
             name = cfg.patches.get(layer, self.mood.patches.get(layer, DEFAULT_PATCHES[layer]))
             self._install(layer, name, load_patch(name))
+        self._prewarm_drum_kits()
         self.layer_volume = {layer: 1.0 for layer in LAYERS}
         self.muted: set[str] = set()
         self.solo: set[str] = set()
@@ -287,6 +289,34 @@ class Renderer:
             raise ValueError(f"unknown layer {layer!r}, choose from {LAYERS}")
         self._install(layer, name, load_patch(name))
         self.manual_patch.add(layer)
+
+    def _prewarm_drum_kits(self) -> None:
+        """Synthétise en tâche de fond les kits que l'arrangeur peut choisir.
+
+        Construire un kit coûte ~80 ms ; fait à la volée depuis le thread de rendu au
+        moment d'un changement de section, ça dépasse largement le budget d'un bloc et
+        coupe le son. Ici le travail est fait à part et le thread de rendu ne trouve
+        plus que des kits déjà en cache.
+        """
+        names: set[str] = set()
+        for mood in MOODS.values():
+            if mood.patches.get("drums"):
+                names.add(mood.patches["drums"])
+            names.update(getattr(mood, "pools", {}).get("drums", ()) or ())
+        names.add(DEFAULT_PATCHES["drums"])
+
+        def build() -> None:
+            patches = []
+            for name in sorted(names):
+                try:
+                    patch = load_patch(name)
+                except PatchError:
+                    continue  # un patch absent est signalé ailleurs, pas ici
+                if isinstance(patch, DrumPatchModel):
+                    patches.append(patch)
+            prewarm_drums(patches, self.sr)
+
+        threading.Thread(target=build, name="synthwave-drum-prewarm", daemon=True).start()
 
     def _apply_mood_patches(self) -> None:
         """Apply mood patches."""

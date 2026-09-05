@@ -70,6 +70,35 @@ Renderer.render(n) : draine la file de commandes, applique le BarPlan (gains, mo
 Player (audio/output.py) : thread producteur → queue → callback sounddevice (copie seule)
 ```
 
+### Budget temps réel
+
+Un bloc de 1024 échantillons doit être rendu en moins de 23,2 ms ; en pratique le rendu
+complet tient autour de 7–11 ms (30–45 % du budget). Ce qui casse la lecture, ce ne sont pas
+les moyennes mais les **pics** : toute construction d'objet faite depuis `render()` (donc sur
+le thread de rendu) se paie sur un seul bloc. Points sensibles, tous mis en cache :
+
+- `patches/loader.py` : le YAML décodé est mémorisé par (chemin, mtime, taille) — parser un
+  patch D-50 coûte ~5 ms, et `_apply_plan_mood` recharge des patches à chaque changement de
+  section. Éditer un fichier de patch en cours de lecture reste pris en compte.
+- `engine/drums.py` : les 13 frappes d'un kit (~80 ms, dominées par les gated reverbs) sont
+  mémorisées par contenu de patch ; leur bruit vient d'un RNG dérivé du patch, pas du RNG
+  partagé, donc le rendu reste déterministe que le cache soit chaud ou froid.
+  `Renderer._prewarm_drum_kits` les construit dans un thread de fond au démarrage.
+- `Player.DEFAULT_PREFILL` (16 blocs ≈ 370 ms) : marge d'avance qui absorbe un pic résiduel.
+  Le stream n'ouvre qu'une fois la file pleine.
+
+Pour mesurer, rendre hors-ligne en chronométrant chaque `render()` et regarder la médiane,
+le p99 et le **max** — un seul bloc à 100 ms s'entend, mille blocs à 12 ms non.
+
+### Écriture du DSP
+
+`engine/blocks.py` porte les utilitaires partagés par bloc : `arange`/`arange1` (rampes
+d'indices mises en cache), `segments` (fenêtre circulaire découpée en tranches contiguës,
+à préférer à `(pos + arange(k)) % size` — valable uniquement si `k <= size`) et `lfilter`
+(court-circuite la validation de scipy, ~10 µs par appel, avec repli automatique).
+Regrouper les appels `lfilter` quand c'est possible : les deux canaux d'un filtre en un
+seul appel `axis=0`, les huit peignes d'un reverb en un seul appel `axis=1`.
+
 Couches fixes : `LAYERS = drums, bass, arp, pad, lead, lead2, ambient, riser` (`composer/arranger.py`).
 `lead2` est la voix d'harmonie : le thème du lead transposé de −2/−5/−7 degrés diatoniques
 (`patterns.harmonize`), muet dès que le lead se tait.

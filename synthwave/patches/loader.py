@@ -7,6 +7,11 @@ from pathlib import Path
 import yaml
 from pydantic import ValidationError
 
+try:  # libyaml : ~10x plus rapide que le parseur Python pur
+    from yaml import CSafeLoader as _YamlLoader
+except ImportError:  # pragma: no cover - dépend du build de PyYAML
+    from yaml import SafeLoader as _YamlLoader
+
 from .model import (
     AnyPatch,
     D50PatchModel,
@@ -61,6 +66,39 @@ def _is_within_allowed_roots(resolved: Path) -> bool:
 
 class PatchError(Exception):
     """Patcherror."""
+
+
+# Le parse YAML d'un patch coûte de 1 à 20 ms (un D-50 est volumineux) et
+# `Renderer._apply_plan_mood` recharge des patches depuis le thread audio à chaque
+# changement de section : sans cache, ça dépasse le budget d'un bloc et provoque un
+# under-run. On mémorise le YAML décodé par (chemin, mtime, taille) — éditer un fichier
+# de patch pendant la lecture reste donc pris en compte — et on reconstruit un modèle
+# neuf à chaque appel (0,04 ms), pour qu'aucun appelant ne partage d'objet muté.
+_YAML_CACHE: dict[Path, tuple[int, int, object]] = {}
+_YAML_CACHE_MAX = 512
+
+
+def _load_yaml_cached(path: Path) -> object:
+    """Parsed YAML for *path*, reused while the file's mtime and size are unchanged."""
+    try:
+        st = path.stat()
+    except OSError as e:
+        raise PatchError(f"cannot read patch file {path}: {e}") from e
+    hit = _YAML_CACHE.get(path)
+    if hit is not None and hit[0] == st.st_mtime_ns and hit[1] == st.st_size:
+        return hit[2]
+    try:
+        text = path.read_text(encoding="utf-8")
+    except OSError as e:
+        raise PatchError(f"cannot read patch file {path}: {e}") from e
+    try:
+        data = yaml.load(text, Loader=_YamlLoader)
+    except yaml.YAMLError as e:
+        raise PatchError(f"invalid YAML in {path.name}: {e}") from e
+    if len(_YAML_CACHE) >= _YAML_CACHE_MAX:
+        _YAML_CACHE.clear()
+    _YAML_CACHE[path] = (st.st_mtime_ns, st.st_size, data)
+    return data
 
 
 def _dirs() -> list[Path]:
@@ -152,15 +190,7 @@ def load_patch(name_or_path: str) -> AnyPatch:
     else:
         path = _resolve_explicit_patch(name_or_path, path)
     resolved_final = _verify_patch_file(path)
-    try:
-        text = resolved_final.read_text(encoding="utf-8")
-    except OSError as e:
-        raise PatchError(f"cannot read patch file {path}: {e}") from e
-    try:
-        data = yaml.safe_load(text)
-    except yaml.YAMLError as e:
-        raise PatchError(f"invalid YAML in {path.name}: {e}") from e
-    return patch_from_dict(data)
+    return patch_from_dict(_load_yaml_cached(resolved_final))
 
 
 def set_param(patch: AnyPatch, path: str, value) -> AnyPatch:

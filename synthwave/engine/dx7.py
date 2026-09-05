@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
+import math
+
 import numpy as np
 
 from ..patches.model import Dx7PatchModel
+from .blocks import arange1
 from .envelope import ADSR
 from .voice import midi_to_hz
 
@@ -130,8 +133,8 @@ def _unpack_packed_voice(chunk: bytes, OpSpec, PatchModel, idx: int):
         detune = (chunk[base + 12] >> 3) & 0x0F  # 0..14
         # map to our simplified ratio/detune/level + keep DX7 EG
         # coarse+fine -> ratio approx (see dx7note.cc coarsemul)
-        ratio = 0.5 if coarse == 0 else float(
-            coarse if coarse < 16 else coarse - 14
+        ratio = (
+            0.5 if coarse == 0 else float(coarse if coarse < 16 else coarse - 14)
         )  # rough but preserves FM character
         if mode == 0 and fine:
             ratio *= 1.0 + fine * 0.01 * 0.5
@@ -201,6 +204,7 @@ def _dx7_eg_to_adsr(op) -> tuple[float, float, float, float]:
     """Map DX7 8-param R/L to ADSR approximation."""
     if op.eg_type != "dx7":
         return op.attack, op.decay, op.sustain, op.release
+
     # very rough: R1->attack, R2->decay, L3->sustain, R4->release
     # rates 0..99 -> time 3s .. 0.002s ; clamp 127 -> 99
     def rate_to_time(r: int) -> float:
@@ -217,10 +221,13 @@ def _dx7_eg_to_adsr(op) -> tuple[float, float, float, float]:
 class Dx7Operator:
     """Single DX7 operator state."""
 
-    def __init__(self, spec, sr: int):
+    def __init__(self, spec, sr: int, rng: np.random.Generator | None = None):
         self.spec = spec
         self.sr = sr
-        self.phase = float(np.random.uniform(0, 1))
+        # phase de départ tirée du RNG de la session : le RNG global de numpy cassait
+        # la reproductibilité « même seed => rendu bit-identique » dès qu'un patch dx7
+        # était joué.
+        self.phase = float((rng or np.random.default_rng()).uniform(0, 1))
         a, d, s, r = _dx7_eg_to_adsr(spec)
         self.env = ADSR(a, d, s, r, sr)
         # freq ratio + detune
@@ -247,7 +254,7 @@ class Dx7Voice:
         self.patch = patch
         self.sr = sr
         self.rng = rng
-        self.ops = [Dx7Operator(o, sr) for o in patch.operators]
+        self.ops = [Dx7Operator(o, sr, rng) for o in patch.operators]
         self.note = 60
         self.velocity = 0.0
         self.freq = 261.6
@@ -263,9 +270,7 @@ class Dx7Voice:
     @property
     def active(self) -> bool:
         return any(
-            not op.env.finished
-            for idx, op in enumerate(self.ops)
-            if is_carrier(self.alg, idx)
+            not op.env.finished for idx, op in enumerate(self.ops) if is_carrier(self.alg, idx)
         )
 
     def retune(self, patch: Dx7PatchModel) -> None:
@@ -292,7 +297,7 @@ class Dx7Voice:
 
     def render(self, n: int) -> np.ndarray:
         if self.glide_coef:
-            self.freq = self.target_freq + (self.freq - self.target_freq) * (self.glide_coef ** n)
+            self.freq = self.target_freq + (self.freq - self.target_freq) * (self.glide_coef**n)
         freq = self.freq
         alg_flags = ALGORITHMS[self.alg]
         # envelope arrays per op (n,)
@@ -331,21 +336,26 @@ class Dx7Voice:
             f = freq * ratio
             dt = f / self.sr
             # phase ramp
-            phases = (op.phase + dt * np.arange(1, n + 1)) % 1.0
+            phases = (op.phase + dt * arange1(n)) % 1.0
             op.phase = float(phases[-1] % 1.0)
             # input buffer
             if is_fb and self.fb_shift < 16:
                 # feedback — per-sample loop (single op per algo)
                 fb_scale = (1 << self.fb_shift) / 512.0 if self.fb_shift else 0.0
                 # actual DX7 feedback is op output feeding back, scaled
-                y = np.empty(n, dtype=np.float64)
+                # boucle par échantillon obligatoire (récursion), mais sur des float
+                # Python : np.sin scalaire et l'indexation ndarray coûtaient ~10x plus.
+                ph_l, env_l = phases.tolist(), env.tolist()
+                sin, two_pi = math.sin, 2 * np.pi
+                y_l = [0.0] * n
                 fb = self.fb_buf
                 for i in range(n):
                     # feedback uses previous output
                     mod = fb * fb_scale
-                    y[i] = np.sin(2 * np.pi * (phases[i] + mod)) * env[i]
-                    fb = y[i]
+                    fb = sin(two_pi * (ph_l[i] + mod)) * env_l[i]
+                    y_l[i] = fb
                 self.fb_buf = float(fb)
+                y = np.array(y_l, dtype=np.float64)
                 # output routing
                 if outbus == 0:
                     if is_add and has[0]:
